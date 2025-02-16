@@ -1,7 +1,14 @@
 var tileSet = document.createElement('img');
 tileSet.src = 'resources/tiles.png';
-var terrains = ['dungeon', 'stone', 'maze'];
-var playerTiles = ['human', 'dwarf', 'wizard', 'wizard2', 'thief', 'knight'];
+var terrains = ['dungeon', 'stone', 'maze', 'swamp', 'bricks', 'skulls'];
+var playerTiles = [
+  'warrior1',
+  'warrior2',
+  'warrior3',
+  'wizard1',
+  'wizard2',
+  'wizard3'
+];
 var gameTilemap = {
   //dungeon tiles
   dungeonwall: [0, 0],
@@ -28,11 +35,36 @@ var gameTilemap = {
   mazedooropen: [160, 64],
   mazestairdown: [192, 64],
   mazestairup: [224, 64],
+  swampwall: [0, 96],
+  swampwallhor: [32, 96],
+  swampfloor: [64, 96],
+  swampfloorrandom: [96, 96],
+  swampdoorclose: [128, 96],
+  swampdooropen: [160, 96],
+  swampstairdown: [192, 96],
+  swampstairup: [224, 96],
+  brickswall: [0, 128],
+  brickswallhor: [32, 128],
+  bricksfloor: [64, 128],
+  bricksfloorrandom: [96, 128],
+  bricksdoorclose: [128, 128],
+  bricksdooropen: [160, 128],
+  bricksstairdown: [192, 128],
+  bricksstairup: [224, 128],
+  skullswall: [0, 160],
+  skullswallhor: [32, 160],
+  skullsfloor: [64, 160],
+  skullsfloorrandom: [96, 160],
+  skullsdoorclose: [128, 160],
+  skullsdooropen: [160, 160],
+  skullsstairdown: [192, 160],
+  skullsstairup: [224, 160],
+
   //player tilkes
-  human: [288, 0],
-  dwarf: [256, 0],
-  wizard: [320, 0],
-  wizard2: [352, 0],
-  thief: [384, 0],
-  knight: [420, 0]
+  warrior1: [256, 0],
+  wizard1: [288, 0],
+  wizard2: [320, 0],
+  wizard3: [352, 0],
+  warrior2: [384, 0],
+  warrior3: [420, 0]
 };
