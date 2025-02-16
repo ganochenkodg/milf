@@ -1,7 +1,7 @@
 Game.map = {};
 
 function lightPasses(x, y) {
-  var level = Game.entity[0].Depth;
+  var level = Game.entity[0].depth;
   if (
     x > 0 &&
     x < Game.map[level].width &&
@@ -202,7 +202,7 @@ Game.generateMap = function (level) {
     tempentity = Game.EntityRepository.createRandom(level - 1, level + 1);
     tempentity.x = freeplace[0];
     tempentity.y = freeplace[1];
-    tempentity.Depth = level;
+    tempentity.depth = level;
     if (Math.random() * 100 < RareMobChance) {
       if (Math.random() * 100 < RareBossChance) {
         tempentity.randomize(3);
@@ -229,7 +229,7 @@ Game.clearTiles = function () {
 
 Game.drawMap = function () {
   Game.clearTiles();
-  var level = Game.entity[0].Depth;
+  var level = Game.entity[0].depth;
   for (let i = 0; i < Game.map[level].width; i++) {
     for (let j = 0; j < Game.map[level].height; j++) {
       let _color = '#000f';
@@ -271,7 +271,7 @@ Game.drawMap = function () {
   fov.compute(
     Game.entity[0].x,
     Game.entity[0].y,
-    Game.entity[0].Vision,
+    Game.entity[0].vision,
     function (x, y, r, visibility) {
       if (r > 9) {
         r = 9;
@@ -314,7 +314,7 @@ Game.drawMap = function () {
 Game.getCamera = function (x, y) {
   let xoffset = 0;
   let yoffset = 0;
-  var level = Game.entity[0].Depth;
+  var level = Game.entity[0].depth;
   if (Math.round(this.screenWidth / 2) - Game.entity[0].x - 1 > 0) {
     xoffset = Game.entity[0].x - Math.round(this.screenWidth / 2) + 1;
   }

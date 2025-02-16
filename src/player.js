@@ -4,26 +4,25 @@ Player = function (properties) {
   properties = properties || {};
   this.x = properties['x'];
   this.y = properties['y'];
-  this.Depth = 1;
-  this.Str = 5;
-  this.Int = 5;
-  this.Agi = 5;
-  this.Con = 5;
-  this.Minatk = 0;
-  this.Maxatk = 0;
-  this.Armor = 0;
-  this.Crit = 0;
-  this.religion = 10;
-  this.Player = true;
-  this.Maxhp = this.Con * 4;
-  this.Speed = 90;
-  this.Color = '#0000';
-  this.Maxmana = this.Int * 4;
-  this.Hp = this.Maxhp;
-  this.Mana = this.Maxmana;
+  this.depth = 1;
+  this.str = 5 + Math.floor(Math.random() * 3);
+  this.int = 5 + Math.floor(Math.random() * 3);
+  this.agi = 5 + Math.floor(Math.random() * 3);
+  this.con = 5 + Math.floor(Math.random() * 3);
+  this.minAtk = 1;
+  this.maxAtk = 2;
+  this.defense = Math.floor((this.agi + this.con) * 0.1);
+  this.piety = 10;
+  this.player = true;
+  this.maxHp = 50 + this.con * 6 + this.str * 3;
+  this.speed = 100;
+  this.color = '#0000';
+  this.maxMana = 30 + this.int * 8;
+  this.hp = this.maxHp;
+  this.mana = this.maxMana;
   this.name = Game.namegen();
-  this.Vision = 5;
-  this.Symbol = ROT.RNG.getItem(playerTiles);
+  this.vision = 5;
+  this.symbol = ROT.RNG.getItem(playerTiles);
   this.confuse = false;
   this.stun = false;
   this.summoned = false;
@@ -32,7 +31,7 @@ Player = function (properties) {
   this.affects = [];
   this.books = [];
   this.getSpeed = function () {
-    return this.Speed + this.Agi * 2;
+    return this.Speed + this.Agi * 0.5;
   };
 };
 
@@ -43,19 +42,19 @@ Player.prototype.move = function (newx, newy) {
 };
 
 Player.prototype.goDown = function () {
-  var stairloc = Game.getStairup(Game.entity[0].Depth + 1);
+  var stairloc = Game.getStairup(Game.entity[0].depth + 1);
   Game.entity[0].x = stairloc[0];
   Game.entity[0].y = stairloc[1];
-  Game.entity[0].Depth++;
-  //Game.messagebox.sendMessage('You went down the stairs.');
+  Game.entity[0].depth++;
+  Game.messageBox.sendMessage('You went down the stairs.');
 };
 
 Player.prototype.goUp = function () {
-  var stairloc = Game.getStairdown(Game.entity[0].Depth - 1);
+  var stairloc = Game.getStairdown(Game.entity[0].depth - 1);
   Game.entity[0].x = stairloc[0];
   Game.entity[0].y = stairloc[1];
-  Game.entity[0].Depth--;
-  //Game.messagebox.sendMessage('You went up the stairs.');
+  Game.entity[0].depth--;
+  Game.messageBox.sendMessage('You went up the stairs.');
 };
 
 Player.prototype.act = function () {
@@ -95,16 +94,16 @@ Player.prototype.Draw = function () {
     _hunger = '%c{lightgreen}Full';
   }
   */
-  let _color = Game.map[Game.entity[0].Depth].Tiles[this.x][this.y].Color;
+  let _color = Game.map[Game.entity[0].depth].Tiles[this.x][this.y].Color;
   Game.mainDisplay.draw(
     Game.getCamera(Game.entity[0].x, Game.entity[0].y)[0],
     Game.getCamera(Game.entity[0].x, Game.entity[0].y)[1],
     [
-      Game.map[Game.entity[0].Depth].Tiles[Game.entity[0].x][Game.entity[0].y]
+      Game.map[Game.entity[0].depth].Tiles[Game.entity[0].x][Game.entity[0].y]
         .Symbol,
-      Game.entity[0].Symbol
+      Game.entity[0].symbol
     ],
-    [_color, this.Color],
+    [_color, this.color],
     ['transparent', 'transparent']
   );
   /*var xoffset = Game.screenWidth * 4 - 27;
@@ -114,7 +113,7 @@ Player.prototype.Draw = function () {
   Game.messages.drawText(xoffset, 4, 'Con: %c{yellowgreen}' + Game.entity[0].Con + ' %c{}Agi: %c{wheat}' + Game.entity[0].Agi);
   Game.messages.drawText(xoffset, 5, 'Armor: %c{coral}' + (Math.floor(Game.entity[0].Agi / 4) + Game.entity[0].Armor) + ' %c{}Speed: %c{lightblue}' + this.getSpeed() + '%');
   Game.messages.drawText(xoffset, 6, 'Atk: %c{red}' + Math.floor(Game.entity[0].Str / 2 + Game.entity[0].Minatk) + ' - ' + (Game.entity[0].Str + Game.entity[0].Maxatk) + ' %c{}Crit: %c{lime}' + Math.min(95, (Game.entity[0].Crit + Math.floor(Game.entity[0].Agi / 2) + 2)) + '%');
-  Game.messages.drawText(xoffset, 11, 'Lvl: ' + Game.entity[0].Depth + ' x: ' + Game.entity[0].x + ' y: ' + Game.entity[0].y);
+  Game.messages.drawText(xoffset, 11, 'Lvl: ' + Game.entity[0].depth + ' x: ' + Game.entity[0].x + ' y: ' + Game.entity[0].y);
   let _piety = '%c{crimson}Nobody';
   if (Game.entity[0].religion > 20) {
     _piety = '%c{darksalmon}Noncommittal';
@@ -174,7 +173,7 @@ Player.prototype.Draw = function () {
 Player.prototype.handleEvent = function (e) {
   var newx = this.x;
   var newy = this.y;
-  var level = Game.entity[0].Depth;
+  var level = Game.entity[0].depth;
   var code = e.keyCode;
   var keyMap = {};
   keyMap[38] = 0;
@@ -324,14 +323,14 @@ Player.prototype.handleEvent = function (e) {
           Game.entity[0].godown();
           newx = this.x;
           newy = this.y;
-          level = Game.entity[0].Depth;
+          level = Game.entity[0].depth;
         }
         break;
       case 188:
         Game.entity[0].goup();
         newx = this.x;
         newy = this.y;
-        level = Game.entity[0].Depth;
+        level = Game.entity[0].depth;
         break;
       case 220:
         Game.pickupItem();
@@ -344,22 +343,26 @@ Player.prototype.handleEvent = function (e) {
         break;
       case 190:
         if (!Game.map[level].Tiles[newx][newy].Stairdown) {
-          //Game.messagebox.sendMessage('You cant go down there.');
-        } else {
-          if (typeof Game.map[level + 1] === 'undefined') {
-            Game.generateMap(level + 1);
-          }
-          Game.entity[0].goDown();
-          newx = this.x;
-          newy = this.y;
-          level = Game.entity[0].Depth;
+          Game.messageBox.sendMessage('You cant go down there.');
+          break;
         }
+        if (typeof Game.map[level + 1] === 'undefined') {
+          Game.generateMap(level + 1);
+        }
+        Game.entity[0].goDown();
+        newx = this.x;
+        newy = this.y;
+        level = Game.entity[0].depth;
         break;
       case 188:
+        if (!Game.map[level].Tiles[newx][newy].Stairup) {
+          Game.messageBox.sendMessage('You cant go up there.');
+          break;
+        }
         Game.entity[0].goUp();
         newx = this.x;
         newy = this.y;
-        level = Game.entity[0].Depth;
+        level = Game.entity[0].depth;
         break;
       default:
         return;
@@ -373,7 +376,7 @@ Player.prototype.handleEvent = function (e) {
     */
     if (Game.map[level].Tiles[newx][newy].Blocked) {
       if (Game.map[level].Tiles[newx][newy].Door) {
-        //Game.messagebox.sendMessage('You open the door.');
+        Game.messageBox.sendMessage('You opened the door.');
         Game.map[level].Tiles[newx][newy].Door = false;
         Game.map[level].Tiles[newx][newy].Symbol = Game.map[level].Tiles[newx][
           newy
@@ -381,7 +384,7 @@ Player.prototype.handleEvent = function (e) {
         Game.map[level].Tiles[newx][newy].Blocked = false;
         Game.map[level].Tiles[newx][newy].BlocksSight = false;
       } else {
-        //Game.messagebox.sendMessage('You cant walk here.');
+        Game.messageBox.sendMessage("You can't go there.");
       }
       newx = this.x;
       newy = this.y;

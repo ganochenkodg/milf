@@ -12,7 +12,10 @@ var mode = {
 var Game = {
   mainDisplay: null,
   messageDisplay: null,
+  messageBox: null,
   engine: null,
+  inventory: [],
+  skills: [],
   screenWidth: MapWidth,
   screenHeight: MapHeight,
   init: function () {
@@ -38,13 +41,13 @@ var Game = {
 
     this.messageDisplay = new ROT.Display({
       width: this.screenWidth * 4,
-      height: 14,
+      height: 16,
       fontSize: 13
     });
     document.body.appendChild(this.mainDisplay.getContainer());
     document.body.appendChild(this.messageDisplay.getContainer());
     this.generateMap(1);
-    //this.messagebox = new Game.MessageBox(Game.screenWidth * 4 - 30, 12);
+    this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 12);
     var freeplace = this.returnFree(Game.map[1]);
     let _player = new Player({
       x: freeplace[0],
@@ -75,12 +78,40 @@ var Game = {
 };
 
 Game.drawAll = function () {
-  //this.messages.clear();
+  this.messageDisplay.clear();
   this.drawMap();
   this.entity[0].Draw();
-  //this.drawBar();
+  this.drawBar();
   //this.drawEntities();
-  //this.messagebox.Draw();
+  this.messageBox.Draw();
+};
+
+Game.drawBar = function () {
+  for (let i = 0; i < 10; i++) {
+    Game.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
+    if (typeof Game.skills[i] === 'undefined') {
+      Game.mainDisplay.draw(i, Game.screenHeight, 'blanksquare');
+    }
+    //} else {
+    //  Game.display.draw(i, Game.screenHeight, ['whitesquare', Game.skills[i].Symbol], ['#0000', '#0000']);
+    //}
+  }
+  var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+  for (let i = 0; i < 10; i++) {
+    Game.messageDisplay.draw(
+      (i + Game.screenWidth - 10) * 4 + 2,
+      0,
+      letters[i],
+      'beige'
+    );
+    if (typeof Game.inventory[i] === 'undefined') {
+      Game.mainDisplay.draw(
+        i + Game.screenWidth - 10,
+        Game.screenHeight,
+        'blanksquare'
+      );
+    }
+  }
 };
 
 window.onload = function () {

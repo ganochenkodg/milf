@@ -59,7 +59,8 @@ var gameTilemap = {
   skullsdooropen: [160, 160],
   skullsstairdown: [192, 160],
   skullsstairup: [224, 160],
-
+  //ui
+  blanksquare: [0, 192],
   //player tilkes
   warrior1: [256, 0],
   wizard1: [288, 0],
