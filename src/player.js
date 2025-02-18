@@ -31,12 +31,18 @@ Player = function (properties) {
   this.affects = [];
   this.books = [];
   this.getSpeed = function () {
-    return this.Speed + this.Agi * 0.5;
+    return this.speed + this.agi * 0.5;
+  };
+  this.getMinAtk = function () {
+    return Math.floor(this.minAtk * (1 + this.str * 0.05));
+  };
+  this.getMaxAtk = function () {
+    return Math.floor(this.maxAtk * (1 + this.str * 0.05));
   };
 };
 
 Player.prototype.move = function (newx, newy) {
-  //if (this.crippled) return;
+  if (this.crippled) return;
   this.x = newx;
   this.y = newy;
 };
@@ -58,10 +64,9 @@ Player.prototype.goUp = function () {
 };
 
 Player.prototype.act = function () {
-  /*if (this.stun) {
+  if (this.stun) {
     return;
   }
-  */
   Game.engine.lock();
   //Game.entity[0].applyStats();
   /*
@@ -83,17 +88,6 @@ Player.prototype.act = function () {
 };
 
 Player.prototype.Draw = function () {
-  /*let _hunger = '%c{crimson}Exhausted';
-  if (Game.entity[0].Hunger > (Game.entity[0].Con * 12.5)) {
-    _hunger = '%c{darksalmon}Hungry';
-  }
-  if (Game.entity[0].Hunger > (Game.entity[0].Con * 25)) {
-    _hunger = '%c{#eeffee}Normal';
-  }
-  if (Game.entity[0].Hunger > (Game.entity[0].Con * 40)) {
-    _hunger = '%c{lightgreen}Full';
-  }
-  */
   let _color = Game.map[Game.entity[0].depth].Tiles[this.x][this.y].Color;
   Game.mainDisplay.draw(
     Game.getCamera(Game.entity[0].x, Game.entity[0].y)[0],
@@ -106,14 +100,64 @@ Player.prototype.Draw = function () {
     [_color, this.color],
     ['transparent', 'transparent']
   );
-  /*var xoffset = Game.screenWidth * 4 - 27;
-  Game.messages.drawText(xoffset, 1, 'Name: ' + Game.entity[0].name + '   ' + _hunger);
-  Game.messages.drawText(xoffset, 2, 'HP: %c{red}' + Game.entity[0].Hp + '/' + Game.entity[0].Maxhp + ' %c{}Mana: %c{blue}' + Game.entity[0].Mana + '/' + Game.entity[0].Maxmana);
-  Game.messages.drawText(xoffset, 3, 'Str: %c{gold}' + Game.entity[0].Str + ' %c{}Int: %c{turquoise}' + Game.entity[0].Int);
-  Game.messages.drawText(xoffset, 4, 'Con: %c{yellowgreen}' + Game.entity[0].Con + ' %c{}Agi: %c{wheat}' + Game.entity[0].Agi);
-  Game.messages.drawText(xoffset, 5, 'Armor: %c{coral}' + (Math.floor(Game.entity[0].Agi / 4) + Game.entity[0].Armor) + ' %c{}Speed: %c{lightblue}' + this.getSpeed() + '%');
-  Game.messages.drawText(xoffset, 6, 'Atk: %c{red}' + Math.floor(Game.entity[0].Str / 2 + Game.entity[0].Minatk) + ' - ' + (Game.entity[0].Str + Game.entity[0].Maxatk) + ' %c{}Crit: %c{lime}' + Math.min(95, (Game.entity[0].Crit + Math.floor(Game.entity[0].Agi / 2) + 2)) + '%');
-  Game.messages.drawText(xoffset, 11, 'Lvl: ' + Game.entity[0].depth + ' x: ' + Game.entity[0].x + ' y: ' + Game.entity[0].y);
+  var xoffset = Game.screenWidth * 4 - 30;
+  Game.messageDisplay.drawText(xoffset, 2, 'Name: ' + Game.entity[0].name);
+  Game.messageDisplay.drawText(
+    xoffset,
+    3,
+    'HP: %c{red}' +
+      Game.entity[0].hp +
+      '/' +
+      Game.entity[0].maxHp +
+      ' %c{}Mana: %c{blue}' +
+      Game.entity[0].mana +
+      '/' +
+      Game.entity[0].maxMana
+  );
+  Game.messageDisplay.drawText(
+    xoffset,
+    4,
+    'Str: %c{gold}' +
+      Game.entity[0].str +
+      ' %c{}Int: %c{turquoise}' +
+      Game.entity[0].int
+  );
+  Game.messageDisplay.drawText(
+    xoffset,
+    5,
+    'Con: %c{yellowgreen}' +
+      Game.entity[0].con +
+      ' %c{}Agi: %c{wheat}' +
+      Game.entity[0].agi
+  );
+  Game.messageDisplay.drawText(
+    xoffset,
+    6,
+    'Defense: %c{coral}' +
+      Game.entity[0].defense +
+      ' %c{}Speed: %c{lightblue}' +
+      this.getSpeed() +
+      '%'
+  );
+  Game.messageDisplay.drawText(
+    xoffset,
+    7,
+    'Atk: %c{red}' +
+      Game.entity[0].getMinAtk() +
+      ' - ' +
+      Game.entity[0].getMaxAtk()
+  );
+  Game.messageDisplay.drawText(
+    xoffset,
+    13,
+    'Lvl: ' +
+      Game.entity[0].depth +
+      ' x: ' +
+      Game.entity[0].x +
+      ' y: ' +
+      Game.entity[0].y
+  );
+  /*
   let _piety = '%c{crimson}Nobody';
   if (Game.entity[0].religion > 20) {
     _piety = '%c{darksalmon}Noncommittal';
@@ -367,13 +411,11 @@ Player.prototype.handleEvent = function (e) {
       default:
         return;
     }
-    /*
     if (this.confuse && Math.random() > 0.5) {
       let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
       newx = this.x + _confused[0];
       newy = this.y + _confused[1];
     }
-    */
     if (Game.map[level].Tiles[newx][newy].Blocked) {
       if (Game.map[level].Tiles[newx][newy].Door) {
         Game.messageBox.sendMessage('You opened the door.');
@@ -413,7 +455,6 @@ Player.prototype.handleEvent = function (e) {
     }
     */
     this.move(newx, newy);
-    //this.Hunger = Math.max(0, this.Hunger - 1);
     Game.drawAll();
     window.removeEventListener('keydown', this);
     Game.engine.unlock();
