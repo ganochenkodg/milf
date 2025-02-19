@@ -121,6 +121,31 @@ Game.GameMap = function (width, height, terrain, level) {
     this.Tiles[xloc][yloc].Symbol = terrain + 'stairup';
     this.Tiles[xloc][yloc].Stairup = true;
   }
+  //monsters
+  let tempEntity = null;
+  let freePlace = null;
+  let maxMon = Math.floor(Math.random() * level) * 2 + 15;
+  for (let i = 0; i < maxMon; i++) {
+    freePlace = Game.returnFree(this);
+    tempEntity = Game.EntityRepository.createRandom(level - 1, level + 1);
+    tempEntity.x = freePlace[0];
+    tempEntity.y = freePlace[1];
+    tempEntity.depth = level;
+    /*
+    if (Math.random() * 100 < RareMobChance) {
+      if (Math.random() * 100 < RareBossChance) {
+        tempentity.randomize(3);
+      } else {
+        tempentity.randomize(2);
+      }
+    }
+    */
+    this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
+    Game.entity.push(tempEntity);
+    if ('Actor' in Game.entity[Game.entity.length - 1].acts) {
+      scheduler.add(Game.entity[Game.entity.length - 1], true);
+    }
+  }
 };
 
 Game.returnFree = function (map) {

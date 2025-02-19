@@ -10,14 +10,14 @@ Player = function (properties) {
   this.agi = 5 + Math.floor(Math.random() * 3);
   this.con = 5 + Math.floor(Math.random() * 3);
   this.minAtk = 1;
-  this.maxAtk = 2;
+  this.maxAtk = 4;
   this.defense = Math.floor((this.agi + this.con) * 0.1);
   this.piety = 10;
   this.player = true;
-  this.maxHp = 50 + this.con * 6 + this.str * 3;
+  this.maxHp = 15 + this.con * 6 + this.str * 3;
   this.speed = 100;
   this.color = '#0000';
-  this.maxMana = 30 + this.int * 8;
+  this.maxMana = 10 + this.int * 8;
   this.hp = this.maxHp;
   this.mana = this.maxMana;
   this.name = Game.namegen();
@@ -69,21 +69,14 @@ Player.prototype.act = function () {
   }
   Game.engine.lock();
   //Game.entity[0].applyStats();
-  /*
-  if (
-    Game.entity[0].Hp < 1 ||
-    Game.entity[0].Agi < 1 ||
-    Game.entity[0].Str < 1 ||
-    Game.entity[0].Int < 1
-  ) {
-    Game.messagebox.sendMessage(
-      'Congratulations, you have died! Press %c{red}F5%c{} to start new game.'
+  if (Game.entity[0].hp < 1) {
+    Game.messageBox.sendMessage(
+      'You are dead! Press %c{red}F5%c{} to start new game.'
     );
     Game.drawAll();
     return;
   }
-  */
-  //this.doDie();
+  this.doDie();
   window.addEventListener('keydown', this);
 };
 
@@ -142,14 +135,14 @@ Player.prototype.Draw = function () {
   Game.messageDisplay.drawText(
     xoffset,
     7,
-    'Atk: %c{red}' +
+    'Attack: %c{red}' +
       Game.entity[0].getMinAtk() +
       ' - ' +
       Game.entity[0].getMaxAtk()
   );
   Game.messageDisplay.drawText(
     xoffset,
-    13,
+    14,
     'Lvl: ' +
       Game.entity[0].depth +
       ' x: ' +
@@ -157,61 +150,97 @@ Player.prototype.Draw = function () {
       ' y: ' +
       Game.entity[0].y
   );
-  /*
-  let _piety = '%c{crimson}Nobody';
+
+  let _piety = 'Piety: %c{crimson}';
   if (Game.entity[0].religion > 20) {
-    _piety = '%c{darksalmon}Noncommittal';
+    _piety = 'Piety: %c{darksalmon}';
   }
   if (Game.entity[0].religion > 40) {
-    _piety = '%c{lightsalmon}Noted your presence';
+    _piety = 'Piety: %c{lightsalmon}';
   }
   if (Game.entity[0].religion > 80) {
-    _piety = '%c{peachpuff}Pleased';
+    _piety = 'Piety: %c{peachpuff}';
   }
   if (Game.entity[0].religion > 150) {
-    _piety = '%c{lightyellow}Most pleased';
+    _piety = 'Piety: %c{lightyellow}';
   }
   if (Game.entity[0].religion > 220) {
-    _piety = '%c{AntiqueWhite}Rising star';
+    _piety = 'Piety: %c{AntiqueWhite}';
   }
   if (Game.entity[0].religion > 300) {
-    _piety = '%c{ivory}Shining star';
+    _piety = 'Piety: %c{ivory}';
   }
   if (Game.entity[0].religion > 400) {
-    _piety = '%c{white}Chosen one';
+    _piety = 'Piety: %c{white}';
   }
-  Game.messages.drawText(xoffset, 12, 'Piety: ' + _piety);
+  Game.messageDisplay.drawText(xoffset, 10, _piety + Game.entity[0].piety);
   var item = null;
-  if (typeof Game.entity[0].equipment.righthand === 'undefined') {
+  if (typeof Game.entity[0].equipment.weapon === 'undefined') {
     item = '-';
   } else {
-    item = Game.entity[0].equipment.righthand.name;
+    item = Game.entity[0].equipment.weapon.name;
   }
-  Game.messages.drawText(xoffset, 7, 'R. hand: ' + item);
-  if (typeof Game.entity[0].equipment.lefthand === 'undefined') {
+  Game.messageDisplay.drawText(xoffset, 8, 'Weapon: ' + item);
+  if (typeof Game.entity[0].equipment.armor === 'undefined') {
     item = '-';
   } else {
-    item = Game.entity[0].equipment.lefthand.name;
+    item = Game.entity[0].equipment.armor;
   }
-  Game.messages.drawText(xoffset, 8, 'L. hand: ' + item);
-  if (typeof Game.entity[0].equipment.body === 'undefined') {
-    item = '-';
-  } else {
-    item = Game.entity[0].equipment.body.name;
-  }
-  Game.messages.drawText(xoffset, 9, 'Body:    ' + item);
-  if (typeof Game.entity[0].equipment.neck === 'undefined') {
-    item = '-';
-  } else {
-    item = Game.entity[0].equipment.neck.name;
-  }
-  Game.messages.drawText(xoffset, 10, 'Neck:    ' + item);
+  Game.messageDisplay.drawText(xoffset, 9, 'Armor: ' + item);
+  /*
   if (Game.entity[0].affects.length > 0) {
     for (let i = 0; i < Game.entity[0].affects.length; i++) {
       Game.display.draw(Game.screenWidth - 1, i, ['whitesquare', Game.entity[0].affects[i].Symbol], ['#0000', '#0000']);
     }
   }
   */
+};
+
+Player.prototype.doGetDamage = function (dmg) {
+  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  this.hp -= dmg;
+  return dmg;
+};
+
+Player.prototype.doAttack = function (x, y) {
+  for (let i = 0; i < Game.entity.length; i++) {
+    if (
+      Game.entity[i].x == x &&
+      Game.entity[i].y == y &&
+      Game.entity[i].depth == Game.entity[0].depth
+    ) {
+      let dmg =
+        this.getMinAtk() +
+        Math.floor(Math.random() * (this.getMaxAtk() - this.getMinAtk()));
+      let _color = '%c{}';
+      if (Math.random() < 0.05) {
+        dmg = dmg * 2;
+        _color = '%c{lime}';
+      }
+      /*
+      if (Game.entity[i].summoned) {
+        let tmpx = this.x;
+        let tmpy = this.y;
+        this.x = Game.entity[i].x;
+        this.y = Game.entity[i].y;
+        Game.entity[i].Move(tmpx, tmpy);
+      } else {
+      */
+      let result = Game.entity[i].doGetDamage(dmg);
+      Game.messageBox.sendMessage(
+        'You hits ' +
+          Game.entity[i].name +
+          ' for ' +
+          _color +
+          result +
+          ' %c{}damage.'
+      );
+      Game.entity[i].doDie();
+      // }
+      Game.drawMap();
+      Game.drawEntities();
+    }
+  }
 };
 
 Player.prototype.handleEvent = function (e) {
@@ -431,12 +460,12 @@ Player.prototype.handleEvent = function (e) {
       newx = this.x;
       newy = this.y;
     }
-    /*
     if (Game.map[level].Tiles[newx][newy].Mob) {
       this.doAttack(newx, newy);
       newx = this.x;
       newy = this.y;
     }
+    /*
     if (typeof Game.map[level].Tiles[newx][newy].items[0] !== 'undefined') {
       if (this.x != newx || this.y != newy) {
         var itemname = Game.map[level].Tiles[newx][newy].items[0].name;
@@ -460,3 +489,5 @@ Player.prototype.handleEvent = function (e) {
     Game.engine.unlock();
   }
 };
+
+Player.prototype.doDie = function () {};

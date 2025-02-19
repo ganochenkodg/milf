@@ -60,7 +60,23 @@ var gameTilemap = {
   skullsstairdown: [192, 160],
   skullsstairup: [224, 160],
   //ui
+  hp1: [256, 64],
+  hp2: [288, 64],
+  hp3: [320, 64],
+  hp4: [352, 64],
+  hp5: [384, 64],
+  hp6: [416, 64],
+  hp7: [448, 64],
+  hp8: [480, 64],
   blanksquare: [0, 192],
+  //enemies
+  dog: [0, 224],
+  puppy: [32, 224],
+  hyena: [64, 224],
+  fox: [96, 224],
+  jackal: [128, 224],
+  coyote: [160, 224],
+  wolf: [192, 224],
   //player tilkes
   warrior1: [256, 0],
   wizard1: [288, 0],
