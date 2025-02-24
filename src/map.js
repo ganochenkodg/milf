@@ -128,6 +128,7 @@ Game.GameMap = function (width, height, terrain, level) {
   for (let i = 0; i < maxMon; i++) {
     freePlace = Game.returnFree(this);
     tempEntity = Game.EntityRepository.createRandom(level - 1, level + 1);
+    //tempEntity = Game.EntityRepository.create('animal', '1');
     tempEntity.x = freePlace[0];
     tempEntity.y = freePlace[1];
     tempEntity.depth = level;

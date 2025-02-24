@@ -119,54 +119,38 @@ Game.Repository = function (name, ctor) {
 };
 
 // Define a new named template.
-Game.Repository.prototype.define = function (name, template, options) {
+Game.Repository.prototype.define = function (name, template) {
   this._templates[name] = template;
-  // Apply any options
-  var disableRandomCreation = options && options['disableRandomCreation'];
-  if (!disableRandomCreation) {
-    this._randomTemplates[name] = template;
-  }
 };
 
 // Create an object based on a template.
-Game.Repository.prototype.create = function (name, extraProperties) {
+Game.Repository.prototype.create = function (name, level) {
   if (!this._templates[name]) {
     throw new Error(
       "No template named '" + name + "' in repository '" + this._name + "'"
     );
   }
-  // ебаное наследование объектов в js
-  let tmptemplate = Object.create(this._templates[name]);
-  var template = tmptemplate;
-  if (typeof template.options !== 'undefined') {
-    template.options = JSON.parse(JSON.stringify(tmptemplate.options));
-  }
-  if (typeof template.skills !== 'undefined') {
-    template.skills = JSON.parse(JSON.stringify(tmptemplate.skills));
-  }
-  // Apply any extra properties
-  if (extraProperties) {
-    for (var key in extraProperties) {
-      template[key] = extraProperties[key];
-    }
-  }
-  // Create the object, passing the template as an argument
+  let template = new this._templates[name](level);
   return new this._ctor(template);
 };
 
 // Create an object based on a random template
 Game.Repository.prototype.createRandom = function (minlvl, maxlvl) {
-  var keys = Object.keys(this._randomTemplates);
-  var result = this.create(keys[(keys.length * Math.random()) << 0]);
+  var keys = Object.keys(this._templates);
+  var result = this.create(
+    keys[(keys.length * Math.random()) << 0],
+    minlvl + Math.floor(Math.random() * (maxlvl - minlvl))
+  );
   var iterator = 0;
-  if (typeof minlvl !== 'undefined' && typeof maxlvl !== 'undefined') {
-    while (result.level < minlvl || result.level > maxlvl) {
-      iterator++;
-      result = this.create(keys[(keys.length * Math.random()) << 0]);
-      //exit from eternal loop
-      if (iterator > 100) {
-        return result;
-      }
+  while (result.maxLvl < minlvl || result.minLvl > maxlvl) {
+    iterator++;
+    result = this.create(
+      keys[(keys.length * Math.random()) << 0],
+      minlvl + Math.floor(Math.random() * (maxlvl - minlvl))
+    );
+    //exit from eternal loop
+    if (iterator > 50) {
+      return result;
     }
   }
   return result;

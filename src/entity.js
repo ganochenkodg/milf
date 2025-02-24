@@ -302,6 +302,7 @@ Game.drawEntities = function () {
 
 Game.EntityRepository = new Game.Repository('entities', Entity);
 
+/*
 Game.EntityRepository.define('wolf', {
   name: 'wolf',
   symbol: 'wolf',
@@ -311,4 +312,32 @@ Game.EntityRepository.define('wolf', {
     Attack: true,
     Actor: true
   }
+});
+*/
+
+Game.EntityRepository.define('animal', function (level) {
+  this.minLvl = 0;
+  this.maxLvl = 10;
+  this.level = level;
+  this.randomName = ROT.RNG.getItem([
+    'dog',
+    'puppy',
+    'hyena',
+    'fox',
+    'jackal',
+    'coyote',
+    'wolf'
+  ]);
+  this.name = this.randomName + '(' + level + ')';
+  this.str = 1 + Math.floor(Math.random() * level * 2);
+  this.agi = 1 + Math.floor(Math.random() * level * 2);
+  this.int = 1 + Math.floor(Math.random() * level * 2);
+  this.con = 1 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true
+  };
+  this.symbol = this.randomName;
 });
