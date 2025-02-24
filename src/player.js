@@ -342,6 +342,24 @@ Player.prototype.handleEvent = function (e) {
         Game.printhelp();
         break;
         */
+      case 13:
+        if (Game.map[level].Tiles[newx][newy].Stairdown) {
+          if (typeof Game.map[level + 1] === 'undefined') {
+            Game.generateMap(level + 1);
+          }
+          Game.entity[0].goDown();
+          newx = this.x;
+          newy = this.y;
+          level = Game.entity[0].depth;
+          break;
+        }
+        if (Game.map[level].Tiles[newx][newy].Stairup) {
+          Game.entity[0].goUp();
+          newx = this.x;
+          newy = this.y;
+          level = Game.entity[0].depth;
+          break;
+        }
       case 33:
       case 34:
       case 35:
@@ -413,29 +431,6 @@ Player.prototype.handleEvent = function (e) {
       case 90:
         newx = this.x;
         newy = this.y;
-        break;
-      case 190:
-        if (!Game.map[level].Tiles[newx][newy].Stairdown) {
-          Game.messageBox.sendMessage('You cant go down there.');
-          break;
-        }
-        if (typeof Game.map[level + 1] === 'undefined') {
-          Game.generateMap(level + 1);
-        }
-        Game.entity[0].goDown();
-        newx = this.x;
-        newy = this.y;
-        level = Game.entity[0].depth;
-        break;
-      case 188:
-        if (!Game.map[level].Tiles[newx][newy].Stairup) {
-          Game.messageBox.sendMessage('You cant go up there.');
-          break;
-        }
-        Game.entity[0].goUp();
-        newx = this.x;
-        newy = this.y;
-        level = Game.entity[0].depth;
         break;
       default:
         return;

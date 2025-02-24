@@ -55,12 +55,12 @@ var Game = {
     });
     Game.entity.unshift(_player);
     scheduler.add(Game.entity[0], true);
+    this.hpRegen = new Hpregen();
+    this.manaRegen = new Manaregen();
+    //this.checkaffects = new AffectsCheck();
+    scheduler.add(this.hpRegen, true);
+    scheduler.add(this.manaRegen, true);
     /*
-    this.hpregen = new Hpregen();
-    this.manaregen = new Manaregen();
-    this.checkaffects = new AffectsCheck();
-    scheduler.add(this.hpregen, true);
-    scheduler.add(this.manaregen, true);
     scheduler.add(Game.entity[0], true);
     scheduler.add(this.checkaffects, true);
     let newitem = {};
@@ -74,6 +74,40 @@ var Game = {
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
+  }
+};
+
+Hpregen = function () {
+  this.getSpeed = () => {
+    return 15;
+  };
+};
+
+Hpregen.prototype.act = function () {
+  for (let i = 0; i < Game.entity.length; i++) {
+    let addHp =
+      1 +
+      Math.floor(Game.entity[i].maxHp / 100) +
+      Math.floor(Game.entity[i].con / 5);
+    Game.entity[i].hp += addHp;
+    Game.entity[i].hp = Math.min(Game.entity[i].hp, Game.entity[i].maxHp);
+  }
+};
+
+Manaregen = function () {
+  this.getSpeed = () => {
+    return 15;
+  };
+};
+
+Manaregen.prototype.act = function () {
+  for (let i = 0; i < Game.entity.length; i++) {
+    let addMana =
+      1 +
+      Math.floor(Game.entity[i].maxMana / 100) +
+      Math.floor(Game.entity[i].int / 7);
+    Game.entity[i].mana += addMana;
+    Game.entity[i].mana = Math.min(Game.entity[i].mana, Game.entity[i].maxMana);
   }
 };
 
