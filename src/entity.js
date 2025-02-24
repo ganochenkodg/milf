@@ -316,10 +316,10 @@ Game.EntityRepository.define('wolf', {
 */
 
 Game.EntityRepository.define('animal', function (level) {
-  this.minLvl = 0;
+  this.minLvl = 1;
   this.maxLvl = 10;
   this.level = level;
-  this.randomName = ROT.RNG.getItem([
+  this.name = ROT.RNG.getItem([
     'dog',
     'puppy',
     'hyena',
@@ -328,16 +328,15 @@ Game.EntityRepository.define('animal', function (level) {
     'coyote',
     'wolf'
   ]);
-  this.name = this.randomName + '(' + level + ')';
   this.str = 1 + Math.floor(Math.random() * level * 2);
   this.agi = 1 + Math.floor(Math.random() * level * 2);
   this.int = 1 + Math.floor(Math.random() * level * 2);
   this.con = 1 + Math.floor(Math.random() * level * 2);
-  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
   this.acts = {
     Hunt: true,
     Attack: true,
     Actor: true
   };
-  this.symbol = this.randomName;
+  this.symbol = this.name;
 });
