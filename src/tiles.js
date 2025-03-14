@@ -1,7 +1,7 @@
 var tileSet = document.createElement('img');
 tileSet.src = 'resources/tiles.png';
-var terrains = ['dungeon', 'stone', 'maze', 'swamp', 'bricks', 'skulls'];
-var playerTiles = [
+const terrains = ['dungeon', 'stone', 'maze', 'swamp', 'bricks', 'skulls'];
+const playerTiles = [
   'warrior1',
   'warrior2',
   'warrior3',
@@ -9,7 +9,7 @@ var playerTiles = [
   'wizard2',
   'wizard3'
 ];
-var gameTilemap = {
+const gameTilemap = {
   //dungeon tiles
   dungeonwall: [0, 0],
   dungeonwallhor: [32, 0],
@@ -77,7 +77,7 @@ var gameTilemap = {
   jackal: [128, 224],
   coyote: [160, 224],
   wolf: [192, 224],
-  //player tilkes
+  //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
   wizard2: [320, 0],

@@ -302,19 +302,6 @@ Game.drawEntities = function () {
 
 Game.EntityRepository = new Game.Repository('entities', Entity);
 
-/*
-Game.EntityRepository.define('wolf', {
-  name: 'wolf',
-  symbol: 'wolf',
-  maxAtk: 8,
-  acts: {
-    Hunt: true,
-    Attack: true,
-    Actor: true
-  }
-});
-*/
-
 Game.EntityRepository.define('animal', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
