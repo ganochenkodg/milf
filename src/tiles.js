@@ -69,6 +69,10 @@ const gameTilemap = {
   hp7: [448, 64],
   hp8: [480, 64],
   blanksquare: [0, 192],
+  bluesquare: [32, 192],
+  redsquare: [64, 192],
+  greensquare: [96, 192],
+
   //enemies
   dog: [0, 224],
   puppy: [32, 224],
@@ -83,5 +87,30 @@ const gameTilemap = {
   wizard2: [320, 0],
   wizard3: [352, 0],
   warrior2: [384, 0],
-  warrior3: [420, 0]
+  warrior3: [420, 0],
+  //weapon tiles
+  sword1: [0, 256],
+  sword2: [32, 256],
+  sword3: [64, 256],
+  sword4: [96, 256],
+  sword5: [128, 256],
+  sword6: [160, 256],
+  sword7: [0, 288],
+  sword8: [32, 288],
+  sword9: [64, 288],
+  sword10: [96, 288],
+  sword11: [128, 288],
+  sword12: [160, 288],
+  staff1: [0, 320],
+  staff2: [32, 320],
+  staff3: [64, 320],
+  staff4: [96, 320],
+  staff5: [128, 320],
+  staff6: [160, 320],
+  staff7: [0, 352],
+  staff8: [32, 352],
+  staff9: [64, 352],
+  staff10: [96, 352],
+  staff11: [128, 352],
+  staff12: [160, 352]
 };

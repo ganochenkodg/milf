@@ -152,27 +152,6 @@ Player.prototype.Draw = function () {
   );
 
   let _piety = 'Piety: %c{crimson}';
-  if (Game.entity[0].religion > 20) {
-    _piety = 'Piety: %c{darksalmon}';
-  }
-  if (Game.entity[0].religion > 40) {
-    _piety = 'Piety: %c{lightsalmon}';
-  }
-  if (Game.entity[0].religion > 80) {
-    _piety = 'Piety: %c{peachpuff}';
-  }
-  if (Game.entity[0].religion > 150) {
-    _piety = 'Piety: %c{lightyellow}';
-  }
-  if (Game.entity[0].religion > 220) {
-    _piety = 'Piety: %c{AntiqueWhite}';
-  }
-  if (Game.entity[0].religion > 300) {
-    _piety = 'Piety: %c{ivory}';
-  }
-  if (Game.entity[0].religion > 400) {
-    _piety = 'Piety: %c{white}';
-  }
   Game.messageDisplay.drawText(xoffset, 10, _piety + Game.entity[0].piety);
   var item = null;
   if (typeof Game.entity[0].equipment.weapon === 'undefined') {

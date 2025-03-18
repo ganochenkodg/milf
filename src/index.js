@@ -16,8 +16,8 @@ var Game = {
   engine: null,
   inventory: [],
   skills: [],
-  screenWidth: MapWidth,
-  screenHeight: MapHeight,
+  screenWidth: mapWidth,
+  screenHeight: mapHeight,
   init: function () {
     if (this.screenWidth < 25) {
       this.screenWidth = 25;
@@ -68,9 +68,10 @@ var Game = {
       newitem = Game.ItemRepository.createRandom(1,1);
       Game.inventory.push(newitem);
     }
-//    newitem = Game.ItemRepository.create('giantsword');
-//    Game.inventory.push(newitem);
     */
+    let _newitem = Game.ItemRepository.create('novicesword', 1);
+    Game.inventory.push(_newitem);
+    console.log(_newitem);
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
@@ -188,6 +189,19 @@ Game.drawBar = function () {
         i + Game.screenWidth - 10,
         Game.screenHeight,
         'blanksquare'
+      );
+    } else {
+      if (Game.inventory[i].isEquipped()) {
+        _color = 'green';
+      } else {
+        _color = 'red';
+      }
+      Game.mainDisplay.draw(
+        i + Game.screenWidth - 10,
+        Game.screenHeight,
+        [_color + 'square', Game.inventory[i].symbol],
+        ['#0000', Game.inventory[i].color],
+        ['#0000', '#0000']
       );
     }
   }

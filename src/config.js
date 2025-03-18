@@ -1,8 +1,4 @@
-var MapWidth = 25;
-var MapHeight = 13;
-//chance of rare monster, %
-//var RareMobChance = 5;
-//chance that rare becomes a boss
-//var RareBossChance = 20;
-//default chance of rare item
-//var RareItemDefaultChance = 5;
+var mapWidth = 25;
+var mapHeight = 13;
+var rareMobChance = 0.05;
+var rareItemChance = 0.1;

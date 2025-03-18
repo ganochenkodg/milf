@@ -84,6 +84,8 @@ Entity.prototype.doDie = function () {
     } else {
       Game.messageBox.sendMessage('The ' + this.name + ' destroyed.');
     }
+    Game.entity[0].piety +=
+      this.level + Math.floor(Math.random() * this.level * 0.5);
     scheduler.remove(this);
     /*
     if (this.savecorpse && !this.summoned) {
