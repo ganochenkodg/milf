@@ -276,7 +276,7 @@ Game.drawMap = function () {
             yco,
             [
               Game.map[level].Tiles[i][j].Symbol,
-              Game.map[level].Tiles[i][j].items[0].Symbol
+              Game.map[level].Tiles[i][j].items[0].symbol
             ],
             ['#0000', _color]
           );
@@ -317,7 +317,7 @@ Game.drawMap = function () {
             yco,
             [
               Game.map[level].Tiles[x][y].Symbol,
-              Game.map[level].Tiles[x][y].items[0].Symbol
+              Game.map[level].Tiles[x][y].items[0].symbol
             ],
             ['#0000', _color]
           );

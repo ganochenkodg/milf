@@ -214,7 +214,7 @@ Player.prototype.doAttack = function (x, y) {
       */
       let result = Game.entity[i].doGetDamage(dmg);
       Game.messageBox.sendMessage(
-        'You hits ' +
+        'You hit ' +
           Game.entity[i].name +
           ' for ' +
           _color +
@@ -291,6 +291,7 @@ Player.prototype.handleEvent = function (e) {
     }
     return;
   }
+  */
 
   if (mode.mode == 'item') {
     switch (code) {
@@ -309,7 +310,7 @@ Player.prototype.handleEvent = function (e) {
       case 27:
         break;
       default:
-        Game.messagebox.sendMessage('You cant do this.');
+        Game.messageBox.sendMessage("You can't do this.");
     }
     mode.mode = 'play';
     Game.drawAll();
@@ -317,7 +318,7 @@ Player.prototype.handleEvent = function (e) {
     Game.engine.unlock();
     return;
   }
-  */
+
   if (mode.mode == 'play') {
     switch (code) {
       /*
@@ -329,6 +330,7 @@ Player.prototype.handleEvent = function (e) {
         break;
         */
       case 13:
+        Game.pickupItem();
         if (Game.map[level].Tiles[newx][newy].Stairdown) {
           if (typeof Game.map[level + 1] === 'undefined') {
             Game.generateMap(level + 1);
@@ -344,8 +346,8 @@ Player.prototype.handleEvent = function (e) {
           newx = this.x;
           newy = this.y;
           level = Game.entity[0].depth;
-          break;
         }
+        break;
       case 33:
       case 34:
       case 35:

@@ -1,7 +1,7 @@
 var scheduler = new ROT.Scheduler.Speed();
 var mode = {
   mode: 'play',
-  chosenitem: -1,
+  chosenItem: -1,
   chosenskill: -1,
   skillmap: null,
   skillx: -1,
@@ -71,7 +71,6 @@ var Game = {
     */
     let _newitem = Game.ItemRepository.create('novicesword', 1);
     Game.inventory.push(_newitem);
-    console.log(_newitem);
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();

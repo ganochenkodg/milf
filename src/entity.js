@@ -150,7 +150,7 @@ Entity.prototype.doAttack = function (targetNum) {
         Game.messageBox.sendMessage(
           'The ' +
             this.name +
-            ' hits ' +
+            'is confused and hits ' +
             Game.entity[i].name +
             ' for ' +
             _color +
@@ -166,7 +166,7 @@ Entity.prototype.doAttack = function (targetNum) {
       'The ' +
         this.name +
         ' hits ' +
-        Game.entity[targetNum].name +
+        (targetNum == 0 ? 'you' : Game.entity[targetNum].name) +
         ' for ' +
         _color +
         result +
