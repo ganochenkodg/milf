@@ -176,7 +176,7 @@ Game.drawBar = function () {
     //  Game.display.draw(i, Game.screenHeight, ['whitesquare', Game.skills[i].Symbol], ['#0000', '#0000']);
     //}
   }
-  var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+  const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
   for (let i = 0; i < 10; i++) {
     Game.messageDisplay.draw(
       (i + Game.screenWidth - 10) * 4 + 2,

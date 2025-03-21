@@ -22,6 +22,63 @@ Item.prototype.isEquipped = function () {
   return false;
 };
 
+Game.chooseItem = function (num) {
+  const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+  if (typeof Game.inventory[num] === 'undefined') {
+    Game.messagebox.sendMessage(
+      "You don't have any item in the slot [" + letters[num] + '].'
+    );
+    Game.drawAll();
+    window.removeEventListener('keydown', this);
+    Game.engine.unlock();
+    return;
+  }
+  Game.messages.clear();
+  Game.messageDisplay.draw(
+    (num + Game.screenWidth - 10) * 4 + 2,
+    0,
+    letters[num],
+    '#0f0'
+  );
+
+  Game.messages.drawText(1, 4, 'You see the ' + Game.inventory[num].name + ':');
+  var iterator = 4;
+  for (let [key, value] of Object.entries(Game.inventory[num].options)) {
+    iterator++;
+    Game.messages.drawText(1, iterator, `${key}: ${value}`);
+  }
+  if (typeof Game.inventory[num].skills !== 'undefined') {
+    for (let [key, value] of Object.entries(Game.inventory[num].skills)) {
+      iterator++;
+      Game.messages.drawText(1, iterator, `${key}: (${value})`);
+    }
+  }
+  Game.messages.drawText(1, iterator + 1, 'd) Drop');
+  var itemtype = Game.inventory[num].type;
+  if (itemtype == 'food') {
+    Game.messages.drawText(1, iterator + 2, 'e) Eat');
+  }
+  if (itemtype == 'potion') {
+    Game.messages.drawText(1, iterator + 2, 'e) Drink');
+  }
+  if (
+    itemtype == 'weapon' ||
+    itemtype == 'armor' ||
+    itemtype == 'amulet' ||
+    itemtype == 'book'
+  ) {
+    if (Game.inventory[num].isEquipped()) {
+      Game.messages.drawText(1, iterator + 2, 'e) Unquip');
+    } else {
+      Game.messages.drawText(1, iterator + 2, 'e) Equip');
+    }
+  }
+  Game.messages.drawText(1, iterator + 3, 's) Sacrifice');
+  Game.entity[0].Draw();
+  mode.mode = 'item';
+  mode.chosenitem = num;
+};
+
 Game.ItemRepository = new Game.Repository('items', Item);
 
 Game.ItemRepository.define('novicesword', function (level) {

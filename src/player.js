@@ -41,6 +41,13 @@ Player = function (properties) {
   };
 };
 
+Player.prototype.applyStats = function () {
+  this.maxHp = 15 + this.con * 6 + this.str * 3;
+  this.maxMana = 10 + this.int * 8;
+  this.hp = Math.min(this.hp, this.maxHp);
+  this.mana = Math.min(this.mana, this.maxMana);
+};
+
 Player.prototype.move = function (newx, newy) {
   if (this.crippled) return;
   this.x = newx;
@@ -364,6 +371,7 @@ Player.prototype.handleEvent = function (e) {
         Game.chooseSkill(code - 49);
         return;
         break;
+        */
       case 65:
       case 66:
       case 67:
@@ -374,15 +382,10 @@ Player.prototype.handleEvent = function (e) {
       case 72:
       case 73:
       case 74:
-      case 75:
-      case 76:
-      case 77:
-      case 78:
-      case 79:
-      case 80:
         Game.chooseItem(code - 65);
         return;
         break;
+      /*
       case 190:
         if (!Game.map[level].Tiles[newx][newy].Stairdown) {
           Game.messagebox.sendMessage('You cant go down there.');
