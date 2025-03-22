@@ -214,7 +214,7 @@ Player.prototype.doAttack = function (x, y) {
       */
       let result = Game.entity[i].doGetDamage(dmg);
       Game.messageBox.sendMessage(
-        'You hit ' +
+        'You hit the ' +
           Game.entity[i].name +
           ' for ' +
           _color +

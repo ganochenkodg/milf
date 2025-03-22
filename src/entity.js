@@ -166,7 +166,7 @@ Entity.prototype.doAttack = function (targetNum) {
       'The ' +
         this.name +
         ' hits ' +
-        (targetNum == 0 ? 'you' : Game.entity[targetNum].name) +
+        (targetNum == 0 ? 'you' : 'the ' + Game.entity[targetNum].name) +
         ' for ' +
         _color +
         result +
