@@ -147,6 +147,13 @@ Game.GameMap = function (width, height, terrain, level) {
       scheduler.add(Game.entity[Game.entity.length - 1], true);
     }
   }
+  let maxItems = 3 + Math.floor(Math.random() * 5);
+  let newItem;
+  for (let i = 0; i < maxItems; i++) {
+    newItem = Game.ItemRepository.createRandom(1, level);
+    freePlace = Game.returnFree(this);
+    this.Tiles[freePlace[0]][freePlace[1]].items.push(newItem);
+  }
 };
 
 Game.returnFree = function (map) {

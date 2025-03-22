@@ -250,7 +250,7 @@ Game.ItemRepository.define('novicesword', function (level) {
   this.type = 'weapon';
   this.level = level;
   this.color = '#0000';
-  this.symbol = 'sword' + (Math.floor(Math.random() * 11) + 1);
+  this.symbol = 'sword' + (Math.floor(Math.random() * 3) + 1);
   this.price = level + Math.floor(Math.random() * level);
   this.options = {
     minatk: 1,

@@ -68,9 +68,9 @@ var Game = {
       newitem = Game.ItemRepository.createRandom(1,1);
       Game.inventory.push(newitem);
     }
-    */
     let _newitem = Game.ItemRepository.create('novicesword', 1);
     Game.inventory.push(_newitem);
+    */
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
