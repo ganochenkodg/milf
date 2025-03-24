@@ -14,25 +14,9 @@ Skill = function (properties) {
 
 Game.SkillRepository = new Game.Repository('skills', Skill);
 
-Game.ItemRepository.define('weakarrow', function (level) {
-  this.symbol = ROT.RNG.getItem([
-    'firearrow',
-    'poisonarrow',
-    'stonearrow',
-    'icearrow'
-  ]);
-  if (this.symbol == 'firearrow') {
-    this.name = '%c{orange}fire arrow (' + level + ')%c{}';
-  }
-  if (this.symbol == 'poisonarrow') {
-    this.name = '%c{lightgreen}poison arrow (' + level + ')%c{}';
-  }
-  if (this.symbol == 'stonearrow') {
-    this.name = '%c{tan}stone arrow (' + level + ')%c{}';
-  }
-  if (this.symbol == 'icearrow') {
-    this.name = '%c{lightblue}ice arrow (' + level + ')%c{}';
-  }
+Game.ItemRepository.define('firearrow', function (level) {
+  this.symbol = 'firearrow';
+  this.name = '%c{orange}fire arrow (' + level + ')%c{}';
   this.minLvl = 1;
   this.maxLvl = 5;
   this.target = 'range';
@@ -40,9 +24,66 @@ Game.ItemRepository.define('weakarrow', function (level) {
   this.level = level;
   this.options = {
     cost: 8 + level * 2,
-    minAtk: 1,
-    maxAtk: 8 + Math.floor(Math.random() * level * 2),
-    range: 2 + Math.floor(level / 2),
+    minatk: 1,
+    maxatk: 8 + Math.floor(Math.random() * level * 2),
+    range: 3 + Math.floor(level / 2),
     radius: 0
+  };
+});
+
+Game.ItemRepository.define('poisonarrow', function (level) {
+  this.symbol = 'poisonarrow';
+  this.name = '%c{lightgreen}poison arrow (' + level + ')%c{}';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 10 + level * 2,
+    minatk: 1,
+    maxatk: 6 + Math.floor(Math.random() * level * 2),
+    range: 2 + Math.floor(level / 2),
+    radius: 0,
+    poison: 0.5 + level * 0.05,
+    duration: 2 + math.floor(level / 2)
+  };
+});
+
+Game.ItemRepository.define('stonearrow', function (level) {
+  this.symbol = 'stonearrow';
+  this.name = '%c{tan}stone arrow (' + level + ')%c{}';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 10 + level * 2,
+    minatk: 1,
+    maxatk: 8 + Math.floor(Math.random() * level * 2),
+    range: 2 + Math.floor(level / 2),
+    radius: 0,
+    confuse: 0.1 + level * 0.02,
+    duration: 2 + math.floor(level / 2)
+  };
+});
+
+Game.ItemRepository.define('icearrow', function (level) {
+  this.symbol = 'icearrow';
+  this.name = '%c{lightblue}ice arrow (' + level + ')%c{}';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 10 + level * 2,
+    minatk: 1,
+    maxatk: 6 + Math.floor(Math.random() * level * 2),
+    range: 2 + Math.floor(level / 2),
+    radius: 0,
+    frozen: 0.1 + level * 0.04,
+    duration: 2 + math.floor(level / 2)
   };
 });

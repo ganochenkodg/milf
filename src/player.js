@@ -46,6 +46,17 @@ Player.prototype.applyStats = function () {
   this.maxMana = 10 + this.int * 8;
   this.hp = Math.min(this.hp, this.maxHp);
   this.mana = Math.min(this.mana, this.maxMana);
+  this.defense = Math.floor((this.agi + this.con) * 0.1);
+  if (typeof this.equipment.weapon !== 'undefined') {
+    this.minAtk = this.equipment.weapon.options.minatk;
+    this.maxAtk = this.equipment.weapon.options.maxatk;
+  } else {
+    this.minAtk = 1;
+    this.maxAtk = 4;
+  }
+  if (typeof this.equipment.armor !== 'undefined') {
+    this.defense += this.equipment.armor.options.defense;
+  }
 };
 
 Player.prototype.move = function (newx, newy) {
@@ -75,7 +86,7 @@ Player.prototype.act = function () {
     return;
   }
   Game.engine.lock();
-  //Game.entity[0].applyStats();
+  Game.entity[0].applyStats();
   if (Game.entity[0].hp < 1) {
     Game.messageBox.sendMessage(
       'You are dead! Press %c{red}F5%c{} to start new game.'
@@ -296,7 +307,24 @@ Player.prototype.handleEvent = function (e) {
   if (mode.mode == 'item') {
     switch (code) {
       case 69:
-        Game.doItem('eat');
+        let itemNum = mode.chosenItem;
+        if (Gem.inventory[itemNum].type == 'food') {
+          Game.doItem('eat');
+        }
+        if (Gem.inventory[itemNum].type == 'potion') {
+          Game.doItem('drink');
+        }
+        if (
+          Gem.inventory[itemNum].type == 'weapon' ||
+          Gem.inventory[itemNum] == 'armor' ||
+          Gem.inventory[itemNum] == 'book'
+        ) {
+          if (Game.inventory[itemNum].isEquipped()) {
+            Game.doItem('unequip');
+          } else {
+            Game.doItem('equip');
+          }
+        }
         break;
       case 68:
         Game.doItem('drop');
@@ -305,7 +333,7 @@ Player.prototype.handleEvent = function (e) {
         Game.doItem('sacrifice');
         break;
       case 87:
-        Game.doItem('wield');
+        Game.doItem('equip');
         break;
       case 27:
         break;

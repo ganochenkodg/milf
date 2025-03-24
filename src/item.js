@@ -19,6 +19,19 @@ Item.prototype.isEquipped = function () {
       return true;
     }
   }
+  if (typeof Game.entity[0].equipment.armor !== 'undefined') {
+    if (Game.entity[0].equipment.armor == this) {
+      return true;
+    }
+  }
+  if (typeof Game.entity[0].books !== 'undefined') {
+    for (let i = 0; i < Game.entity[0].books.length; i++) {
+      if (Game.entity[0].books[i] == this) {
+        return true;
+      }
+    }
+  }
+
   return false;
 };
 
@@ -81,7 +94,7 @@ Game.chooseItem = function (num) {
   }
   if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
     if (Game.inventory[num].isEquipped()) {
-      Game.messageDisplay.drawText(1, iterator + 2, 'e) Unquip');
+      Game.messageDisplay.drawText(1, iterator + 2, 'e) Unequip');
     } else {
       Game.messageDisplay.drawText(1, iterator + 2, 'e) Equip');
     }
