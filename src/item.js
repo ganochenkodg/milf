@@ -185,25 +185,19 @@ Game.doItem = function (action) {
       );
     }
   }
+  */
   if (action == 'sacrifice') {
-    if (
-      itemtype == 'weapon' ||
-      itemtype == 'armor' ||
-      itemtype == 'amulet' ||
-      itemtype == 'book'
-    ) {
-      if (Game.inventory[num].isWielded() == 1) {
-        //unwield item
-        Game.doItem('wield');
+    if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
+      if (Game.inventory[num].isEquipped()) {
+        Game.doItem('unequip');
       }
     }
-    Game.messagebox.sendMessage(
+    Game.messageBox.sendMessage(
       'You sacrificed the ' + Game.inventory[num].name + '.'
     );
-    Game.entity[0].religion += Game.inventory[num].price;
+    Game.entity[0].piety += Game.inventory[num].price;
     Game.inventory.splice(num, 1);
   }
-  */
   if (action == 'drop') {
     if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
       if (Game.inventory[num].isEquipped()) {
@@ -264,5 +258,51 @@ Game.ItemRepository.define('novicesword', function (level) {
     this.options.maxatk = this.options.maxatk * 2;
     this.options.str += 1;
     this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('novicestaff', function (level) {
+  this.name = 'novice staff (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'staff' + (Math.floor(Math.random() * 4) + 4);
+  this.price = level + Math.floor(Math.random() * level);
+  this.options = {
+    minatk: 1,
+    maxatk: 4 + Math.floor(Math.random() * level),
+    int: 1 + Math.floor(Math.random() * level),
+    agi: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.maxatk = this.options.maxatk * 2;
+    this.options.int += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('novicepotion', function (level) {
+  this.name = 'novice potion (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.type = 'potion';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
+  this.price = level + Math.floor(Math.random() * level);
+  this.options = {
+    hp: 3 + Math.floor(Math.random() * level * 3),
+    mana: 3 + Math.floor(Math.random() * level * 3)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.hp += 10;
+    this.options.mana += 10;
+    this.color = '#0f04';
   }
 });
