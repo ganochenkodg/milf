@@ -305,35 +305,36 @@ Player.prototype.handleEvent = function (e) {
   */
 
   if (mode.mode == 'item') {
+    var num = mode.chosenItem;
     switch (code) {
       case 69:
         let itemNum = mode.chosenItem;
-        if (Gem.inventory[itemNum].type == 'food') {
-          Game.doItem('eat');
+        if (Game.inventory[itemNum].type == 'food') {
+          Game.doItem('eat', num);
         }
-        if (Gem.inventory[itemNum].type == 'potion') {
-          Game.doItem('drink');
+        if (Game.inventory[itemNum].type == 'potion') {
+          Game.doItem('drink', num);
         }
         if (
-          Gem.inventory[itemNum].type == 'weapon' ||
-          Gem.inventory[itemNum] == 'armor' ||
-          Gem.inventory[itemNum] == 'book'
+          Game.inventory[itemNum].type == 'weapon' ||
+          Game.inventory[itemNum] == 'armor' ||
+          Game.inventory[itemNum] == 'book'
         ) {
           if (Game.inventory[itemNum].isEquipped()) {
-            Game.doItem('unequip');
+            Game.doItem('unequip', num);
           } else {
-            Game.doItem('equip');
+            Game.doItem('equip', num);
           }
         }
         break;
       case 68:
-        Game.doItem('drop');
+        Game.doItem('drop', num);
         break;
       case 83:
-        Game.doItem('sacrifice');
+        Game.doItem('sacrifice', num);
         break;
       case 87:
-        Game.doItem('equip');
+        Game.doItem('equip', num);
         break;
       case 27:
         break;

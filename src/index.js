@@ -47,7 +47,7 @@ var Game = {
     document.body.appendChild(this.mainDisplay.getContainer());
     document.body.appendChild(this.messageDisplay.getContainer());
     this.generateMap(1);
-    this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 12);
+    this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 13);
     var freeplace = this.returnFree(Game.map[1]);
     let _player = new Player({
       x: freeplace[0],

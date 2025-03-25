@@ -40,7 +40,7 @@ Game.pickupItem = function () {
   let x = Game.entity[0].x;
   let y = Game.entity[0].y;
   if (typeof Game.map[level].Tiles[x][y].items[0] !== 'undefined') {
-    if (Game.inventory.length > 9) {
+    if (Game.inventory.length > 10) {
       Game.messageBox.sendMessage(
         "Your inventory is full, you can't pick anything."
       );
@@ -105,9 +105,67 @@ Game.chooseItem = function (num) {
   mode.chosenItem = num;
 };
 
-Game.doItem = function (action) {
-  var num = mode.chosenItem;
+Game.doItem = function (action, num) {
   var itemtype = Game.inventory[num].type;
+
+  if (action == 'equip') {
+    if (
+      itemtype == 'weapon' &&
+      typeof Game.entity[0].equipment.weapon !== 'undefined'
+    ) {
+      for (let i = 0; i < Game.inventory.length; i++) {
+        if (Game.inventory[i] == Game.entity[0].equipment.weapon) {
+          Game.doItem('unequip', i);
+          break;
+        }
+      }
+    }
+    if (
+      itemtype == 'armor' &&
+      typeof Game.entity[0].equipment.armor !== 'undefined'
+    ) {
+      for (let i = 0; i < Game.inventory.length; i++) {
+        if (Game.inventory[i] == Game.entity[0].equipment.weapon) {
+          Game.doItem('unequip', i);
+          break;
+        }
+      }
+    }
+    if (itemtype == 'weapon') {
+      Game.entity[0].equipment.weapon = Game.inventory[num];
+    }
+    if (itemtype == 'armor') {
+      Game.entity[0].equipment.armor = Game.inventory[num];
+    }
+    if (itemtype == 'book') {
+      Game.entity[0].books.push(Game.inventory[num]);
+    }
+    Game.doItemOptions('apply', num);
+    Game.messageBox.sendMessage(
+      'You equipped the ' + Game.inventory[num].name + '.'
+    );
+  }
+  if (action == 'unequip') {
+    if (itemtype == 'weapon') {
+      delete Game.entity[0].equipment.weapon;
+    }
+    if (itemtype == 'armor') {
+      delete Game.entity[0].equipment.armor;
+    }
+    if (itemtype == 'book') {
+      for (let i = 0; i < Game.entity[0].books.length; i++) {
+        if (Game.entity[0].books[i] == Game.inventory[num]) {
+          Game.entity[0].books.splice(i, 1);
+          break;
+        }
+      }
+    }
+    Game.doItemOptions('unapply', num);
+    Game.messageBox.sendMessage(
+      'You unequipped the ' + Game.inventory[num].name + '.'
+    );
+  }
+
   /*
   if (action == 'wield') {
     if (
@@ -202,7 +260,7 @@ Game.doItem = function (action) {
   if (action == 'sacrifice') {
     if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
       if (Game.inventory[num].isEquipped()) {
-        Game.doItem('unequip');
+        Game.doItem('unequip', num);
       }
     }
     Game.messageBox.sendMessage(
@@ -215,7 +273,7 @@ Game.doItem = function (action) {
     if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
       if (Game.inventory[num].isEquipped()) {
         //unequip item
-        Game.doItem('unequip');
+        Game.doItem('unequip', num);
       }
     }
     Game.messageBox.sendMessage(
@@ -246,6 +304,50 @@ Game.doItem = function (action) {
     Game.inventory.splice(num, 1);
   }
   */
+};
+
+Game.doItemOptions = function (action, num) {
+  var itemtype = Game.inventory[num].type;
+  /*
+  var skill = {};
+  if (typeof Game.inventory[num].skills !== 'undefined') {
+    for (let [key, value] of Object.entries(Game.inventory[num].skills)) {
+      skill = Game.SkillRepository.create((key+'('+value+')'), {
+        level: value
+      });
+      if (Game.inventory[num].isWielded() == 1) {
+        if (Game.skills.length > 8) {
+          Game.messagebox.sendMessage('You learn maximum skills.');
+        } else {
+          Game.messagebox.sendMessage('Now you can use ' + skill.name+'('+skill.level+').');
+          Game.skills.push(skill);
+        }
+      } else {
+        for (let j = 0; j < Game.skills.length; j++) {
+          if (Game.skills[j].name == skill.name && Game.skills[j].level == skill.level) {
+            Game.skills.splice(j, 1)
+          };
+        }
+      }
+    }
+  }
+  */
+  if (itemtype == 'weapon' || itemtype == 'armor') {
+    for (let [key, value] of Object.entries(Game.inventory[num].options)) {
+      if (action == 'apply') {
+        var valueMod = value;
+      } else {
+        var valueMod = -value;
+      }
+      if (key == 'str') Game.entity[0].str += valueMod;
+      if (key == 'agi') Game.entity[0].agi += valueMod;
+      if (key == 'con') Game.entity[0].con += valueMod;
+      if (key == 'int') Game.entity[0].int += valueMod;
+      if (key == 'speed') Game.entity[0].speed += valueMod;
+      if (key == 'vision') Game.entity[0].vision += valueMod;
+    }
+  }
+  Game.entity[0].applyStats();
 };
 
 Game.ItemRepository = new Game.Repository('items', Item);

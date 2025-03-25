@@ -14,7 +14,7 @@ Skill = function (properties) {
 
 Game.SkillRepository = new Game.Repository('skills', Skill);
 
-Game.ItemRepository.define('firearrow', function (level) {
+Game.SkillRepository.define('firearrow', function (level) {
   this.symbol = 'firearrow';
   this.name = '%c{orange}fire arrow (' + level + ')%c{}';
   this.minLvl = 1;
@@ -31,7 +31,7 @@ Game.ItemRepository.define('firearrow', function (level) {
   };
 });
 
-Game.ItemRepository.define('poisonarrow', function (level) {
+Game.SkillRepository.define('poisonarrow', function (level) {
   this.symbol = 'poisonarrow';
   this.name = '%c{lightgreen}poison arrow (' + level + ')%c{}';
   this.minLvl = 1;
@@ -46,11 +46,11 @@ Game.ItemRepository.define('poisonarrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     poison: 0.5 + level * 0.05,
-    duration: 2 + math.floor(level / 2)
+    duration: 2 + Math.floor(level / 2)
   };
 });
 
-Game.ItemRepository.define('stonearrow', function (level) {
+Game.SkillRepository.define('stonearrow', function (level) {
   this.symbol = 'stonearrow';
   this.name = '%c{tan}stone arrow (' + level + ')%c{}';
   this.minLvl = 1;
@@ -65,11 +65,11 @@ Game.ItemRepository.define('stonearrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     confuse: 0.1 + level * 0.02,
-    duration: 2 + math.floor(level / 2)
+    duration: 2 + Math.floor(level / 2)
   };
 });
 
-Game.ItemRepository.define('icearrow', function (level) {
+Game.SkillRepository.define('icearrow', function (level) {
   this.symbol = 'icearrow';
   this.name = '%c{lightblue}ice arrow (' + level + ')%c{}';
   this.minLvl = 1;
@@ -84,6 +84,6 @@ Game.ItemRepository.define('icearrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     frozen: 0.1 + level * 0.04,
-    duration: 2 + math.floor(level / 2)
+    duration: 2 + Math.floor(level / 2)
   };
 });

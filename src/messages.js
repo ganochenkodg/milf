@@ -14,6 +14,6 @@ Game.MessageBox.prototype.sendMessage = function (message) {
 
 Game.MessageBox.prototype.Draw = function () {
   for (let i = 0; i < this.messages.length; i++) {
-    Game.messageDisplay.drawText(1, i + 3, this.messages[i]);
+    Game.messageDisplay.drawText(1, i + 2, this.messages[i]);
   }
 };
