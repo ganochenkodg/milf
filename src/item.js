@@ -166,97 +166,6 @@ Game.doItem = function (action, num) {
     );
   }
 
-  /*
-  if (action == 'wield') {
-    if (
-      itemtype != 'weapon' &&
-      itemtype != 'armor' &&
-      itemtype != 'amulet' &&
-      itemtype != 'book'
-    ) {
-      Game.messagebox.sendMessage('You cant do this.');
-      return;
-    }
-    if (Game.inventory[num].isWielded() == 0 && itemtype == 'weapon') {
-      if (Game.inventory[num].options.size == 'twohand') {
-        if (
-          typeof Game.entity[0].equipment.righthand !== 'undefined' ||
-          typeof Game.entity[0].equipment.righthand !== 'undefined'
-        ) {
-          Game.messagebox.sendMessage('You hands are busy.');
-          return;
-        } else {
-          Game.entity[0].equipment.righthand = Game.inventory[num];
-        }
-      } else {
-        if (typeof Game.entity[0].equipment.righthand === 'undefined') {
-          Game.entity[0].equipment.righthand = Game.inventory[num];
-        } else if (
-          typeof Game.entity[0].equipment.lefthand === 'undefined' &&
-          Game.entity[0].equipment.righthand.options.size != 'twohand'
-        ) {
-          Game.entity[0].equipment.lefthand = Game.inventory[num];
-        } else {
-          Game.messagebox.sendMessage('You hands are busy.');
-          return;
-        }
-      }
-      Game.doItemOptions();
-      Game.messagebox.sendMessage(
-        'You wielded the ' + Game.inventory[num].name + '.'
-      );
-    } else if (Game.inventory[num].isWielded() == 0 && itemtype == 'armor') {
-      if (typeof Game.entity[0].equipment.body === 'undefined') {
-        Game.entity[0].equipment.body = Game.inventory[num];
-        Game.doItemOptions();
-        Game.messagebox.sendMessage(
-          'You wielded the ' + Game.inventory[num].name + '.'
-        );
-      } else {
-        Game.messagebox.sendMessage('You already have armor.');
-        return;
-      }
-    } else if (Game.inventory[num].isWielded() == 0 && itemtype == 'amulet') {
-      if (typeof Game.entity[0].equipment.neck === 'undefined') {
-        Game.entity[0].equipment.neck = Game.inventory[num];
-        Game.doItemOptions();
-        Game.messagebox.sendMessage(
-          'You wielded the ' + Game.inventory[num].name + '.'
-        );
-      } else {
-        Game.messagebox.sendMessage('You already have amulet.');
-        return;
-      }
-    } else if (Game.inventory[num].isWielded() == 0 && itemtype == 'book') {
-      Game.entity[0].books.push(Game.inventory[num]);
-      Game.doItemOptions();
-      Game.messagebox.sendMessage(
-        'You wielded the ' + Game.inventory[num].name + '.'
-      );
-    } else {
-      if (Game.entity[0].equipment.righthand == Game.inventory[num]) {
-        delete Game.entity[0].equipment.righthand;
-      } else if (Game.entity[0].equipment.lefthand == Game.inventory[num]) {
-        delete Game.entity[0].equipment.lefthand;
-      } else if (Game.entity[0].equipment.body == Game.inventory[num]) {
-        delete Game.entity[0].equipment.body;
-      } else if (Game.entity[0].equipment.neck == Game.inventory[num]) {
-        delete Game.entity[0].equipment.neck;
-      }
-      if (typeof Game.entity[0].books !== 'undefined') {
-        for (let i = 0; i < Game.entity[0].books.length; i++) {
-          if (Game.entity[0].books[i] == Game.inventory[num]) {
-            Game.entity[0].books.splice(i, 1);
-          }
-        }
-      }
-      Game.doItemOptions();
-      Game.messagebox.sendMessage(
-        'You unwielded the ' + Game.inventory[num].name + '.'
-      );
-    }
-  }
-  */
   if (action == 'sacrifice') {
     if (itemtype == 'weapon' || itemtype == 'armor' || itemtype == 'book') {
       if (Game.inventory[num].isEquipped()) {
@@ -284,26 +193,21 @@ Game.doItem = function (action, num) {
     ].items.push(Game.inventory[num]);
     Game.inventory.splice(num, 1);
   }
-  /*
-  if (action == 'eat') {
-    if (itemtype != 'food' && itemtype != 'potion') {
-      Game.messagebox.sendMessage('You cant do this.');
-      return;
-    }
+
+  if (action == 'eat' || action == 'drink') {
     if (itemtype == 'food') {
-      Game.messagebox.sendMessage(
-        'You eat the ' + Game.inventory[num].name + '.'
+      Game.messageBox.sendMessage(
+        'You ate the ' + Game.inventory[num].name + '.'
       );
     }
     if (itemtype == 'potion') {
-      Game.messagebox.sendMessage(
-        'You drink the ' + Game.inventory[num].name + '.'
+      Game.messageBox.sendMessage(
+        'You drank the ' + Game.inventory[num].name + '.'
       );
     }
-    Game.doFoodOptions();
+    Game.doFoodOptions(num);
     Game.inventory.splice(num, 1);
   }
-  */
 };
 
 Game.doItemOptions = function (action, num) {
@@ -345,6 +249,37 @@ Game.doItemOptions = function (action, num) {
       if (key == 'int') Game.entity[0].int += valueMod;
       if (key == 'speed') Game.entity[0].speed += valueMod;
       if (key == 'vision') Game.entity[0].vision += valueMod;
+    }
+  }
+  Game.entity[0].applyStats();
+};
+
+Game.doFoodOptions = function (num) {
+  var itemtype = Game.inventory[num].type;
+  for (let [key, value] of Object.entries(Game.inventory[num].options)) {
+    if (key == 'hp') {
+      Game.entity[0].hp += value;
+      Game.messageBox.sendMessage('You restored %c{red}' + value + ' HP%c{}.');
+    }
+    if (key == 'mana') {
+      Game.entity[0].Mana += value;
+      Game.messageBox.sendMessage('You restored %c{blue}' + value + ' MP%c{}.');
+    }
+    if (key == 'str') {
+      Game.entity[0].str += value;
+      Game.messageBox.sendMessage('You feel stronger.');
+    }
+    if (key == 'agi') {
+      Game.entity[0].agi += value;
+      Game.messageBox.sendMessage('You feel more agile.');
+    }
+    if (key == 'int') {
+      Game.entity[0].int += value;
+      Game.messageBox.sendMessage('You feel smarter.');
+    }
+    if (key == 'con') {
+      Game.entity[0].con += value;
+      Game.messageBox.sendMessage('You feel tighter.');
     }
   }
   Game.entity[0].applyStats();
@@ -419,5 +354,75 @@ Game.ItemRepository.define('novicepotion', function (level) {
     this.options.hp += 10;
     this.options.mana += 10;
     this.color = '#0f04';
+  }
+});
+
+Game.ItemRepository.define('novicesword', function (level) {
+  this.name = 'novice sword (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'sword' + (Math.floor(Math.random() * 3) + 1);
+  this.price = level + Math.floor(Math.random() * level);
+  this.options = {
+    minatk: 1,
+    maxatk: 6 + Math.floor(Math.random() * level),
+    str: 1 + Math.floor(Math.random() * level),
+    con: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.maxatk = this.options.maxatk * 2;
+    this.options.str += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('novicearmor', function (level) {
+  this.name = 'novice armor (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.type = 'armor';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'armor' + (Math.floor(Math.random() * 3) + 1);
+  this.price = level + Math.floor(Math.random() * level);
+  this.options = {
+    defense: 1 + Math.floor(Math.random() * level),
+    str: 1 + Math.floor(Math.random() * level),
+    agi: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.defense = this.options.defense * 2;
+    this.options.agi += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('noviceheavyarmor', function (level) {
+  this.name = 'novice heavy armor (' + level + ')';
+  this.minLvl = 3;
+  this.maxLvl = 7;
+  this.type = 'armor';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'armor' + (Math.floor(Math.random()) + 5);
+  this.price = level + Math.floor(Math.random() * level);
+  this.options = {
+    defense: 3 + Math.floor(Math.random() * level),
+    str: 1 + Math.floor(Math.random() * level),
+    con: 3 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.defense = this.options.defense * 2;
+    this.options.str += 1;
+    this.color = '#00f4';
   }
 });

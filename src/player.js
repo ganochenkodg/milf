@@ -111,7 +111,7 @@ Player.prototype.Draw = function () {
     [_color, this.color],
     ['transparent', 'transparent']
   );
-  var xoffset = Game.screenWidth * 4 - 30;
+  var xoffset = Game.screenWidth * 4 - 38;
   Game.messageDisplay.drawText(xoffset, 2, 'Name: ' + Game.entity[0].name);
   Game.messageDisplay.drawText(
     xoffset,
@@ -181,7 +181,7 @@ Player.prototype.Draw = function () {
   if (typeof Game.entity[0].equipment.armor === 'undefined') {
     item = '-';
   } else {
-    item = Game.entity[0].equipment.armor;
+    item = Game.entity[0].equipment.armor.name;
   }
   Game.messageDisplay.drawText(xoffset, 9, 'Armor: ' + item);
   /*
@@ -308,19 +308,20 @@ Player.prototype.handleEvent = function (e) {
     var num = mode.chosenItem;
     switch (code) {
       case 69:
-        let itemNum = mode.chosenItem;
-        if (Game.inventory[itemNum].type == 'food') {
+        if (Game.inventory[num].type == 'food') {
           Game.doItem('eat', num);
+          break;
         }
-        if (Game.inventory[itemNum].type == 'potion') {
+        if (Game.inventory[num].type == 'potion') {
           Game.doItem('drink', num);
+          break;
         }
         if (
-          Game.inventory[itemNum].type == 'weapon' ||
-          Game.inventory[itemNum] == 'armor' ||
-          Game.inventory[itemNum] == 'book'
+          Game.inventory[num].type == 'weapon' ||
+          Game.inventory[num].type == 'armor' ||
+          Game.inventory[num].type == 'book'
         ) {
-          if (Game.inventory[itemNum].isEquipped()) {
+          if (Game.inventory[num].isEquipped()) {
             Game.doItem('unequip', num);
           } else {
             Game.doItem('equip', num);
