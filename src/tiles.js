@@ -144,8 +144,16 @@ const gameTilemap = {
   scroll3: [128, 448],
   book3: [160, 448],
   //spells
+  poison: [192, 448],
+  frozen: [224, 448],
+  stun: [256, 448],
+  confuse: [288, 448],
   firearrow: [0, 480],
   poisonarrow: [32, 480],
   stonearrow: [64, 480],
-  icearrow: [96, 480]
+  icearrow: [96, 480],
+  poisonslash: [128, 480],
+  multiplecut: [160, 480],
+  icearmor: [192, 480],
+  strengthofstone: [223, 480]
 };

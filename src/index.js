@@ -170,10 +170,14 @@ Game.drawBar = function () {
     Game.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
     if (typeof Game.skills[i] === 'undefined') {
       Game.mainDisplay.draw(i, Game.screenHeight, 'blanksquare');
+    } else {
+      Game.mainDisplay.draw(
+        i,
+        Game.screenHeight,
+        ['bluesquare', Game.skills[i].symbol],
+        ['#0000', '#0000']
+      );
     }
-    //} else {
-    //  Game.display.draw(i, Game.screenHeight, ['whitesquare', Game.skills[i].Symbol], ['#0000', '#0000']);
-    //}
   }
   const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
   for (let i = 0; i < 10; i++) {

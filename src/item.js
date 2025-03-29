@@ -79,9 +79,15 @@ Game.chooseItem = function (num) {
     Game.messageDisplay.drawText(1, iterator, `${key}: ${value}`);
   }
   if (typeof Game.inventory[num].skills !== 'undefined') {
-    for (let [key, value] of Object.entries(Game.inventory[num].skills)) {
+    iterator++;
+    Game.messageDisplay.drawText(1, iterator, 'Skills:');
+    for (let i = 0; i < Game.inventory[num].skills.length; i++) {
       iterator++;
-      Game.messageDisplay.drawText(1, iterator, `${key}: (${value})`);
+      Game.messageDisplay.drawText(
+        1,
+        iterator,
+        Game.inventory[num].skills[i].name
+      );
     }
   }
   Game.messageDisplay.drawText(1, iterator + 1, 'd) Drop');
@@ -212,30 +218,30 @@ Game.doItem = function (action, num) {
 
 Game.doItemOptions = function (action, num) {
   var itemtype = Game.inventory[num].type;
-  /*
-  var skill = {};
   if (typeof Game.inventory[num].skills !== 'undefined') {
-    for (let [key, value] of Object.entries(Game.inventory[num].skills)) {
-      skill = Game.SkillRepository.create((key+'('+value+')'), {
-        level: value
-      });
-      if (Game.inventory[num].isWielded() == 1) {
-        if (Game.skills.length > 8) {
-          Game.messagebox.sendMessage('You learn maximum skills.');
-        } else {
-          Game.messagebox.sendMessage('Now you can use ' + skill.name+'('+skill.level+').');
-          Game.skills.push(skill);
+    if (action == 'apply') {
+      for (let i = 0; i < Game.inventory[num].skills.length; i++) {
+        if (Game.skills.length > 9) {
+          Game.messageBox.sendMessage(
+            'You have learned maximum number of skills.'
+          );
         }
-      } else {
-        for (let j = 0; j < Game.skills.length; j++) {
-          if (Game.skills[j].name == skill.name && Game.skills[j].level == skill.level) {
-            Game.skills.splice(j, 1)
-          };
+        Game.skills.push(Game.inventory[num].skills[i]);
+        Game.messageBox.sendMessage(
+          'Now you can use ' + Game.inventory[num].skills[i].name + '.'
+        );
+      }
+    } else {
+      for (let j = 0; j < Game.skills.length; j++) {
+        for (let i = 0; i < Game.inventory[num].skills.length; i++) {
+          if (Game.skills[j] == Game.inventory[num].skills[i]) {
+            Game.skills.splice(j, 1);
+            break;
+          }
         }
       }
     }
   }
-  */
   if (itemtype == 'weapon' || itemtype == 'armor') {
     for (let [key, value] of Object.entries(Game.inventory[num].options)) {
       if (action == 'apply') {
@@ -335,8 +341,8 @@ Game.ItemRepository.define('novicestaff', function (level) {
   }
 });
 
-Game.ItemRepository.define('novicepotion', function (level) {
-  this.name = 'novice potion (' + level + ')';
+Game.ItemRepository.define('smallhealingpotion', function (level) {
+  this.name = 'small healing potion (' + level + ')';
   this.minLvl = 1;
   this.maxLvl = 5;
   this.type = 'potion';
@@ -357,27 +363,29 @@ Game.ItemRepository.define('novicepotion', function (level) {
   }
 });
 
-Game.ItemRepository.define('novicesword', function (level) {
-  this.name = 'novice sword (' + level + ')';
-  this.minLvl = 1;
-  this.maxLvl = 5;
-  this.type = 'weapon';
+Game.ItemRepository.define('smallgrowthpotion', function (level) {
+  this.name = 'small growth potion (' + level + ')';
+  this.minLvl = 3;
+  this.maxLvl = 7;
+  this.type = 'potion';
   this.level = level;
   this.color = '#0000';
-  this.symbol = 'sword' + (Math.floor(Math.random() * 3) + 1);
-  this.price = level + Math.floor(Math.random() * level);
-  this.options = {
-    minatk: 1,
-    maxatk: 6 + Math.floor(Math.random() * level),
-    str: 1 + Math.floor(Math.random() * level),
-    con: 1 + Math.floor(Math.random() * level)
-  };
-  if (Math.random() < rareItemChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
-    this.options.maxatk = this.options.maxatk * 2;
-    this.options.str += 1;
-    this.color = '#00f4';
+  this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
+  this.price = 1 + level + Math.floor(Math.random() * level);
+  this.options = {};
+  switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
+    case 'str':
+      this.options.str = level - 1 + Math.floor(Math.random() * 2);
+      break;
+    case 'int':
+      this.options.int = level - 1 + Math.floor(Math.random() * 2);
+      break;
+    case 'con':
+      this.options.con = level - 1 + Math.floor(Math.random() * 2);
+      break;
+    case 'agi':
+      this.options.agi = level - 1 + Math.floor(Math.random() * 2);
+      break;
   }
 });
 
@@ -425,4 +433,21 @@ Game.ItemRepository.define('noviceheavyarmor', function (level) {
     this.options.str += 1;
     this.color = '#00f4';
   }
+});
+
+Game.ItemRepository.define('bookofarrows', function (level) {
+  this.name = 'book of arrows (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+
+  this.skills = [];
+  arrowType = ROT.RNG.getItem([
+    'firearrow',
+    'icearrow',
+    'poisonarrow',
+    'stonearrow'
+  ]);
+  this.skills.push(Game.SkillRepository.create(arrowType, level));
 });

@@ -10,6 +10,7 @@ Skill = function (properties) {
   this.symbol = properties['symbol'] || '';
   this.target = properties['target'] || '';
   this.type = properties['type'] || '';
+  this.weapon = properties['weapon'] || false;
 };
 
 Game.SkillRepository = new Game.Repository('skills', Skill);

@@ -26,7 +26,7 @@ Player = function (properties) {
   this.confuse = false;
   this.stun = false;
   this.summoned = false;
-  this.crippled = false;
+  this.frozen = false;
   this.equipment = {};
   this.affects = [];
   this.books = [];
@@ -390,7 +390,7 @@ Player.prototype.handleEvent = function (e) {
         newx = newx + diff[0];
         newy = newy + diff[1];
         break;
-      /*
+      case 48:
       case 49:
       case 50:
       case 51:
@@ -403,7 +403,6 @@ Player.prototype.handleEvent = function (e) {
         Game.chooseSkill(code - 49);
         return;
         break;
-        */
       case 65:
       case 66:
       case 67:
@@ -417,31 +416,6 @@ Player.prototype.handleEvent = function (e) {
         Game.chooseItem(code - 65);
         return;
         break;
-      /*
-      case 190:
-        if (!Game.map[level].Tiles[newx][newy].Stairdown) {
-          Game.messagebox.sendMessage('You cant go down there.');
-        } else {
-          if (typeof Game.map[level + 1] === 'undefined') {
-            Game.generateMap(level + 1);
-          }
-          Game.entity[0].godown();
-          newx = this.x;
-          newy = this.y;
-          level = Game.entity[0].depth;
-        }
-        break;
-      case 188:
-        Game.entity[0].goup();
-        newx = this.x;
-        newy = this.y;
-        level = Game.entity[0].depth;
-        break;
-      case 220:
-        Game.pickupItem();
-        break;
-      case 12:
-      */
       case 90:
         newx = this.x;
         newy = this.y;
