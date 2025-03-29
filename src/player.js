@@ -240,6 +240,29 @@ Player.prototype.doAttack = function (x, y) {
   }
 };
 
+Player.prototype.doWorship = function () {
+  if (Game.entity[0].piety < 15) {
+    Game.messageBox.sendMessage(
+      'You are nothing for %c{gold}God of Random%c{}, get more piety.'
+    );
+    return;
+  }
+  let level = Math.floor(Math.log2(Game.entity[0].piety / 15 + 1));
+  let threshold = 15 * (Math.pow(2, level) - 1);
+  let newItem = Game.ItemRepository.createRandom(level, level + 1);
+  Game.messageBox.sendMessage(
+    '%c{gold}God of Random%c{} gifts you the ' + newItem.name + '.'
+  );
+  if (Game.inventory.length > 9) {
+    Game.map[Game.entity[0].depth].Tiles[Game.entity[0].x][
+      Game.entity[0].y
+    ].items.push(newItem);
+  } else {
+    Game.inventory.push(newItem);
+  }
+  Game.entity[0].piety -= threshold;
+};
+
 Player.prototype.handleEvent = function (e) {
   var newx = this.x;
   var newy = this.y;
@@ -351,10 +374,10 @@ Player.prototype.handleEvent = function (e) {
 
   if (mode.mode == 'play') {
     switch (code) {
-      /*
       case 87:
         this.doWorship();
         break;
+      /*
       case 191:
         Game.printhelp();
         break;
