@@ -2,8 +2,8 @@ var scheduler = new ROT.Scheduler.Speed();
 var mode = {
   mode: 'play',
   chosenItem: -1,
-  chosenskill: -1,
-  skillmap: null,
+  chosenSkill: -1,
+  skillMap: null,
   skillx: -1,
   skilly: -1,
   blinkmap: null

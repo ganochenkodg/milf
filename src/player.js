@@ -277,7 +277,7 @@ Player.prototype.handleEvent = function (e) {
   keyMap[35] = 5;
   keyMap[37] = 6;
   keyMap[36] = 7;
-  /*
+
   if (mode.mode == 'skill') {
     newx = mode.skillx;
     newy = mode.skilly;
@@ -287,7 +287,7 @@ Player.prototype.handleEvent = function (e) {
         window.removeEventListener('keydown', this);
         Game.useSkill(
           Game.entity[0],
-          Game.skills[mode.chosenskill],
+          Game.skills[mode.chosenSkill],
           mode.skillx,
           mode.skilly
         );
@@ -318,14 +318,13 @@ Player.prototype.handleEvent = function (e) {
         break;
     }
     var key = newx + ',' + newy;
-    if (key in mode.skillmap) {
+    if (key in mode.skillMap) {
       mode.skillx = newx;
       mode.skilly = newy;
       Game.drawSkillMap();
     }
     return;
   }
-  */
 
   if (mode.mode == 'item') {
     var num = mode.chosenItem;
