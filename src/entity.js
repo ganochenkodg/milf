@@ -12,12 +12,14 @@ Entity = function (properties) {
   this.agi = properties['agi'] || 1;
   this.int = properties['int'] || 1;
   this.con = properties['con'] || 1;
-  this.skills = properties['skills'] || {};
+  this.skills = properties['skills'] || [];
   this.vision = properties['vision'] || 5;
   this.speed = properties['speed'] || 100;
   this.symbol = properties['symbol'] || 'wolf';
   this.maxHp = 15 + this.con * 6 + this.str * 3;
   this.hp = this.maxHp;
+  this.maxMana = 10 + this.int * 8;
+  this.mana = this.maxMana;
   this.color = '#0000';
   this.confuse = false;
   this.stun = false;
@@ -25,8 +27,8 @@ Entity = function (properties) {
   this.frozen = false;
   this.minAtk = properties['minAtk'] || 1;
   this.maxAtk = properties['maxAtk'] || 4;
-  this.range = properties['range'] || 1;
   this.skillRange = properties['skillRange'] || 3;
+  this.range = properties['range'] || 1;
   this.defense =
     properties['defense'] + Math.floor((this.agi + this.con) * 0.1) || 1;
 
@@ -181,6 +183,12 @@ Entity.prototype.doGetDamage = function (dmg) {
   return dmg;
 };
 
+Entity.prototype.doGetSkillDamage = function (dmg) {
+  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+  this.hp -= dmg;
+  return dmg;
+};
+
 Entity.prototype.doHunt = function () {
   if (this.hp < 1) {
     return;
@@ -189,77 +197,54 @@ Entity.prototype.doHunt = function () {
   var targetNum = 0;
   let enemyRadius = this.vision + 1;
   let enemyMap = [];
-  fov.compute(this.x, this.y, this.Vision, function (x, y, r, visibility) {
+  fov.compute(this.x, this.y, this.vision, function (x, y, r, visibility) {
     enemyMap[x + ',' + y] = r;
   });
-  //ai for summoned
-  /*
-  if (this.summoned) {
-    for (let i = 1; i < Game.entity.length; i++) {
-      var key = Game.entity[i].x + ',' + Game.entity[i].y;
-      if (key in enemymap && !Game.entity[i].summoned && enemymap[key] < enemyradius) {
-        enemyradius = enemymap[key];
-        targetnum = i;
+
+  var key = Game.entity[0].x + ',' + Game.entity[0].y;
+  if (key in enemyMap && enemyMap[key] < enemyRadius) {
+    var x = Game.entity[0].x;
+    var y = Game.entity[0].y;
+
+    var astar = new ROT.Path.AStar(x, y, mobPasses, {
+      topology: 8
+    });
+
+    var path = [];
+    var pathCallback = function (x, y) {
+      path.push([x, y]);
+    };
+    Game.map[level].Tiles[this.x][this.y].Mob = false;
+    astar.compute(this.x, this.y, pathCallback);
+    Game.map[level].Tiles[this.x][this.y].Mob = true;
+    path.shift();
+    if (path.length > this.vision) {
+      return;
+    }
+    if (path.length > this.range) {
+      if (this.confuse && Math.random() > 0.5) {
+        let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
+        let newx = this.x + _confused[0];
+        let newy = this.y + _confused[1];
+        this.move(newx, newy);
+      } else {
+        this.move(path[0][0], path[0][1]);
       }
+    } else if ('Attack' in this.acts && path.length == 1) {
+      this.doAttack(0);
     }
-  } else {
-  */
-  for (let i = 0; i < Game.entity.length; i++) {
-    var key = Game.entity[i].x + ',' + Game.entity[i].y;
-    if (
-      key in enemyMap &&
-      (Game.entity[i].summoned || Game.entity[i].player) &&
-      enemyMap[key] < enemyRadius
-    ) {
-      enemyRadius = enemyMap[key];
-      targetNum = i;
-    }
-  }
-  //}
-  var x = Game.entity[targetNum].x;
-  var y = Game.entity[targetNum].y;
-
-  var astar = new ROT.Path.AStar(x, y, mobPasses, {
-    topology: 8
-  });
-
-  var path = [];
-  var pathCallback = function (x, y) {
-    path.push([x, y]);
-  };
-  //костыль. подсчет пути начинается с места самого моба, а по мобам ходить нельзя
-  Game.map[level].Tiles[this.x][this.y].Mob = false;
-  astar.compute(this.x, this.y, pathCallback);
-  Game.map[level].Tiles[this.x][this.y].Mob = true;
-  path.shift();
-  if (path.length > this.vision) {
-    return;
-  }
-  if (path.length > this.range) {
-    if (this.confuse && Math.random() > 0.5) {
-      let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-      let newx = this.x + _confused[0];
-      let newy = this.y + _confused[1];
-      this.move(newx, newy);
-    } else {
-      this.move(path[0][0], path[0][1]);
-    }
-  } else if ('Attack' in this.acts && path.length == 1) {
-    if ((this.summoned && targetNum != 0) || !this.summoned) {
-      this.doAttack(targetNum);
-    }
-  }
-  /*
+    /*
   if ('Skills' in this.acts && path.length < this.SkillRange + 1 && path.length > 0) {
     if ((this.summoned && targetnum != 0) || (!this.summoned)) {
       this.doSkills(targetnum);
     }
   }
   */
+  }
 };
 
 Entity.prototype.move = function (newx, newy) {
-  if (this.crippled) return;
+  if (this.frozen) return;
   var level = this.depth;
   Game.map[level].Tiles[this.x][this.y].Mob = false;
   this.x = newx;
@@ -303,7 +288,7 @@ Game.drawEntities = function () {
 
 Game.EntityRepository = new Game.Repository('entities', Entity);
 
-Game.EntityRepository.define('animal', function (level) {
+Game.EntityRepository.define('dogs', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
   this.level = level;
@@ -327,4 +312,50 @@ Game.EntityRepository.define('animal', function (level) {
     Actor: true
   };
   this.symbol = this.name;
+});
+
+/*
+Game.EntityRepository.define('littlegoblinwarrior', function (level) {
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.level = level;
+  this.name = 'little goblin warrior';
+  this.str = 4 + Math.floor(Math.random() * level * 2);
+  this.agi = 1 + Math.floor(Math.random() * level * 2);
+  this.int = 1 + Math.floor(Math.random() * level * 2);
+  this.con = 3 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true,
+    Skills: true
+  };
+  this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
+});
+*/
+
+Game.EntityRepository.define('littlegoblinwizard', function (level) {
+  this.minLvl = 3;
+  this.maxLvl = 10;
+  this.level = level;
+  this.name = 'little goblin wizard';
+  this.str = 1 + Math.floor(Math.random() * level * 2);
+  this.agi = 3 + Math.floor(Math.random() * level * 2);
+  this.int = 3 + Math.floor(Math.random() * level * 2);
+  this.con = 1 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true,
+    Skills: true
+  };
+  this.skills = [
+    Game.SkillRepository.create(
+      ROT.RNG.getItem(['firearrow', 'icearrow', 'poisonarrow', 'stonearrow']),
+      1
+    )
+  ];
+  this.symbol = ROT.RNG.getItem(['goblin7', 'goblin8']);
 });

@@ -60,17 +60,6 @@ var Game = {
     //this.checkaffects = new AffectsCheck();
     scheduler.add(this.hpRegen, true);
     scheduler.add(this.manaRegen, true);
-    /*
-    scheduler.add(Game.entity[0], true);
-    scheduler.add(this.checkaffects, true);
-    let newitem = {};
-    for (let i=0; i<6; i++) {
-      newitem = Game.ItemRepository.createRandom(1,1);
-      Game.inventory.push(newitem);
-    }
-    let _newitem = Game.ItemRepository.create('novicesword', 1);
-    Game.inventory.push(_newitem);
-    */
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
@@ -105,7 +94,7 @@ Manaregen.prototype.act = function () {
     let addMana =
       1 +
       Math.floor(Game.entity[i].maxMana / 100) +
-      Math.floor(Game.entity[i].int / 7);
+      Math.floor(Game.entity[i].int / 5);
     Game.entity[i].mana += addMana;
     Game.entity[i].mana = Math.min(Game.entity[i].mana, Game.entity[i].maxMana);
   }
@@ -118,12 +107,10 @@ Game.Repository = function (name, ctor) {
   this._randomTemplates = {};
 };
 
-// Define a new named template.
 Game.Repository.prototype.define = function (name, template) {
   this._templates[name] = template;
 };
 
-// Create an object based on a template.
 Game.Repository.prototype.create = function (name, level) {
   if (!this._templates[name]) {
     throw new Error(
@@ -134,7 +121,6 @@ Game.Repository.prototype.create = function (name, level) {
   return new this._ctor(template);
 };
 
-// Create an object based on a random template
 Game.Repository.prototype.createRandom = function (minlvl, maxlvl) {
   var keys = Object.keys(this._templates);
   var result = this.create(
@@ -161,7 +147,6 @@ Game.drawAll = function () {
   this.drawMap();
   this.drawEntities();
   this.drawBar();
-  //this.drawEntities();
   this.messageBox.Draw();
 };
 

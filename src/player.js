@@ -60,7 +60,7 @@ Player.prototype.applyStats = function () {
 };
 
 Player.prototype.move = function (newx, newy) {
-  if (this.crippled) return;
+  if (this.frozen) return;
   this.x = newx;
   this.y = newy;
 };
@@ -195,6 +195,12 @@ Player.prototype.Draw = function () {
 
 Player.prototype.doGetDamage = function (dmg) {
   dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  this.hp -= dmg;
+  return dmg;
+};
+
+Player.prototype.doGetSkillDamage = function (dmg) {
+  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
   this.hp -= dmg;
   return dmg;
 };
@@ -376,11 +382,6 @@ Player.prototype.handleEvent = function (e) {
       case 87:
         this.doWorship();
         break;
-      /*
-      case 191:
-        Game.printhelp();
-        break;
-        */
       case 13:
         Game.pickupItem();
         if (Game.map[level].Tiles[newx][newy].Stairdown) {
@@ -470,24 +471,7 @@ Player.prototype.handleEvent = function (e) {
       newx = this.x;
       newy = this.y;
     }
-    /*
-    if (typeof Game.map[level].Tiles[newx][newy].items[0] !== 'undefined') {
-      if (this.x != newx || this.y != newy) {
-        var itemname = Game.map[level].Tiles[newx][newy].items[0].name;
-        for (
-          let i = 1;
-          i < Game.map[level].Tiles[newx][newy].items.length;
-          i++
-        ) {
-          itemname =
-            itemname + ', ' + Game.map[level].Tiles[newx][newy].items[i].name;
-        }
-        Game.messagebox.sendMessage(
-          'You see the ' + itemname + ' on the floor.'
-        );
-      }
-    }
-    */
+
     this.move(newx, newy);
     Game.drawAll();
     window.removeEventListener('keydown', this);

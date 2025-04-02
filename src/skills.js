@@ -164,6 +164,132 @@ Game.drawSkillMap = function () {
   Game.drawEntities();
 };
 
+Game.useSkill = function (actor, skill, skillx, skilly) {
+  var result = 0;
+  if (
+    actor.player &&
+    skill.weapon &&
+    typeof Game.entity[0].equipment.weapon == undefined
+  ) {
+    Game.messageBox.sendMessage(
+      'You must equip some weapon to use this skill.'
+    );
+  }
+
+  if (skill.options.cost > Game.entity[0].mana) {
+    if (actor.player) {
+      Game.messageBox.sendMessage('You have not enough mana.');
+    }
+    return;
+  }
+  Game.entity[0].mana -= skill.options.cost;
+  Game.messageBox.sendMessage(
+    actor.player
+      ? 'You cast ' + skill.name + '.'
+      : 'The ' + actor.name + 'casts ' + skill.name + '.'
+  );
+  if (actor.confuse && Math.random() > 0.5) {
+    let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
+    skillx += _confused[0];
+    skilly += _confused[1];
+  }
+  mode.skillMap = {};
+  var level = Game.entity[0].depth;
+  fov.compute(
+    skillx,
+    skilly,
+    skill.options.radius,
+    function (x, y, r, visibility) {
+      mode.skillMap[x + ',' + y] = 1;
+    }
+  );
+  if (skill.selfProtect) delete mode.skillMap[actor.x + ',' + actor.y];
+  for (let i = 0; i < Game.entity.length; i++) {
+    let key = Game.entity[i].x + ',' + Game.entity[i].y;
+    if (key in mode.skillMap) {
+      if (skill.type == 'damage') {
+        result += Math.floor(
+          (Math.random() * (skill.options.maxatk - skill.options.minatk) +
+            skill.options.minatk) *
+            (1 + actor.int * 0.07)
+        );
+      }
+      if (skill.weapon) {
+        result += Math.floor(
+          (Math.random() * (actor.maxatk - actor.minatk) + actor.minatk) *
+            (1 + actor.int * 0.07)
+        );
+      }
+      let _color = skill.name.match(/^([^}]+)}/)[0];
+      let dmg = Game.entity[i].doGetSkillDamage(result);
+      Game.messageBox.sendMessage(
+        (i == 0 ? 'You' : 'The ' + Game.entity[i].name) +
+          ' got ' +
+          _color +
+          dmg +
+          '%c{} damage.'
+      );
+      /*
+      if (typeof skill.formulas.frozen !== 'undefined') {
+        let _frozen = Game.SkillRepository.create(
+          'Frozen(' + skill.level + ')'
+        );
+        if (Math.random() * 100 < skill.formulas.frozen) {
+          Game.addAffect(
+            Game.entity[i].x,
+            Game.entity[i].y,
+            Game.entity[i].Depth,
+            _frozen,
+            actor
+          );
+        }
+      }
+      if (typeof skill.formulas.stun !== 'undefined') {
+        let _stun = Game.SkillRepository.create('Stun(' + skill.level + ')');
+        if (Math.random() * 100 < skill.formulas.stun) {
+          Game.addAffect(
+            Game.entity[i].x,
+            Game.entity[i].y,
+            Game.entity[i].Depth,
+            _stun,
+            actor
+          );
+        }
+      }
+      if (typeof skill.formulas.confuse !== 'undefined') {
+        let _confuse = Game.SkillRepository.create(
+          'Confuse(' + skill.level + ')'
+        );
+        if (Math.random() * 100 < skill.formulas.confuse) {
+          Game.addAffect(
+            Game.entity[i].x,
+            Game.entity[i].y,
+            Game.entity[i].Depth,
+            _confuse,
+            actor
+          );
+        }
+      }
+      if (typeof skill.formulas.burning !== 'undefined') {
+        let _burning = Game.SkillRepository.create(
+          'Burning(' + skill.level + ')'
+        );
+        if (Math.random() * 100 < skill.formulas.burning) {
+          Game.addAffect(
+            Game.entity[i].x,
+            Game.entity[i].y,
+            Game.entity[i].Depth,
+            _burning,
+            actor
+          );
+        }
+      }
+      */
+      Game.entity[i].doDie();
+    }
+  }
+};
+
 Game.SkillRepository = new Game.Repository('skills', Skill);
 
 Game.SkillRepository.define('firearrow', function (level) {
@@ -175,7 +301,7 @@ Game.SkillRepository.define('firearrow', function (level) {
   this.type = 'damage';
   this.level = level;
   this.options = {
-    cost: 8 + level * 2,
+    cost: 4 + level * 2,
     minatk: 1,
     maxatk: 8 + Math.floor(Math.random() * level * 2),
     range: 3 + Math.floor(level / 2),
@@ -192,7 +318,7 @@ Game.SkillRepository.define('poisonarrow', function (level) {
   this.type = 'damage';
   this.level = level;
   this.options = {
-    cost: 10 + level * 2,
+    cost: 6 + level * 2,
     minatk: 1,
     maxatk: 6 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
@@ -211,7 +337,7 @@ Game.SkillRepository.define('stonearrow', function (level) {
   this.type = 'damage';
   this.level = level;
   this.options = {
-    cost: 10 + level * 2,
+    cost: 6 + level * 2,
     minatk: 1,
     maxatk: 8 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
@@ -230,7 +356,7 @@ Game.SkillRepository.define('icearrow', function (level) {
   this.type = 'damage';
   this.level = level;
   this.options = {
-    cost: 10 + level * 2,
+    cost: 6 + level * 2,
     minatk: 1,
     maxatk: 6 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),

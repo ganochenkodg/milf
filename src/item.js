@@ -375,16 +375,16 @@ Game.ItemRepository.define('smallgrowthpotion', function (level) {
   this.options = {};
   switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
     case 'str':
-      this.options.str = level - 1 + Math.floor(Math.random() * 2);
+      this.options.str = level + Math.floor(Math.random() * 2);
       break;
     case 'int':
-      this.options.int = level - 1 + Math.floor(Math.random() * 2);
+      this.options.int = level + Math.floor(Math.random() * 2);
       break;
     case 'con':
-      this.options.con = level - 1 + Math.floor(Math.random() * 2);
+      this.options.con = level + Math.floor(Math.random() * 2);
       break;
     case 'agi':
-      this.options.agi = level - 1 + Math.floor(Math.random() * 2);
+      this.options.agi = level + Math.floor(Math.random() * 2);
       break;
   }
 });
