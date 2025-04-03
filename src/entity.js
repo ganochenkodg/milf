@@ -47,10 +47,8 @@ Entity = function (properties) {
   };
 };
 
-function mobPasses(x, y, level) {
-  if (typeof level === 'undefined') {
-    level = Game.entity[0].depth;
-  }
+function mobPasses(x, y) {
+  var level = Game.entity[0].depth;
   if (
     x > 0 &&
     x < Game.map[level].width &&
@@ -88,36 +86,7 @@ Entity.prototype.doDie = function () {
     Game.entity[0].piety +=
       this.level + Math.floor(Math.random() * this.level * 0.5);
     scheduler.remove(this);
-    /*
-    if (this.savecorpse && !this.summoned) {
-      let _corpse = Game.ItemRepository.create('corpse');
-      _corpse.name = this.name + '\'s corpse';
-      _corpse.corpse = this;
-      Game.map[level].Tiles[this.x][this.y].items.push(_corpse);
-    }
-    if (typeof this.drop !== 'undefined' && !this.summoned) {
-      for (let [key, value] of Object.entries(this.drop)) {
-        if (key == 'any') {
-          let _anyitem = value.split(',');
-          if (Math.random() * 100 < _anyitem[2]) {
-            let _item = Game.ItemRepository.createRandom(_anyitem[0], _anyitem[1]);
-            Game.map[level].Tiles[this.x][this.y].items.push(_item);
-            if (Math.random() * 100 < this.rarechance) {
-              Game.map[level].Tiles[this.x][this.y].items[Game.map[level].Tiles[this.x][this.y].items.length - 1].randomize(this.rareness);
-            }
-          }
-        } else {
-          if (Math.random() * 100 < value) {
-            let _item = Game.ItemRepository.create(key);
-            Game.map[level].Tiles[this.x][this.y].items.push(_item);
-            if (Math.random() * 100 < this.rarechance) {
-              Game.map[level].Tiles[this.x][this.y].items[Game.map[level].Tiles[this.x][this.y].items.length - 1].randomize(this.rareness);
-            }
-          }
-        }
-      }
-    }
-    */
+
     Game.map[level].Tiles[this.x][this.y].Mob = false;
     for (var i = 0; i < Game.entity.length; i++) {
       if (Game.entity[i] === this) {
@@ -221,6 +190,15 @@ Entity.prototype.doHunt = function () {
     if (path.length > this.vision) {
       return;
     }
+    if (
+      'Skills' in this.acts &&
+      path.length < this.skillRange + 1 &&
+      this.mana > this.skills[0].options.cost + 5 &&
+      Math.random(0) > 0.2
+    ) {
+      this.doSkills(0);
+      return;
+    }
     if (path.length > this.range) {
       if (this.confuse && Math.random() > 0.5) {
         let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
@@ -233,13 +211,21 @@ Entity.prototype.doHunt = function () {
     } else if ('Attack' in this.acts && path.length == 1) {
       this.doAttack(0);
     }
-    /*
-  if ('Skills' in this.acts && path.length < this.SkillRange + 1 && path.length > 0) {
-    if ((this.summoned && targetnum != 0) || (!this.summoned)) {
-      this.doSkills(targetnum);
-    }
   }
-  */
+};
+
+Entity.prototype.doSkills = function (targetnum) {
+  let skill = ROT.RNG.getItem(this.skills);
+  if (skill.target == 'range') {
+    Game.useSkill(
+      this,
+      skill,
+      Game.entity[targetnum].x,
+      Game.entity[targetnum].y
+    );
+  }
+  if (skill.target == 'self') {
+    Game.useSkill(this, skill, this.x, this.y);
   }
 };
 
@@ -314,7 +300,6 @@ Game.EntityRepository.define('dogs', function (level) {
   this.symbol = this.name;
 });
 
-/*
 Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
@@ -322,18 +307,28 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   this.name = 'little goblin warrior';
   this.str = 4 + Math.floor(Math.random() * level * 2);
   this.agi = 1 + Math.floor(Math.random() * level * 2);
-  this.int = 1 + Math.floor(Math.random() * level * 2);
+  this.int = 3 + Math.floor(Math.random() * level * 2);
   this.con = 3 + Math.floor(Math.random() * level * 2);
-  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.skillRange = 1;
   this.acts = {
     Hunt: true,
     Attack: true,
     Actor: true,
     Skills: true
   };
+  this.skills = [
+    Game.SkillRepository.create(
+      ROT.RNG.getWeightedValue({
+        rapidcut: 2,
+        poisonslash: 1
+      }),
+      1 + Math.floor((Math.random() * level) / 2)
+    )
+  ];
+
   this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
 });
-*/
 
 Game.EntityRepository.define('littlegoblinwizard', function (level) {
   this.minLvl = 3;
@@ -342,7 +337,7 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
   this.name = 'little goblin wizard';
   this.str = 1 + Math.floor(Math.random() * level * 2);
   this.agi = 3 + Math.floor(Math.random() * level * 2);
-  this.int = 3 + Math.floor(Math.random() * level * 2);
+  this.int = 5 + Math.floor(Math.random() * level * 2);
   this.con = 1 + Math.floor(Math.random() * level * 2);
   this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
   this.acts = {
@@ -353,8 +348,13 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
   };
   this.skills = [
     Game.SkillRepository.create(
-      ROT.RNG.getItem(['firearrow', 'icearrow', 'poisonarrow', 'stonearrow']),
-      1
+      ROT.RNG.getWeightedValue({
+        firearrow: 3,
+        icearrow: 1,
+        poisonarrow: 2,
+        stonearrow: 1
+      }),
+      1 + Math.floor((Math.random() * level) / 2)
     )
   ];
   this.symbol = ROT.RNG.getItem(['goblin7', 'goblin8']);

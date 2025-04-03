@@ -176,22 +176,38 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
     );
   }
 
-  if (skill.options.cost > Game.entity[0].mana) {
+  if (skill.options.cost > actor.mana) {
     if (actor.player) {
       Game.messageBox.sendMessage('You have not enough mana.');
     }
     return;
   }
-  Game.entity[0].mana -= skill.options.cost;
+  actor.mana -= skill.options.cost;
   Game.messageBox.sendMessage(
     actor.player
       ? 'You cast ' + skill.name + '.'
-      : 'The ' + actor.name + 'casts ' + skill.name + '.'
+      : 'The ' + actor.name + ' casts ' + skill.name + '.'
   );
   if (actor.confuse && Math.random() > 0.5) {
     let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
     skillx += _confused[0];
     skilly += _confused[1];
+  }
+  //find mob collision
+  var skillAstar = new ROT.Path.AStar(skillx, skilly, lightPasses, {
+    topology: 8
+  });
+  var skillPath = [];
+  var skillPathCallback = function (x, y) {
+    skillPath.push([x, y]);
+  };
+  skillAstar.compute(actor.x, actor.y, skillPathCallback);
+  for (let i = 1; i < skillPath.length; i++) {
+    skillx = skillPath[i][0];
+    skilly = skillPath[i][1];
+    if (Game.map[actor.depth].Tiles[skillx][skilly].Mob) {
+      break;
+    }
   }
   mode.skillMap = {};
   var level = Game.entity[0].depth;
@@ -216,7 +232,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
       }
       if (skill.weapon) {
         result += Math.floor(
-          (Math.random() * (actor.maxatk - actor.minatk) + actor.minatk) *
+          (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
             (1 + actor.int * 0.07)
         );
       }
@@ -363,5 +379,43 @@ Game.SkillRepository.define('icearrow', function (level) {
     radius: 0,
     frozen: 0.1 + level * 0.04,
     duration: 2 + Math.floor(level / 2)
+  };
+});
+
+Game.SkillRepository.define('poisonslash', function (level) {
+  this.symbol = 'poisonslash';
+  this.name = '%c{darkseagreen}poison slash (' + level + ')%c{}';
+  this.weapon = true;
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 12 + level * 2,
+    minatk: 1,
+    maxatk: 8 + Math.floor(Math.random() * level * 2),
+    range: 1,
+    radius: 0,
+    poison: 0.5 + level * 0.05,
+    duration: 1 + Math.floor(level / 2)
+  };
+});
+
+Game.SkillRepository.define('rapidcut', function (level) {
+  this.symbol = 'rapidcut';
+  this.name = '%c{salmon}rapid cut (' + level + ')%c{}';
+  this.weapon = true;
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 8 + level * 2,
+    minatk: 4,
+    maxatk: 4 + Math.floor(Math.random() * level * 2),
+    range: 1,
+    radius: 0
   };
 });

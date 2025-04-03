@@ -161,7 +161,7 @@ const gameTilemap = {
   stonearrow: [64, 480],
   icearrow: [96, 480],
   poisonslash: [128, 480],
-  multiplecut: [160, 480],
+  rapidcut: [160, 480],
   icearmor: [192, 480],
   strengthofstone: [223, 480]
 };

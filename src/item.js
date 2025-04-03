@@ -451,3 +451,14 @@ Game.ItemRepository.define('bookofarrows', function (level) {
   ]);
   this.skills.push(Game.SkillRepository.create(arrowType, level));
 });
+
+Game.ItemRepository.define('bookofyoungwarrior', function (level) {
+  this.name = 'book of young warriors (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.skills = [];
+  arrowType = ROT.RNG.getItem(['poisonslash', 'rapidcut']);
+  this.skills.push(Game.SkillRepository.create(arrowType, level));
+});
