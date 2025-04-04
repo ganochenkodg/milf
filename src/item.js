@@ -443,13 +443,13 @@ Game.ItemRepository.define('bookofarrows', function (level) {
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
 
   this.skills = [];
-  arrowType = ROT.RNG.getItem([
+  skillType = ROT.RNG.getItem([
     'firearrow',
     'icearrow',
     'poisonarrow',
     'stonearrow'
   ]);
-  this.skills.push(Game.SkillRepository.create(arrowType, level));
+  this.skills.push(Game.SkillRepository.create(skillType, level));
 });
 
 Game.ItemRepository.define('bookofyoungwarrior', function (level) {
@@ -459,6 +459,17 @@ Game.ItemRepository.define('bookofyoungwarrior', function (level) {
   this.type = 'book';
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.skills = [];
-  arrowType = ROT.RNG.getItem(['poisonslash', 'rapidcut']);
-  this.skills.push(Game.SkillRepository.create(arrowType, level));
+  skillType = ROT.RNG.getItem(['poisonslash', 'rapidcut']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+});
+
+Game.ItemRepository.define('bookoffirstchants', function (level) {
+  this.name = 'book of first chants (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.skills = [];
+  skillType = ROT.RNG.getItem(['icearmor', 'strengthofstone']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
 });

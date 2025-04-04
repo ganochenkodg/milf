@@ -184,13 +184,16 @@ Player.prototype.Draw = function () {
     item = Game.entity[0].equipment.armor.name;
   }
   Game.messageDisplay.drawText(xoffset, 9, 'Armor: ' + item);
-  /*
   if (Game.entity[0].affects.length > 0) {
     for (let i = 0; i < Game.entity[0].affects.length; i++) {
-      Game.display.draw(Game.screenWidth - 1, i, ['whitesquare', Game.entity[0].affects[i].Symbol], ['#0000', '#0000']);
+      Game.mainDisplay.draw(
+        Game.screenWidth - 1,
+        i,
+        Game.entity[0].affects[i].symbol,
+        '#0000'
+      );
     }
   }
-  */
 };
 
 Player.prototype.doGetDamage = function (dmg) {

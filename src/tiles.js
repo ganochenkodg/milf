@@ -153,7 +153,7 @@ const gameTilemap = {
   book3: [160, 448],
   //spells
   poison: [192, 448],
-  frozen: [224, 448],
+  freeze: [224, 448],
   stun: [256, 448],
   confuse: [288, 448],
   firearrow: [0, 480],

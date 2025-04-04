@@ -229,22 +229,59 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
             skill.options.minatk) *
             (1 + actor.int * 0.07)
         );
-      }
-      if (skill.weapon) {
-        result += Math.floor(
-          (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
-            (1 + actor.int * 0.07)
+        if (skill.weapon) {
+          result += Math.floor(
+            (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
+              (1 + actor.int * 0.07)
+          );
+        }
+        let _color = skill.name.match(/^([^}]+)}/)[0];
+        let dmg = Game.entity[i].doGetSkillDamage(result);
+        Game.messageBox.sendMessage(
+          (i == 0 ? 'You' : 'The ' + Game.entity[i].name) +
+            ' got ' +
+            _color +
+            dmg +
+            '%c{} damage.'
         );
+        if ('poison' in skill.options) {
+          if (Math.random() < skill.options.poison) {
+            Game.addAffect(i, {
+              poison: Math.floor(skill.options.maxatk / 2),
+              duration: skill.options.duration,
+              symbol: 'poison'
+            });
+          }
+        }
+        if ('stun' in skill.options) {
+          if (Math.random() < skill.options.stun) {
+            Game.addAffect(i, {
+              stun: true,
+              duration: skill.options.duration,
+              symbol: 'stun'
+            });
+          }
+        }
+        if ('confuse' in skill.options) {
+          if (Math.random() < skill.options.confuse) {
+            Game.addAffect(i, {
+              confuse: true,
+              duration: skill.options.duration,
+              symbol: 'confuse'
+            });
+          }
+        }
+        if ('freeze' in skill.options) {
+          if (Math.random() < skill.options.freeze) {
+            Game.addAffect(i, {
+              freeze: true,
+              duration: skill.options.duration,
+              symbol: 'freeze'
+            });
+          }
+        }
       }
-      let _color = skill.name.match(/^([^}]+)}/)[0];
-      let dmg = Game.entity[i].doGetSkillDamage(result);
-      Game.messageBox.sendMessage(
-        (i == 0 ? 'You' : 'The ' + Game.entity[i].name) +
-          ' got ' +
-          _color +
-          dmg +
-          '%c{} damage.'
-      );
+
       /*
       if (typeof skill.formulas.frozen !== 'undefined') {
         let _frozen = Game.SkillRepository.create(
@@ -306,6 +343,104 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
   }
 };
 
+Game.addAffect = function (targetNum, affect) {
+  for (let [key, value] of Object.entries(affect)) {
+    if (key == 'str') Game.entity[targetNum].str += value;
+    if (key == 'con') Game.entity[targetNum].con += value;
+    if (key == 'int') Game.entity[targetNum].int += value;
+    if (key == 'agi') Game.entity[targetNum].agi += value;
+    if (key == 'speed') Game.entity[targetNum].speed += value;
+    if (key == 'defense') Game.entity[targetNum].defense += value;
+    if (key == 'stun') Game.entity[targetNum].stun = true;
+    if (key == 'freeze') Game.entity[targetNum].frozen = true;
+    if (key == 'confuse') Game.entity[targetNum].confuse = true;
+  }
+  Game.entity[targetNum].affects.push(affect);
+};
+
+Game.removeAffect = function (targetNum, affectNum) {
+  for (let [key, value] of Object.entries(
+    Game.entity[targetNum].affects[affectNum]
+  )) {
+    if (key == 'str') Game.entity[targetNum].str -= value;
+    if (key == 'con') Game.entity[targetNum].con -= value;
+    if (key == 'int') Game.entity[targetNum].int -= value;
+    if (key == 'agi') Game.entity[targetNum].agi -= value;
+    if (key == 'speed') Game.entity[targetNum].speed -= value;
+    if (key == 'defense') Game.entity[targetNum].defense -= value;
+    if (key == 'stun') Game.entity[targetNum].stun = false;
+    if (key == 'freeze') Game.entity[targetNum].frozen = false;
+    if (key == 'confuse') Game.entity[targetNum].confuse = false;
+  }
+  Game.entity[targetNum].affects.splice(affectNum, 1);
+};
+
+checkAffects = function () {
+  this.getSpeed = function () {
+    return 100;
+  };
+};
+
+checkAffects.prototype.act = function () {
+  for (let i = 0; i < Game.entity.length; i++) {
+    let _actor = i == 0 ? 'You are ' : 'The ' + Game.entity[i].name + ' is ';
+    for (let j = 0; j < Game.entity[i].affects.length; j++) {
+      if ('poison' in Game.entity[i].affects[j]) {
+        let dmg = Math.floor(Math.random() * Game.entity[i].affects[j].poison);
+        let result = Game.entity[i].doGetSkillDamage(dmg);
+        if (
+          Game.map[Game.entity[i].depth].Tiles[Game.entity[i].x][
+            Game.entity[i].y
+          ].Visible
+        ) {
+          Game.messageBox.sendMessage(
+            _actor + 'poisoned and got %c{lightgreen}' + result + '%c{} damage.'
+          );
+        }
+      }
+      if ('stun' in Game.entity[i].affects[j]) {
+        Game.entity[i].stun = true;
+        if (
+          Game.map[Game.entity[i].depth].Tiles[Game.entity[i].x][
+            Game.entity[i].y
+          ].Visible &&
+          i > 0
+        ) {
+          Game.messageBox.sendMessage(_actor + 'stunned.');
+        }
+      }
+      if ('confuse' in Game.entity[i].affects[j]) {
+        Game.entity[i].confuse = true;
+        if (
+          Game.map[Game.entity[i].depth].Tiles[Game.entity[i].x][
+            Game.entity[i].y
+          ].Visible &&
+          i > 0
+        ) {
+          Game.messageBox.sendMessage(_actor + 'confused.');
+        }
+      }
+      if ('freeze' in Game.entity[i].affects[j]) {
+        Game.entity[i].frozen = true;
+        if (
+          Game.map[Game.entity[i].depth].Tiles[Game.entity[i].x][
+            Game.entity[i].y
+          ].Visible &&
+          i > 0
+        ) {
+          Game.messageBox.sendMessage(_actor + 'frozen.');
+        }
+      }
+
+      Game.entity[i].affects[j].duration -= 1;
+      if (Game.entity[i].affects[j].duration < 1) {
+        Game.removeAffect(i, j);
+      }
+      Game.entity[i].doDie();
+    }
+  }
+};
+
 Game.SkillRepository = new Game.Repository('skills', Skill);
 
 Game.SkillRepository.define('firearrow', function (level) {
@@ -358,7 +493,8 @@ Game.SkillRepository.define('stonearrow', function (level) {
     maxatk: 8 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
     radius: 0,
-    confuse: 0.1 + level * 0.02,
+    confuse: 0.6,
+    //confuse: 0.2 + level * 0.02,
     duration: 2 + Math.floor(level / 2)
   };
 });
@@ -377,7 +513,8 @@ Game.SkillRepository.define('icearrow', function (level) {
     maxatk: 6 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
     radius: 0,
-    frozen: 0.1 + level * 0.04,
+    freeze: 0.6,
+    //freeze: 0.2 + level * 0.04,
     duration: 2 + Math.floor(level / 2)
   };
 });
@@ -416,6 +553,40 @@ Game.SkillRepository.define('rapidcut', function (level) {
     minatk: 4,
     maxatk: 4 + Math.floor(Math.random() * level * 2),
     range: 1,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('icearmor', function (level) {
+  this.symbol = 'icearmor';
+  this.name = '%c{lightsteelblue}ice armor (' + level + ')%c{}';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 14 + level * 2,
+    defense: 2 + level,
+    duration: 8 + level * 2,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('strengthofstone', function (level) {
+  this.symbol = 'strengthofstone';
+  this.name = '%c{papayawhip}strength of stone (' + level + ')%c{}';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 10 + level * 2,
+    str: 2 + level,
+    duration: 8 + level * 2,
+    range: 0,
     radius: 0
   };
 });

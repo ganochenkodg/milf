@@ -120,7 +120,7 @@ Entity.prototype.doAttack = function (targetNum) {
         Game.messageBox.sendMessage(
           'The ' +
             this.name +
-            'is confused and hits ' +
+            ' occasionally hits ' +
             Game.entity[i].name +
             ' for ' +
             _color +
@@ -301,7 +301,7 @@ Game.EntityRepository.define('dogs', function (level) {
 });
 
 Game.EntityRepository.define('littlegoblinwarrior', function (level) {
-  this.minLvl = 1;
+  this.minLvl = 2;
   this.maxLvl = 10;
   this.level = level;
   this.name = 'little goblin warrior';

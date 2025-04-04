@@ -14,6 +14,7 @@ var Game = {
   messageDisplay: null,
   messageBox: null,
   engine: null,
+  checkAffects: null,
   inventory: [],
   skills: [],
   screenWidth: mapWidth,
@@ -55,24 +56,25 @@ var Game = {
     });
     Game.entity.unshift(_player);
     scheduler.add(Game.entity[0], true);
-    this.hpRegen = new Hpregen();
-    this.manaRegen = new Manaregen();
-    //this.checkaffects = new AffectsCheck();
+    this.hpRegen = new hpRegen();
+    this.manaRegen = new manaRegen();
+    this.checkAffects = new checkAffects();
     scheduler.add(this.hpRegen, true);
     scheduler.add(this.manaRegen, true);
+    scheduler.add(this.checkAffects, true);
     this.drawAll();
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
   }
 };
 
-Hpregen = function () {
+hpRegen = function () {
   this.getSpeed = () => {
     return 15;
   };
 };
 
-Hpregen.prototype.act = function () {
+hpRegen.prototype.act = function () {
   for (let i = 0; i < Game.entity.length; i++) {
     let addHp =
       1 +
@@ -83,13 +85,13 @@ Hpregen.prototype.act = function () {
   }
 };
 
-Manaregen = function () {
+manaRegen = function () {
   this.getSpeed = () => {
     return 15;
   };
 };
 
-Manaregen.prototype.act = function () {
+manaRegen.prototype.act = function () {
   for (let i = 0; i < Game.entity.length; i++) {
     let addMana =
       1 +
