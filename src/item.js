@@ -470,6 +470,6 @@ Game.ItemRepository.define('bookoffirstchants', function (level) {
   this.type = 'book';
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.skills = [];
-  skillType = ROT.RNG.getItem(['icearmor', 'strengthofstone']);
+  skillType = ROT.RNG.getItem(['iceshield', 'strengthofstone']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
 });

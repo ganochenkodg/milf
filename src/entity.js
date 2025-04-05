@@ -190,15 +190,34 @@ Entity.prototype.doHunt = function () {
     if (path.length > this.vision) {
       return;
     }
+
     if (
       'Skills' in this.acts &&
-      path.length < this.skillRange + 1 &&
-      this.mana > this.skills[0].options.cost + 5 &&
-      Math.random(0) > 0.2
+      Math.random(0) > 0.2 &&
+      path.length < this.skillRange + 1
     ) {
-      this.doSkills(0);
-      return;
+      var useSkill = false;
+      let _skill = ROT.RNG.getItem(this.skills);
+      if (
+        _skill.type == 'damage' &&
+        path.length < _skill.options.range + 1 &&
+        this.mana > _skill.options.cost
+      ) {
+        useSkill = true;
+      }
+      if (_skill.type == 'chant' && this.mana > _skill.options.cost) {
+        let affectApplied = Game.isAffectApplied(this, _skill);
+        if (!affectApplied[0]) {
+          useSkill = true;
+        }
+      }
+      if (useSkill) {
+        console.log(_skill);
+        this.doSkills(0, _skill);
+        return;
+      }
     }
+
     if (path.length > this.range) {
       if (this.confuse && Math.random() > 0.5) {
         let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
@@ -214,14 +233,13 @@ Entity.prototype.doHunt = function () {
   }
 };
 
-Entity.prototype.doSkills = function (targetnum) {
-  let skill = ROT.RNG.getItem(this.skills);
+Entity.prototype.doSkills = function (targetNum, skill) {
   if (skill.target == 'range') {
     Game.useSkill(
       this,
       skill,
-      Game.entity[targetnum].x,
-      Game.entity[targetnum].y
+      Game.entity[targetNum].x,
+      Game.entity[targetNum].y
     );
   }
   if (skill.target == 'self') {
@@ -321,10 +339,12 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
     Game.SkillRepository.create(
       ROT.RNG.getWeightedValue({
         rapidcut: 2,
-        poisonslash: 1
+        poisonslash: 1,
+        strengthofstone: 1
       }),
       1 + Math.floor((Math.random() * level) / 2)
-    )
+    ),
+    Game.SkillRepository.create('strengthofstone', 1)
   ];
 
   this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
@@ -352,7 +372,8 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
         firearrow: 3,
         icearrow: 1,
         poisonarrow: 2,
-        stonearrow: 1
+        stonearrow: 1,
+        iceshield: 1
       }),
       1 + Math.floor((Math.random() * level) / 2)
     )

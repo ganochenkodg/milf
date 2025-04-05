@@ -164,6 +164,19 @@ Game.drawSkillMap = function () {
   Game.drawEntities();
 };
 
+Game.isAffectApplied = function (actor, skill) {
+  var affectApplied = false;
+  var affectNum = -1;
+  for (let i = 0; i < actor.affects.length; i++) {
+    if (actor.affects[i].symbol == skill.symbol) {
+      affectApplied = true;
+      affectNum = i;
+      break;
+    }
+  }
+  return [affectApplied, affectNum];
+};
+
 Game.useSkill = function (actor, skill, skillx, skilly) {
   var result = 0;
   if (
@@ -282,6 +295,14 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
         }
       }
 
+      if (skill.type == 'chant') {
+        let affectApplied = Game.isAffectApplied(actor, skill);
+        if (affectApplied[0]) {
+          Game.removeAffect(i, affectApplied[1]);
+        }
+        Game.addAffect(i, { ...skill.options, ...{ symbol: skill.symbol } });
+      }
+
       /*
       if (typeof skill.formulas.frozen !== 'undefined') {
         let _frozen = Game.SkillRepository.create(
@@ -350,7 +371,14 @@ Game.addAffect = function (targetNum, affect) {
     if (key == 'int') Game.entity[targetNum].int += value;
     if (key == 'agi') Game.entity[targetNum].agi += value;
     if (key == 'speed') Game.entity[targetNum].speed += value;
-    if (key == 'defense') Game.entity[targetNum].defense += value;
+    if (key == 'shield') {
+      if (targetNum == 0) {
+        Game.entity[targetNum].shield += value;
+        Game.entity[targetNum].applyStats();
+      } else {
+        Game.entity[targetNum].defense += value;
+      }
+    }
     if (key == 'stun') Game.entity[targetNum].stun = true;
     if (key == 'freeze') Game.entity[targetNum].frozen = true;
     if (key == 'confuse') Game.entity[targetNum].confuse = true;
@@ -367,7 +395,14 @@ Game.removeAffect = function (targetNum, affectNum) {
     if (key == 'int') Game.entity[targetNum].int -= value;
     if (key == 'agi') Game.entity[targetNum].agi -= value;
     if (key == 'speed') Game.entity[targetNum].speed -= value;
-    if (key == 'defense') Game.entity[targetNum].defense -= value;
+    if (key == 'shield') {
+      if (targetNum == 0) {
+        Game.entity[targetNum].shield -= value;
+        Game.entity[targetNum].applyStats();
+      } else {
+        Game.entity[targetNum].defense -= value;
+      }
+    }
     if (key == 'stun') Game.entity[targetNum].stun = false;
     if (key == 'freeze') Game.entity[targetNum].frozen = false;
     if (key == 'confuse') Game.entity[targetNum].confuse = false;
@@ -493,8 +528,7 @@ Game.SkillRepository.define('stonearrow', function (level) {
     maxatk: 8 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
     radius: 0,
-    confuse: 0.6,
-    //confuse: 0.2 + level * 0.02,
+    confuse: 0.2 + level * 0.02,
     duration: 2 + Math.floor(level / 2)
   };
 });
@@ -513,8 +547,7 @@ Game.SkillRepository.define('icearrow', function (level) {
     maxatk: 6 + Math.floor(Math.random() * level * 2),
     range: 2 + Math.floor(level / 2),
     radius: 0,
-    freeze: 0.6,
-    //freeze: 0.2 + level * 0.04,
+    freeze: 0.2 + level * 0.04,
     duration: 2 + Math.floor(level / 2)
   };
 });
@@ -557,9 +590,9 @@ Game.SkillRepository.define('rapidcut', function (level) {
   };
 });
 
-Game.SkillRepository.define('icearmor', function (level) {
-  this.symbol = 'icearmor';
-  this.name = '%c{lightsteelblue}ice armor (' + level + ')%c{}';
+Game.SkillRepository.define('iceshield', function (level) {
+  this.symbol = 'iceshield';
+  this.name = '%c{lightsteelblue}ice shield (' + level + ')%c{}';
   this.minLvl = 1;
   this.maxLvl = 10;
   this.target = 'self';
@@ -567,7 +600,7 @@ Game.SkillRepository.define('icearmor', function (level) {
   this.level = level;
   this.options = {
     cost: 14 + level * 2,
-    defense: 2 + level,
+    shield: 2 + level,
     duration: 8 + level * 2,
     range: 0,
     radius: 0
