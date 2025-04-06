@@ -149,10 +149,16 @@ Game.GameMap = function (width, height, terrain, level) {
   }
   let maxItems = 3 + Math.floor(Math.random() * 5);
   let newItem;
+  let newFoodItem;
   for (let i = 0; i < maxItems; i++) {
     newItem = Game.ItemRepository.createRandom(1, level);
     freePlace = Game.returnFree(this);
     this.Tiles[freePlace[0]][freePlace[1]].items.push(newItem);
+  }
+  for (let i = 0; i < maxItems + 3; i++) {
+    newFoodItem = Game.FoodRepository.createRandom(1, level);
+    freePlace = Game.returnFree(this);
+    this.Tiles[freePlace[0]][freePlace[1]].items.push(newFoodItem);
   }
 };
 

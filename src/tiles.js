@@ -72,7 +72,6 @@ const gameTilemap = {
   bluesquare: [32, 192],
   redsquare: [64, 192],
   greensquare: [96, 192],
-
   //enemies
   dog: [0, 224],
   puppy: [32, 224],
@@ -96,6 +95,22 @@ const gameTilemap = {
   wizard3: [352, 0],
   warrior2: [384, 0],
   warrior3: [420, 0],
+  //food
+  mushroom1: [256, 128],
+  mushroom2: [288, 128],
+  herb1: [256, 96],
+  herb2: [288, 96],
+  herb3: [320, 96],
+  herb4: [352, 96],
+  herb5: [384, 96],
+  herb6: [416, 96],
+  herb7: [448, 96],
+  herb8: [480, 96],
+  herb9: [512, 96],
+  herb10: [544, 96],
+  herb11: [576, 96],
+  herb12: [608, 96],
+  herb13: [640, 96],
   //weapon tiles
   sword1: [0, 256],
   sword2: [32, 256],

@@ -85,6 +85,13 @@ Entity.prototype.doDie = function () {
     }
     Game.entity[0].piety +=
       this.level + Math.floor(Math.random() * this.level * 0.5);
+    if (this.name.startsWith('%c{lightsalmon}rare')) {
+      let newItem = Game.ItemRepository.createRandom(
+        this.level,
+        this.level + 2
+      );
+      Game.map[level].Tiles[this.x][this.y].items.push(newItem);
+    }
     scheduler.remove(this);
 
     Game.map[level].Tiles[this.x][this.y].Mob = false;
@@ -348,6 +355,14 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   ];
 
   this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.int += 4;
+    this.con += 4;
+    this.skills.push(
+      Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
+    );
+  }
 });
 
 Game.EntityRepository.define('littlegoblinwizard', function (level) {
@@ -379,4 +394,12 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
     )
   ];
   this.symbol = ROT.RNG.getItem(['goblin7', 'goblin8']);
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.int += 4;
+    this.agi += 4;
+    this.skills.push(
+      Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
+    );
+  }
 });

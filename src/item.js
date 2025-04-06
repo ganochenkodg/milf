@@ -292,6 +292,7 @@ Game.doFoodOptions = function (num) {
 };
 
 Game.ItemRepository = new Game.Repository('items', Item);
+Game.FoodRepository = new Game.Repository('items', Item);
 
 Game.ItemRepository.define('novicesword', function (level) {
   this.name = 'novice sword (' + level + ')';
@@ -338,6 +339,75 @@ Game.ItemRepository.define('novicestaff', function (level) {
     this.options.maxatk = this.options.maxatk * 2;
     this.options.int += 1;
     this.color = '#00f4';
+  }
+});
+
+Game.FoodRepository.define('healingherb', function (level) {
+  this.name = 'healing herb';
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'food';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
+  this.price = 1;
+  this.options = {
+    hp: 5 + Math.floor(Math.random() * level)
+  };
+});
+
+Game.FoodRepository.define('magicalherb', function (level) {
+  this.name = 'magical herb';
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'food';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
+  this.price = 1;
+  this.options = {
+    mana: 5 + Math.floor(Math.random() * level)
+  };
+});
+
+Game.FoodRepository.define('ancientherb', function (level) {
+  this.name = 'ancient herb';
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'food';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
+  this.price = 1;
+  this.options = {
+    hp: 5 + Math.floor(Math.random() * level),
+    mana: 5 + Math.floor(Math.random() * level)
+  };
+});
+
+Game.FoodRepository.define('mysticalmushroom', function (level) {
+  this.name = 'mystical mushroom';
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'food';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'mushroom' + (Math.floor(Math.random()) + 1);
+  this.price = 1;
+  this.options = {};
+  switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
+    case 'str':
+      this.options.str = 1;
+      break;
+    case 'int':
+      this.options.int = 1;
+      break;
+    case 'con':
+      this.options.con = 1;
+      break;
+    case 'agi':
+      this.options.agi = 1;
+      break;
   }
 });
 
