@@ -8,7 +8,6 @@ Item = function (properties) {
   this.symbol = properties['symbol'] || '';
   this.type = properties['type'] || 'other';
   this.level = properties['level'] || 1;
-  this.price = properties['price'] || 1;
   this.color = properties['color'] || '#0000';
   this.timestamp = Math.random() * 1000 + Date.now();
 };
@@ -181,7 +180,11 @@ Game.doItem = function (action, num) {
     Game.messageBox.sendMessage(
       'You sacrificed the ' + Game.inventory[num].name + '.'
     );
-    Game.entity[0].piety += Game.inventory[num].price;
+    Game.entity[0].piety +=
+      1 +
+      Math.floor(Math.random() * Game.inventory[num].level) +
+      Math.floor(Math.pow(1.6, Game.inventory[num].level));
+
     Game.inventory.splice(num, 1);
   }
   if (action == 'drop') {
@@ -294,27 +297,48 @@ Game.doFoodOptions = function (num) {
 Game.ItemRepository = new Game.Repository('items', Item);
 Game.FoodRepository = new Game.Repository('items', Item);
 
-Game.ItemRepository.define('novicesword', function (level) {
-  this.name = 'novice sword (' + level + ')';
+Game.ItemRepository.define('rustedblade', function (level) {
+  this.name = 'rusted blade (' + level + ')';
   this.minLvl = 1;
   this.maxLvl = 5;
   this.type = 'weapon';
   this.level = level;
   this.color = '#0000';
   this.symbol = 'sword' + (Math.floor(Math.random() * 3) + 1);
-  this.price = level + Math.floor(Math.random() * level);
   this.options = {
     minatk: 1,
+    maxatk: 4 + Math.floor(Math.random() * level),
+    str: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.maxatk += 4;
+    this.options.str += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('ironsword', function (level) {
+  this.name = 'iron sword (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#7733';
+  this.symbol = 'sword' + (Math.floor(Math.random() * 5) + 1);
+  this.options = {
+    minatk: 2,
     maxatk: 6 + Math.floor(Math.random() * level),
     str: 1 + Math.floor(Math.random() * level),
     con: 1 + Math.floor(Math.random() * level)
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
-    this.options.maxatk = this.options.maxatk * 2;
+    this.level += 3;
+    this.options.maxatk += 5;
     this.options.str += 1;
-    this.color = '#00f4';
+    this.color = '#7735';
   }
 });
 
@@ -326,19 +350,40 @@ Game.ItemRepository.define('novicestaff', function (level) {
   this.level = level;
   this.color = '#0000';
   this.symbol = 'staff' + (Math.floor(Math.random() * 4) + 4);
-  this.price = level + Math.floor(Math.random() * level);
   this.options = {
     minatk: 1,
     maxatk: 4 + Math.floor(Math.random() * level),
-    int: 1 + Math.floor(Math.random() * level),
+    int: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.maxatk += 2;
+    this.options.int += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('sparkwand', function (level) {
+  this.name = 'spark wand (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 10;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#fa03';
+  this.symbol = 'staff' + (Math.floor(Math.random() * 7) + 1);
+  this.options = {
+    minatk: 2,
+    maxatk: 5 + Math.floor(Math.random() * level),
+    int: 2 + Math.floor(Math.random() * level),
     agi: 1 + Math.floor(Math.random() * level)
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
-    this.options.maxatk = this.options.maxatk * 2;
+    this.level += 3;
+    this.options.maxatk += 4;
     this.options.int += 1;
-    this.color = '#00f4';
+    this.color = '#fa05';
   }
 });
 
@@ -347,10 +392,9 @@ Game.FoodRepository.define('healingherb', function (level) {
   this.minLvl = 1;
   this.maxLvl = 50;
   this.type = 'food';
-  this.level = level;
+  this.level = 2;
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
-  this.price = 1;
   this.options = {
     hp: 5 + Math.floor(Math.random() * level)
   };
@@ -359,12 +403,11 @@ Game.FoodRepository.define('healingherb', function (level) {
 Game.FoodRepository.define('magicalherb', function (level) {
   this.name = 'magical herb';
   this.minLvl = 1;
+  this.level = 2;
   this.maxLvl = 50;
   this.type = 'food';
-  this.level = level;
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
-  this.price = 1;
   this.options = {
     mana: 5 + Math.floor(Math.random() * level)
   };
@@ -375,10 +418,9 @@ Game.FoodRepository.define('ancientherb', function (level) {
   this.minLvl = 1;
   this.maxLvl = 50;
   this.type = 'food';
-  this.level = level;
+  this.level = 2;
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
-  this.price = 1;
   this.options = {
     hp: 5 + Math.floor(Math.random() * level),
     mana: 5 + Math.floor(Math.random() * level)
@@ -390,7 +432,7 @@ Game.FoodRepository.define('mysticalmushroom', function (level) {
   this.minLvl = 1;
   this.maxLvl = 50;
   this.type = 'food';
-  this.level = level;
+  this.level = 2;
   this.color = '#0000';
   this.symbol = 'mushroom' + (Math.floor(Math.random()) + 1);
   this.price = 1;
@@ -419,7 +461,6 @@ Game.ItemRepository.define('smallhealingpotion', function (level) {
   this.level = level;
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
-  this.price = level + Math.floor(Math.random() * level);
   this.options = {
     hp: 3 + Math.floor(Math.random() * level * 3),
     mana: 3 + Math.floor(Math.random() * level * 3)
@@ -441,7 +482,6 @@ Game.ItemRepository.define('smallgrowthpotion', function (level) {
   this.level = level;
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
-  this.price = 1 + level + Math.floor(Math.random() * level);
   this.options = {};
   switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
     case 'str':
@@ -467,7 +507,6 @@ Game.ItemRepository.define('novicearmor', function (level) {
   this.level = level;
   this.color = '#0000';
   this.symbol = 'armor' + (Math.floor(Math.random() * 3) + 1);
-  this.price = level + Math.floor(Math.random() * level);
   this.options = {
     defense: 1 + Math.floor(Math.random() * level),
     str: 1 + Math.floor(Math.random() * level),
@@ -475,7 +514,7 @@ Game.ItemRepository.define('novicearmor', function (level) {
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
+    this.level += 3;
     this.options.defense = this.options.defense * 2;
     this.options.agi += 1;
     this.color = '#00f4';
@@ -498,7 +537,7 @@ Game.ItemRepository.define('noviceheavyarmor', function (level) {
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
+    this.level += 3;
     this.options.defense = this.options.defense * 2;
     this.options.str += 1;
     this.color = '#00f4';

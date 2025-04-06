@@ -84,7 +84,9 @@ Entity.prototype.doDie = function () {
       Game.messageBox.sendMessage('The ' + this.name + ' destroyed.');
     }
     Game.entity[0].piety +=
-      this.level + Math.floor(Math.random() * this.level * 0.5);
+      1 +
+      Math.floor(Math.random() * this.level) +
+      Math.floor(Math.pow(1.8, this.level));
     if (this.name.startsWith('%c{lightsalmon}rare')) {
       let newItem = Game.ItemRepository.createRandom(
         this.level,
@@ -219,7 +221,6 @@ Entity.prototype.doHunt = function () {
         }
       }
       if (useSkill) {
-        console.log(_skill);
         this.doSkills(0, _skill);
         return;
       }
@@ -317,6 +318,33 @@ Game.EntityRepository.define('dogs', function (level) {
   this.int = 1 + Math.floor(Math.random() * level * 2);
   this.con = 1 + Math.floor(Math.random() * level * 2);
   this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true
+  };
+  this.symbol = this.name;
+});
+
+Game.EntityRepository.define('cats', function (level) {
+  this.minLvl = 3;
+  this.maxLvl = 13;
+  this.level = level;
+  this.name = ROT.RNG.getItem([
+    'cat',
+    'bobcat',
+    'cougar',
+    'cheetah',
+    'lynx',
+    'ocelot',
+    'malelion',
+    'femalelion'
+  ]);
+  this.str = 2 + Math.floor(Math.random() * level * 2);
+  this.agi = 4 + Math.floor(Math.random() * level * 2);
+  this.int = 1 + Math.floor(Math.random() * level * 2);
+  this.con = 2 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 4 + Math.floor(Math.random() * level * 2);
   this.acts = {
     Hunt: true,
     Attack: true,

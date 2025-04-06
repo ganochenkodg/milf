@@ -9,6 +9,7 @@ Skill = function (properties) {
   this.symbol = properties['symbol'] || '';
   this.target = properties['target'] || '';
   this.type = properties['type'] || '';
+  this.selfProtect = properties['selfProtect'] || false;
   this.weapon = properties['weapon'] || false;
 };
 
@@ -245,7 +246,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
         if (skill.weapon) {
           result += Math.floor(
             (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
-              (1 + actor.int * 0.07)
+              (1 + actor.str * 0.07)
           );
         }
         let _color = skill.name.match(/^([^}]+)}/)[0];
