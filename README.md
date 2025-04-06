@@ -10,16 +10,37 @@ Explore the infinite dungeon, full of scaling random monsters, items and skills.
 
 ## Keyboard
 
-
 <p style="text-align:center;" align="center">
-| Key                   | Action                                |
-|:----------------------|:--------------------------------------|
-| Arrows, numpad arrows | Move/Attack/Select target             |
-| Enter                 | Go up/Go down/Pick up items/Rest      |
-| a .. j                | Use items from inventory              |
-| 1 .. 0                | Use skills                            |
-| w                     | Worship to God of Random              |
-
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Arrows, numpad arrows</td>
+      <td>Move/Attack/Select target</td>
+    </tr>
+    <tr>
+      <td>Enter</td>
+      <td>Go up/Go down/Pick up items/Rest</td>
+    </tr>
+    <tr>
+      <td>a .. j</td>
+      <td>Use items from inventory</td>
+    </tr>
+    <tr>
+      <td>1 .. 0</td>
+      <td>Use skills</td>
+    </tr>
+    <tr>
+      <td>w</td>
+      <td>Worship to God of Random</td>
+    </tr>
+  </tbody>
+</table>
   <img src="resources/gameplay.png" width="800"/></a>  
 </p>
 
