@@ -10,7 +10,7 @@ Explore the infinite dungeon, full of scaling random monsters, items and skills.
 
 ## Keyboard
 
-<p style="text-align:center;" align="center">
+<div align="center">
 <table>
   <thead>
     <tr>
@@ -41,6 +41,10 @@ Explore the infinite dungeon, full of scaling random monsters, items and skills.
     </tr>
   </tbody>
 </table>
+
+</div>
+
+<p style="text-align:center;" align="center">
   <img src="resources/gameplay.png" width="800"/></a>  
 </p>
 
