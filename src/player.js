@@ -198,15 +198,15 @@ Player.prototype.Draw = function () {
 };
 
 Player.prototype.doGetDamage = function (dmg) {
-  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
-  this.hp -= dmg;
-  return dmg;
+  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  this.hp -= _dmg;
+  return _dmg;
 };
 
 Player.prototype.doGetSkillDamage = function (dmg) {
-  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
-  this.hp -= dmg;
-  return dmg;
+  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+  this.hp -= _dmg;
+  return _dmg;
 };
 
 Player.prototype.doAttack = function (x, y) {

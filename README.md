@@ -1,6 +1,6 @@
 # MILF Roguelike
 
-## Intro.
+## Intro
 
 <p style="text-align:center;" align="center">
   <img src="resources/logo_wide.png" width="800"/></a>  

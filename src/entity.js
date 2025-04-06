@@ -156,15 +156,15 @@ Entity.prototype.doAttack = function (targetNum) {
 };
 
 Entity.prototype.doGetDamage = function (dmg) {
-  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
-  this.hp -= dmg;
-  return dmg;
+  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  this.hp -= _dmg;
+  return _dmg;
 };
 
 Entity.prototype.doGetSkillDamage = function (dmg) {
-  dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
-  this.hp -= dmg;
-  return dmg;
+  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+  this.hp -= _dmg;
+  return _dmg;
 };
 
 Entity.prototype.doHunt = function () {
@@ -331,6 +331,7 @@ Game.EntityRepository.define('cats', function (level) {
   this.maxLvl = 13;
   this.level = level;
   this.vision = 6;
+  this.defense = 2;
   this.name = ROT.RNG.getItem([
     'cat',
     'bobcat',
