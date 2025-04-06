@@ -8,6 +8,8 @@
 
 Explore the infinite dungeon, full of scaling random monsters, items and skills. Play it online [here](https://ganochenkodg.github.io/roguelike-js/).
 
+The project is under active development, more skills, monsters and items will be added soon!
+
 ## Keyboard
 
 <div align="center">
