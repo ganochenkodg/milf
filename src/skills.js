@@ -624,3 +624,60 @@ Game.SkillRepository.define('strengthofstone', function (level) {
     radius: 0
   };
 });
+
+Game.SkillRepository.define('twistingslash', function (level) {
+  this.symbol = 'twistingslash';
+  this.name = '%c{coral}twisting slash (' + level + ')%c{}';
+  this.weapon = true;
+  this.selfProtect = true;
+  this.minLvl = 3;
+  this.maxLvl = 13;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 20 + level * 2,
+    minatk: 2,
+    maxatk: 10 + Math.floor(Math.random() * level * 2),
+    range: 1,
+    radius: 1
+  };
+});
+
+Game.SkillRepository.define('fireball', function (level) {
+  this.symbol = 'fireball';
+  this.name = '%c{orange}fireball (' + level + ')%c{}';
+  this.minLvl = 3;
+  this.maxLvl = 15;
+  this.target = 'range';
+  this.selfProtect = true;
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 20 + level * 2,
+    minatk: 8,
+    maxatk: 12 + Math.floor(Math.random() * level * 2),
+    range: 5 + Math.floor(level / 3),
+    radius: 1
+  };
+});
+
+Game.SkillRepository.define('acidcloud', function (level) {
+  this.symbol = 'acidcloud';
+  this.name = '%c{lightgreen}acid cloud (' + level + ')%c{}';
+  this.minLvl = 5;
+  this.maxLvl = 15;
+  this.selfProtect = true;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 22 + level * 2,
+    minatk: 4,
+    maxatk: 6 + Math.floor(Math.random() * level * 2),
+    range: 4,
+    radius: 1,
+    poison: 0.5 + level * 0.05,
+    duration: 3 + Math.floor(level / 2)
+  };
+});

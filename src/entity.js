@@ -330,6 +330,7 @@ Game.EntityRepository.define('cats', function (level) {
   this.minLvl = 3;
   this.maxLvl = 13;
   this.level = level;
+  this.vision = 6;
   this.name = ROT.RNG.getItem([
     'cat',
     'bobcat',
@@ -337,8 +338,8 @@ Game.EntityRepository.define('cats', function (level) {
     'cheetah',
     'lynx',
     'ocelot',
-    'malelion',
-    'femalelion'
+    'male lion',
+    'female lion'
   ]);
   this.str = 2 + Math.floor(Math.random() * level * 2);
   this.agi = 4 + Math.floor(Math.random() * level * 2);

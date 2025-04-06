@@ -435,7 +435,6 @@ Game.FoodRepository.define('mysticalmushroom', function (level) {
   this.level = 2;
   this.color = '#0000';
   this.symbol = 'mushroom' + (Math.floor(Math.random()) + 1);
-  this.price = 1;
   this.options = {};
   switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
     case 'str':
@@ -450,6 +449,11 @@ Game.FoodRepository.define('mysticalmushroom', function (level) {
     case 'agi':
       this.options.agi = 1;
       break;
+  }
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.options.vision = 1;
+    this.color = '#0f04';
   }
 });
 
@@ -581,4 +585,14 @@ Game.ItemRepository.define('bookoffirstchants', function (level) {
   this.skills = [];
   skillType = ROT.RNG.getItem(['iceshield', 'strengthofstone']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
+});
+
+Game.ItemRepository.define('bookofunknownmagic', function (level) {
+  this.name = 'book of unknown magic (' + level + ')';
+  this.minLvl = 2;
+  this.maxLvl = 10;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#fd04';
+  this.skills = [Game.SkillRepository.createRandom(2, level)];
 });
