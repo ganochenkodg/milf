@@ -344,6 +344,29 @@ Game.ItemRepository.define('ironsword', function (level) {
   }
 });
 
+Game.ItemRepository.define('soldierscutter', function (level) {
+  this.name = "soldier's cutter (" + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 15;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#3933';
+  this.symbol = 'sword' + (Math.floor(Math.random() * 5) + 4);
+  this.options = {
+    minatk: 5,
+    maxatk: 6 + level + Math.floor(Math.random() * level),
+    str: 4 + Math.floor(Math.random() * level),
+    con: 2 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.maxatk += 5;
+    this.options.str += 3;
+    this.color = '#3935';
+  }
+});
+
 Game.ItemRepository.define('novicestaff', function (level) {
   this.name = 'novice staff (' + level + ')';
   this.minLvl = 1;
@@ -386,6 +409,29 @@ Game.ItemRepository.define('sparkwand', function (level) {
     this.options.maxatk += 4;
     this.options.int += 1;
     this.color = '#fa05';
+  }
+});
+
+Game.ItemRepository.define('apprenticestaff', function (level) {
+  this.name = 'apprenticestaff (' + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 15;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#33f3';
+  this.symbol = 'staff' + (Math.floor(Math.random() * 5) + 4);
+  this.options = {
+    minatk: 3,
+    maxatk: 4 + level + Math.floor(Math.random() * level),
+    int: 4 + Math.floor(Math.random() * level),
+    agi: 2 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.maxatk += 4;
+    this.options.con = 3;
+    this.color = '#33f5';
   }
 });
 
@@ -505,8 +551,8 @@ Game.ItemRepository.define('smallgrowthpotion', function (level) {
   }
 });
 
-Game.ItemRepository.define('novicearmor', function (level) {
-  this.name = 'novice armor (' + level + ')';
+Game.ItemRepository.define('wornarmor', function (level) {
+  this.name = 'worn armor (' + level + ')';
   this.minLvl = 1;
   this.maxLvl = 5;
   this.type = 'armor';
@@ -516,26 +562,47 @@ Game.ItemRepository.define('novicearmor', function (level) {
   this.options = {
     defense: 1 + Math.floor(Math.random() * level),
     str: 1 + Math.floor(Math.random() * level),
+    con: 1 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.defense += 2;
+    this.options.str += 1;
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('tatteredrobe', function (level) {
+  this.name = 'tattered robe (' + level + ')';
+  this.minLvl = 1;
+  this.maxLvl = 5;
+  this.type = 'armor';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = ROT.RNG.getItem(['armor3', 'armor4']);
+  this.options = {
+    defense: 1 + Math.floor(Math.random() * level),
+    int: 1 + Math.floor(Math.random() * level),
     agi: 1 + Math.floor(Math.random() * level)
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.level += 3;
-    this.options.defense = this.options.defense * 2;
+    this.options.defense += 2;
     this.options.agi += 1;
     this.color = '#00f4';
   }
 });
 
-Game.ItemRepository.define('noviceheavyarmor', function (level) {
-  this.name = 'novice heavy armor (' + level + ')';
+Game.ItemRepository.define('paddedvest', function (level) {
+  this.name = 'padded vest (' + level + ')';
   this.minLvl = 3;
   this.maxLvl = 7;
   this.type = 'armor';
   this.level = level;
   this.color = '#0000';
   this.symbol = 'armor' + (Math.floor(Math.random()) + 5);
-  this.price = level + Math.floor(Math.random() * level);
   this.options = {
     defense: 3 + Math.floor(Math.random() * level),
     str: 1 + Math.floor(Math.random() * level),
@@ -544,9 +611,53 @@ Game.ItemRepository.define('noviceheavyarmor', function (level) {
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.level += 3;
-    this.options.defense = this.options.defense * 2;
+    this.options.defense += 3;
     this.options.str += 1;
     this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('leathercuirass', function (level) {
+  this.name = 'leather cuirass (' + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 10;
+  this.type = 'armor';
+  this.level = level;
+  this.color = '#9643';
+  this.symbol = 'armor' + (Math.floor(Math.random()) * 4 + 5);
+  this.options = {
+    defense: 2 + level + Math.floor(Math.random() * level),
+    str: 2 + level + Math.floor(Math.random() * level),
+    con: 2 + level + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.defense += 3;
+    this.options.str += 3;
+    this.color = '#9645';
+  }
+});
+
+Game.ItemRepository.define('apprenticerobe', function (level) {
+  this.name = 'apprentice robe (' + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 10;
+  this.type = 'armor';
+  this.level = level;
+  this.color = '#6033';
+  this.symbol = 'armor' + (Math.floor(Math.random()) + 5);
+  this.options = {
+    defense: 2 + level + Math.floor(Math.random() * level),
+    int: 2 + level + Math.floor(Math.random() * level),
+    con: 2 + Math.floor(Math.random() * level)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.options.defense += 3;
+    this.options.int += 3;
+    this.color = '#6035';
   }
 });
 
