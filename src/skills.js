@@ -565,7 +565,7 @@ Game.SkillRepository.define('poisonslash', function (level) {
   this.options = {
     cost: 12 + level * 2,
     minatk: 1,
-    maxatk: 8 + Math.floor(Math.random() * level * 2),
+    maxatk: 8 + level + Math.floor(Math.random() * level),
     range: 1,
     radius: 0,
     poison: 0.5 + level * 0.05,
@@ -585,7 +585,7 @@ Game.SkillRepository.define('rapidcut', function (level) {
   this.options = {
     cost: 8 + level * 2,
     minatk: 4,
-    maxatk: 4 + Math.floor(Math.random() * level * 2),
+    maxatk: 4 + level + Math.floor(Math.random() * level),
     range: 1,
     radius: 0
   };
@@ -638,7 +638,7 @@ Game.SkillRepository.define('twistingslash', function (level) {
   this.options = {
     cost: 20 + level * 2,
     minatk: 2,
-    maxatk: 10 + Math.floor(Math.random() * level * 2),
+    maxatk: 10 + level + Math.floor(Math.random() * level),
     range: 1,
     radius: 1
   };
@@ -656,7 +656,7 @@ Game.SkillRepository.define('fireball', function (level) {
   this.options = {
     cost: 20 + level * 2,
     minatk: 8,
-    maxatk: 12 + Math.floor(Math.random() * level * 2),
+    maxatk: 12 + level + Math.floor(Math.random() * level),
     range: 5 + Math.floor(level / 3),
     radius: 1
   };
@@ -674,10 +674,108 @@ Game.SkillRepository.define('acidcloud', function (level) {
   this.options = {
     cost: 22 + level * 2,
     minatk: 4,
-    maxatk: 6 + Math.floor(Math.random() * level * 2),
+    maxatk: 6 + level + Math.floor(Math.random() * level),
     range: 4,
     radius: 1,
     poison: 0.5 + level * 0.05,
     duration: 3 + Math.floor(level / 2)
+  };
+});
+
+Game.SkillRepository.define('calltheshadows', function (level) {
+  this.symbol = 'calltheshadows';
+  this.name = '%c{lightslategray}call the shadows (' + level + ')%c{}';
+  this.minLvl = 10;
+  this.maxLvl = 20;
+  this.selfProtect = true;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 30 + level * 2,
+    minatk: 10,
+    maxatk: 16 + level + Math.floor(Math.random() * level),
+    range: 4,
+    radius: 1,
+    stun: 0.3 + level * 0.03,
+    duration: 2
+  };
+});
+
+Game.SkillRepository.define('tsunami', function (level) {
+  this.symbol = 'tsunami';
+  this.name = '%c{mediumturquoise}tsunami (' + level + ')%c{}';
+  this.minLvl = 8;
+  this.maxLvl = 18;
+  this.target = 'range';
+  this.selfProtect = true;
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 25 + level * 2,
+    minatk: 12,
+    maxatk: 14 + level + Math.floor(Math.random() * level),
+    confuse: 0.4 + level * 0.01,
+    range: 3 + Math.floor(level / 3),
+    radius: 2
+  };
+});
+
+Game.SkillRepository.define('crackedearth', function (level) {
+  this.symbol = 'crackedearth';
+  this.name = '%c{brown}cracked earth (' + level + ')%c{}';
+  this.minLvl = 10;
+  this.maxLvl = 20;
+  this.target = 'range';
+  this.selfProtect = true;
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 30 + level * 2,
+    minatk: 4,
+    maxatk: 24 + level + Math.floor(Math.random() * level),
+    range: 5 + Math.floor(level / 3),
+    radius: 1
+  };
+});
+
+Game.SkillRepository.define('flamechains', function (level) {
+  this.symbol = 'flamechains';
+  this.name = '%c{crimson}flame chains (' + level + ')%c{}';
+  this.minLvl = 12;
+  this.maxLvl = 24;
+  this.target = 'range';
+  this.selfProtect = true;
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 30 + level * 2,
+    minatk: 20,
+    maxatk: 20 + level + Math.floor(Math.random() * level),
+    stun: 0.2 + level * 0.04,
+    range: 6,
+    radius: 0,
+    duration: Math.floor(level / 5)
+  };
+});
+
+Game.SkillRepository.define('lightningstrike', function (level) {
+  this.symbol = 'lightningstrike';
+  this.name = '%c{azure}rapid cut (' + level + ')%c{}';
+  this.weapon = true;
+  this.selfProtect = true;
+  this.minLvl = 8;
+  this.maxLvl = 20;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 16 + level * 2,
+    minatk: 8,
+    maxatk: 10 + level + Math.floor(Math.random() * level),
+    confuse: level * 0.05,
+    range: 1,
+    radius: 1,
+    duration: 1
   };
 });

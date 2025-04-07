@@ -387,7 +387,7 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
   if (Math.random() < rareMobChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.int += 4;
+    this.str += 4;
     this.con += 4;
     this.skills.push(
       Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
@@ -431,5 +431,80 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
     this.skills.push(
       Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
     );
+  }
+});
+
+Game.EntityRepository.define('goblinwarrior', function (level) {
+  this.minLvl = 8;
+  this.maxLvl = 20;
+  this.level = level;
+  this.name = 'goblin warrior';
+  this.defense = 5;
+  this.str = 7 + level + Math.floor(Math.random() * level);
+  this.agi = 4 + Math.floor(Math.random() * level);
+  this.int = 4 + Math.floor(Math.random() * level);
+  this.con = 5 + Math.floor(Math.random() * level * 2);
+  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
+  this.skillRange = 1;
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true,
+    Skills: true
+  };
+  this.skills = [
+    Game.SkillRepository.create(
+      ROT.RNG.getWeightedValue({
+        twistingslash: 3,
+        lightningstrike: 1
+      }),
+      3 + Math.floor((Math.random() * level) / 2)
+    ),
+    Game.SkillRepository.create('strengthofstone', 1)
+  ];
+
+  this.symbol = ROT.RNG.getItem(['goblin4', 'goblin5']);
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.str += 4;
+    this.con += 4;
+    this.skills.push(Game.SkillRepository.create('iceshield', 4));
+  }
+});
+
+Game.EntityRepository.define('goblinwizard', function (level) {
+  this.minLvl = 7;
+  this.maxLvl = 16;
+  this.level = level;
+  this.defense = 3;
+  this.name = 'goblin wizard';
+  this.str = 3 + level + Math.floor(Math.random() * level);
+  this.agi = 3 + Math.floor(Math.random() * level);
+  this.int = 5 + level + Math.floor(Math.random() * level);
+  this.con = 1 + Math.floor(Math.random() * level);
+  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
+  this.vision = 6;
+  this.skillRange = 5;
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true,
+    Skills: true
+  };
+  this.skills = [
+    Game.SkillRepository.create(
+      ROT.RNG.getWeightedValue({
+        firearrow: 3,
+        fireball: 1
+      }),
+      3 + Math.floor((Math.random() * level) / 2)
+    )
+  ];
+  this.symbol = ROT.RNG.getItem(['goblin1', 'goblin2']);
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.int += 4;
+    this.agi += 4;
+    this.skills.push(Game.SkillRepository.create('iceshield', 3));
   }
 });

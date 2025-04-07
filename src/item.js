@@ -563,6 +563,12 @@ Game.ItemRepository.define('bookofarrows', function (level) {
     'stonearrow'
   ]);
   this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#00f4';
+  }
 });
 
 Game.ItemRepository.define('bookofyoungwarrior', function (level) {
@@ -574,6 +580,12 @@ Game.ItemRepository.define('bookofyoungwarrior', function (level) {
   this.skills = [];
   skillType = ROT.RNG.getItem(['poisonslash', 'rapidcut']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#00f4';
+  }
 });
 
 Game.ItemRepository.define('bookoffirstchants', function (level) {
@@ -585,6 +597,12 @@ Game.ItemRepository.define('bookoffirstchants', function (level) {
   this.skills = [];
   skillType = ROT.RNG.getItem(['iceshield', 'strengthofstone']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#00f4';
+  }
 });
 
 Game.ItemRepository.define('bookofunknownmagic', function (level) {
@@ -595,4 +613,69 @@ Game.ItemRepository.define('bookofunknownmagic', function (level) {
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#fd04';
   this.skills = [Game.SkillRepository.createRandom(2, level)];
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#00f4';
+  }
+});
+
+Game.ItemRepository.define('bookofmassdestruction', function (level) {
+  this.name = 'book of mass destruction (' + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 15;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#f003';
+  this.skills = [];
+  skillType = ROT.RNG.getItem([
+    'fireball',
+    'acidcloud',
+    'tsunami',
+    'crackedearth'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#f005';
+  }
+});
+
+Game.ItemRepository.define('bookoflostfreedom', function (level) {
+  this.name = 'book of lost freedom (' + level + ')';
+  this.minLvl = 5;
+  this.maxLvl = 15;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#acc3';
+  this.skills = [];
+  skillType = ROT.RNG.getItem(['flamechains', 'calltheshadows']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#acc5';
+  }
+});
+
+Game.ItemRepository.define('bookofmartialarts', function (level) {
+  this.name = 'book of martial arts (' + level + ')';
+  this.minLvl = 4;
+  this.maxLvl = 16;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#9ce3';
+  this.skills = [];
+  skillType = ROT.RNG.getItem(['twistingslash', 'lightningstrike']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#9ce5';
+  }
 });

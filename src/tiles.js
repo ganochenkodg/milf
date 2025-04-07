@@ -193,6 +193,6 @@ const gameTilemap = {
   calltheshadows: [352, 480],
   tsunami: [384, 480],
   crackedearth: [416, 480],
-  firechains: [448, 480],
+  flamechains: [448, 480],
   lightningstrike: [480, 480]
 };
