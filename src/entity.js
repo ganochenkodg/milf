@@ -29,8 +29,6 @@ Entity = function (properties) {
   this.frozen = false;
   this.minAtk = properties['minAtk'] || 1;
   this.maxAtk = properties['maxAtk'] || 4;
-  this.skillRange = properties['skillRange'] || 3;
-  this.range = properties['range'] || 1;
   this.defense =
     properties['defense'] + Math.floor((this.agi + this.con) * 0.1) || 1;
 
@@ -202,11 +200,7 @@ Entity.prototype.doHunt = function () {
       return;
     }
 
-    if (
-      'Skills' in this.acts &&
-      Math.random(0) > 0.2 &&
-      path.length < this.skillRange + 1
-    ) {
+    if ('Skills' in this.acts && Math.random(0) > 0.2) {
       var useSkill = false;
       let _skill = ROT.RNG.getItem(this.skills);
       if (
@@ -228,7 +222,7 @@ Entity.prototype.doHunt = function () {
       }
     }
 
-    if (path.length > this.range) {
+    if (path.length > 1) {
       if (this.confuse && Math.random() > 0.5) {
         let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
         let newx = this.x + _confused[0];
@@ -367,7 +361,6 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   this.int = 3 + Math.floor(Math.random() * level * 2);
   this.con = 3 + Math.floor(Math.random() * level * 2);
   this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
-  this.skillRange = 1;
   this.acts = {
     Hunt: true,
     Attack: true,
@@ -447,7 +440,6 @@ Game.EntityRepository.define('goblinwarrior', function (level) {
   this.int = 4 + Math.floor(Math.random() * level);
   this.con = 5 + Math.floor(Math.random() * level * 2);
   this.maxAtk = 6 + level + Math.floor(Math.random() * level);
-  this.skillRange = 1;
   this.acts = {
     Hunt: true,
     Attack: true,
@@ -486,7 +478,6 @@ Game.EntityRepository.define('goblinwizard', function (level) {
   this.con = 1 + Math.floor(Math.random() * level);
   this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
   this.vision = 6;
-  this.skillRange = 5;
   this.acts = {
     Hunt: true,
     Attack: true,

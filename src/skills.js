@@ -781,3 +781,39 @@ Game.SkillRepository.define('lightningstrike', function (level) {
     duration: 1
   };
 });
+
+Game.SkillRepository.define('magiceye', function (level) {
+  this.symbol = 'magiceye';
+  this.name = '%c{lavender}magic eye (' + level + ')%c{}';
+  this.minLvl = 5;
+  this.maxLvl = 40;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 40 + level * 2,
+    vision: 1 + Math.floor(level / 15),
+    duration: 10 + level * 2,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('icefall', function (level) {
+  this.symbol = 'icefall';
+  this.name = '%c{skyblue}icefall (' + level + ')%c{}';
+  this.selfProtect = true;
+  this.minLvl = 5;
+  this.maxLvl = 20;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 15 + level * 2,
+    minatk: 6,
+    maxatk: 6 + level + Math.floor(Math.random() * level),
+    freeze: 0.4 + level * 0.03,
+    range: 5,
+    radius: 1
+  };
+});

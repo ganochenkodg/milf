@@ -96,6 +96,11 @@ const gameTilemap = {
   goblin6: [384, 224],
   goblin7: [416, 224],
   goblin8: [448, 224],
+  skeleton: [480, 224],
+  lich: [512, 224],
+  'dark knight': [544, 224],
+  zombie: [576, 224],
+  ghoul: [608, 224],
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
@@ -194,5 +199,15 @@ const gameTilemap = {
   tsunami: [384, 480],
   crackedearth: [416, 480],
   flamechains: [448, 480],
-  lightningstrike: [480, 480]
+  lightningstrike: [480, 480],
+  magiceye: [0, 512],
+  icefall: [32, 512],
+  auraoffear: [64, 512],
+  frozentomb: [96, 512],
+  fireshield: [128, 512],
+  lightningbolt: [160, 512],
+  rainofblades: [192, 512],
+  honor: [224, 512],
+  reflectionshield: [256, 512],
+  auraofwinter: [288, 512]
 };
