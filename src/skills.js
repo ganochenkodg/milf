@@ -551,7 +551,7 @@ Game.SkillRepository.define('icearrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     freeze: 0.2 + level * 0.04,
-    duration: 2 + Math.floor(level / 2)
+    duration: 2 + Math.floor(level / 5)
   };
 });
 
@@ -814,6 +814,7 @@ Game.SkillRepository.define('icefall', function (level) {
     maxatk: 6 + level + Math.floor(Math.random() * level),
     freeze: 0.4 + level * 0.03,
     range: 5,
-    radius: 1
+    radius: 1,
+    duration: 2 + Math.floor(level / 10)
   };
 });
