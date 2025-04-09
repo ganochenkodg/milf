@@ -15,6 +15,10 @@ Skill = function (properties) {
   this.weapon = properties['weapon'] || false;
 };
 
+function isFloat(n) {
+  return n === +n && n !== (n | 0);
+}
+
 Game.chooseSkill = function (num) {
   if (num == -1) {
     num = 9;
@@ -36,7 +40,8 @@ Game.chooseSkill = function (num) {
   var iterator = 2;
   for (let [key, value] of Object.entries(Game.skills[num].options)) {
     iterator++;
-    if (key == 'minatk' || key == 'maxatk') {
+    if (isFloat(value)) value = value.toFixed(2);
+    if (key == 'minatk' || key == 'maxatk' || key == 'shield') {
       Game.messageDisplay.drawText(
         1,
         iterator,
@@ -167,11 +172,20 @@ Game.drawSkillMap = function () {
   Game.drawEntities();
 };
 
-Game.isAffectApplied = function (actor, skill) {
+Game.isAffectApplied = function (actor, affect) {
   var affectApplied = false;
   var affectNum = -1;
+  if ('shield' in affect) {
+    for (let i = 0; i < actor.affects.length; i++) {
+      if ('shield' in actor.affects[i]) {
+        affectApplied = true;
+        affectNum = i;
+        break;
+      }
+    }
+  }
   for (let i = 0; i < actor.affects.length; i++) {
-    if (actor.affects[i].symbol == skill.symbol) {
+    if (actor.affects[i].symbol == affect.symbol) {
       affectApplied = true;
       affectNum = i;
       break;
@@ -299,69 +313,16 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
       }
 
       if (skill.type == 'chant') {
-        let affectApplied = Game.isAffectApplied(actor, skill);
+        let _affect = { ...skill.options, ...{ symbol: skill.symbol } };
+        let affectApplied = Game.isAffectApplied(actor, _affect);
         if (affectApplied[0]) {
           Game.removeAffect(i, affectApplied[1]);
         }
-        Game.addAffect(i, { ...skill.options, ...{ symbol: skill.symbol } });
-      }
-
-      /*
-      if (typeof skill.formulas.frozen !== 'undefined') {
-        let _frozen = Game.SkillRepository.create(
-          'Frozen(' + skill.level + ')'
-        );
-        if (Math.random() * 100 < skill.formulas.frozen) {
-          Game.addAffect(
-            Game.entity[i].x,
-            Game.entity[i].y,
-            Game.entity[i].Depth,
-            _frozen,
-            actor
-          );
+        if ('shield' in _affect) {
+          _affect.shield = Math.floor(_affect.shield * (1 + actor.int * 0.07));
         }
+        Game.addAffect(i, _affect);
       }
-      if (typeof skill.formulas.stun !== 'undefined') {
-        let _stun = Game.SkillRepository.create('Stun(' + skill.level + ')');
-        if (Math.random() * 100 < skill.formulas.stun) {
-          Game.addAffect(
-            Game.entity[i].x,
-            Game.entity[i].y,
-            Game.entity[i].Depth,
-            _stun,
-            actor
-          );
-        }
-      }
-      if (typeof skill.formulas.confuse !== 'undefined') {
-        let _confuse = Game.SkillRepository.create(
-          'Confuse(' + skill.level + ')'
-        );
-        if (Math.random() * 100 < skill.formulas.confuse) {
-          Game.addAffect(
-            Game.entity[i].x,
-            Game.entity[i].y,
-            Game.entity[i].Depth,
-            _confuse,
-            actor
-          );
-        }
-      }
-      if (typeof skill.formulas.burning !== 'undefined') {
-        let _burning = Game.SkillRepository.create(
-          'Burning(' + skill.level + ')'
-        );
-        if (Math.random() * 100 < skill.formulas.burning) {
-          Game.addAffect(
-            Game.entity[i].x,
-            Game.entity[i].y,
-            Game.entity[i].Depth,
-            _burning,
-            actor
-          );
-        }
-      }
-      */
       Game.entity[i].doDie();
     }
   }
@@ -605,6 +566,7 @@ Game.SkillRepository.define('iceshield', function (level) {
     cost: 14 + level * 2,
     shield: 2 + level,
     duration: 8 + level * 2,
+    cold: 0.1 + level * 0.01,
     range: 0,
     radius: 0
   };
@@ -816,5 +778,78 @@ Game.SkillRepository.define('icefall', function (level) {
     range: 5,
     radius: 1,
     duration: 2 + Math.floor(level / 10)
+  };
+});
+
+Game.SkillRepository.define('auraoffear', function (level) {
+  this.symbol = 'auraoffear';
+  this.name = '%c{thistle}aura of fear (' + level + ')%c{}';
+  this.minLvl = 5;
+  this.maxLvl = 20;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 30 + level * 2,
+    shield: 6 + level,
+    duration: 15 + level * 2,
+    fear: 0.3 + level * 0.01,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('frozentomb', function (level) {
+  this.symbol = 'frozentomb';
+  this.name = '%c{cornflowerblue}frozen tomb (' + level + ')%c{}';
+  this.minLvl = 15;
+  this.maxLvl = 30;
+  this.target = 'range';
+  this.selfProtect = true;
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 30 + level * 2,
+    minatk: 15,
+    maxatk: 25 + level + Math.floor(Math.random() * level),
+    freeze: 0.4 + level * 0.02,
+    range: 6,
+    radius: 0,
+    duration: Math.floor(level / 5)
+  };
+});
+
+Game.SkillRepository.define('fireshield', function (level) {
+  this.symbol = 'fireshield';
+  this.name = '%c{thistle}fire shield (' + level + ')%c{}';
+  this.minLvl = 10;
+  this.maxLvl = 25;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 40 + level * 2,
+    shield: 10 + level,
+    duration: 15 + level * 2,
+    fire: level * 2,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('lightningbolt', function (level) {
+  this.symbol = 'lightningbolt';
+  this.name = '%c{aliceblue}fireball (' + level + ')%c{}';
+  this.minLvl = 5;
+  this.maxLvl = 45;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 15 + level * 2,
+    minatk: 5,
+    maxatk: 5 + level * 2,
+    range: 5 + Math.floor(level / 10),
+    radius: 0
   };
 });

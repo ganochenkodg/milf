@@ -730,7 +730,26 @@ Game.ItemRepository.define('bookofunknownmagic', function (level) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.level += 3;
     this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
-    this.color = '#00f4';
+    this.color = '#fd05';
+  }
+});
+
+Game.ItemRepository.define('bookofancientmagic', function (level) {
+  this.name = 'book of ancient magic (' + level + ')';
+  this.minLvl = 6;
+  this.maxLvl = 15;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#fc04';
+  this.skills = [
+    Game.SkillRepository.createRandom(6, level),
+    Game.SkillRepository.createRandom(4, level)
+  ];
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#fc05';
   }
 });
 
