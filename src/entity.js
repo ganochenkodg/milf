@@ -136,6 +136,7 @@ Entity.prototype.doAttack = function (targetNum) {
             result +
             ' %c{}damage.'
         );
+        Game.checkShields(this, Game.entity[i], 'physical', result);
         Game.entity[i].doDie();
       }
     }
@@ -151,6 +152,8 @@ Entity.prototype.doAttack = function (targetNum) {
         result +
         ' %c{}damage.'
     );
+    Game.checkShields(this, Game.entity[targetNum], 'physical', result);
+    Game.entity[targetNum].doDie();
   }
   Game.drawAll();
 };

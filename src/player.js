@@ -242,6 +242,7 @@ Player.prototype.doAttack = function (x, y) {
           result +
           ' %c{}damage.'
       );
+      Game.checkShields(this, Game.entity[i], 'physical', result);
       Game.entity[i].doDie();
       // }
       Game.drawMap();

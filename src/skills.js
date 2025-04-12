@@ -194,6 +194,64 @@ Game.isAffectApplied = function (actor, affect) {
   return [affectApplied, affectNum];
 };
 
+Game.checkShields = function (actor, target, type, dmg) {
+  for (let i = 0; i < target.affects.length; i++) {
+    _affect = target.affects[i];
+    if ('shield' in _affect) {
+      if (type == 'physical') {
+        if ('cold' in _affect) {
+          if (Math.random() < _affect.cold)
+            actor.affects.push({
+              freeze: true,
+              duration: 2,
+              symbol: 'freeze'
+            });
+        }
+        if ('fear' in _affect) {
+          if (Math.random() < _affect.fear) п;
+          actor.affects.push({
+            confuse: true,
+            duration: 2,
+            symbol: 'confuse'
+          });
+        }
+        if ('fire' in _affect) {
+          fireDmg = Math.max(Math.floor(Math.random() * _affect.fire), 1);
+          actor.hp -= fireDmg;
+          _actor = actor.player
+            ? 'You were burned for '
+            : 'The ' + actor.name + ' was burned for ';
+          Game.messageBox.sendMessage(
+            _actor + '%c{red}' + fireDmg + ' %c{}damage.'
+          );
+        }
+      }
+      if ('reflection' in _affect) {
+        reflectDmg = Math.max(
+          Math.floor(Math.random() * _affect.reflection),
+          1
+        );
+        actor.hp -= reflectDmg;
+        _actor = actor.player ? 'You got ' : 'The ' + actor.name + ' got ';
+        Game.messageBox.sendMessage(
+          _actor + '%c{indigo}' + reflectDmg + ' %c{}damage.'
+        );
+      }
+      if ('restoration' in _affect) {
+        restoreDmg = Math.max(
+          Math.floor(Math.random() * _affect.restoration),
+          1
+        );
+        target.hp += restoreDmg;
+        _actor = target.player ? 'You got ' : 'The ' + target.name + ' got ';
+        Game.messageBox.sendMessage(
+          _actor + '%c{ivory}' + restoreDmg + ' %c{} restored HP.'
+        );
+      }
+    }
+  }
+};
+
 Game.useSkill = function (actor, skill, skillx, skilly) {
   var result = 0;
   if (
@@ -274,6 +332,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
             dmg +
             '%c{} damage.'
         );
+        Game.checkShields(actor, Game.entity[i], 'skill', dmg);
         if ('poison' in skill.options) {
           if (Math.random() < skill.options.poison) {
             Game.addAffect(i, {
@@ -725,7 +784,7 @@ Game.SkillRepository.define('flamechains', function (level) {
 
 Game.SkillRepository.define('lightningstrike', function (level) {
   this.symbol = 'lightningstrike';
-  this.name = '%c{azure}rapid cut (' + level + ')%c{}';
+  this.name = '%c{azure}lightning strike (' + level + ')%c{}';
   this.weapon = true;
   this.selfProtect = true;
   this.minLvl = 8;
@@ -839,7 +898,7 @@ Game.SkillRepository.define('fireshield', function (level) {
 
 Game.SkillRepository.define('lightningbolt', function (level) {
   this.symbol = 'lightningbolt';
-  this.name = '%c{aliceblue}fireball (' + level + ')%c{}';
+  this.name = '%c{aliceblue}lightning bolt (' + level + ')%c{}';
   this.minLvl = 5;
   this.maxLvl = 45;
   this.target = 'range';
