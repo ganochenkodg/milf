@@ -209,5 +209,11 @@ const gameTilemap = {
   rainofblades: [192, 512],
   honor: [224, 512],
   reflectionshield: [256, 512],
-  auraofwinter: [288, 512]
+  auraofwinter: [288, 512],
+  solareclipse: [320, 512],
+  supernova: [352, 512],
+  darkness: [384, 512],
+  speedoflight: [416, 512],
+  heal: [448, 512],
+  plague: [480, 512]
 };
