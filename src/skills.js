@@ -1129,7 +1129,7 @@ Game.SkillRepository.define('speedoflight', function (level) {
 
 Game.SkillRepository.define('plague', function (level) {
   this.symbol = 'plague';
-  this.name = '%c{darkseagreen}acid cloud (' + level + ')%c{}';
+  this.name = '%c{darkseagreen}plague (' + level + ')%c{}';
   this.minLvl = 20;
   this.maxLvl = 100;
   this.selfProtect = true;
