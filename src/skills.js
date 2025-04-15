@@ -41,7 +41,12 @@ Game.chooseSkill = function (num) {
   for (let [key, value] of Object.entries(Game.skills[num].options)) {
     iterator++;
     if (isFloat(value)) value = value.toFixed(2);
-    if (key == 'minatk' || key == 'maxatk' || key == 'shield') {
+    if (
+      key == 'minatk' ||
+      key == 'maxatk' ||
+      key == 'shield' ||
+      key == 'heal'
+    ) {
       Game.messageDisplay.drawText(
         1,
         iterator,
@@ -311,6 +316,8 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
   for (let i = 0; i < Game.entity.length; i++) {
     let key = Game.entity[i].x + ',' + Game.entity[i].y;
     if (key in mode.skillMap) {
+      let _color = skill.name.match(/^([^}]+)}/)[0];
+
       if (skill.type == 'damage') {
         result += Math.floor(
           (Math.random() * (skill.options.maxatk - skill.options.minatk) +
@@ -323,7 +330,6 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
               (1 + actor.str * 0.07)
           );
         }
-        let _color = skill.name.match(/^([^}]+)}/)[0];
         let dmg = Game.entity[i].doGetSkillDamage(result);
         Game.messageBox.sendMessage(
           (i == 0 ? 'You' : 'The ' + Game.entity[i].name) +
@@ -382,6 +388,45 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
         }
         Game.addAffect(i, _affect);
       }
+
+      if (skill.type == 'support') {
+        if ('heal' in skill.options) {
+          _heal = Math.floor(skill.options.heal * (1 + actor.int * 0.07));
+          actor.hp += _heal;
+          actor.hp = Math.min(actor.hp, actor.maxHp);
+          Game.messageBox.sendMessage(
+            (actor.player ? 'You' : 'The ' + actor.name) +
+              ' restored ' +
+              _color +
+              _heal +
+              '%c{} life.'
+          );
+        }
+        if ('distance' in skill.options) {
+          var iterator = 0;
+          var freeplace = Game.returnFree(Game.map[actor.depth]);
+          var _dist = skill.options.distance;
+          while (
+            freeplace[0] + _dist < actor.x ||
+            freeplace[0] > actor.x + _dist ||
+            freeplace[1] + _dist < actor.y ||
+            freeplace[1] > actor.y + _dist
+          ) {
+            iterator++;
+            freeplace = Game.returnFree(Game.map[actor.depth]);
+            if (iterator > 100) break;
+          }
+          actor.x = freeplace[0];
+          actor.y = freeplace[1];
+          Game.messageBox.sendMessage(
+            (actor.player ? 'You' : 'The ' + actor.name) +
+              _color +
+              ' teleported' +
+              '%c{} in random position.'
+          );
+        }
+      }
+
       Game.entity[i].doDie();
     }
   }
@@ -533,7 +578,7 @@ Game.SkillRepository.define('poisonarrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     poison: 0.5 + level * 0.05,
-    duration: 2 + Math.floor(level / 2)
+    duration: 2 + Math.floor(level / 5)
   };
 });
 
@@ -552,7 +597,7 @@ Game.SkillRepository.define('stonearrow', function (level) {
     range: 2 + Math.floor(level / 2),
     radius: 0,
     confuse: 0.2 + level * 0.02,
-    duration: 2 + Math.floor(level / 2)
+    duration: 2 + Math.floor(level / 5)
   };
 });
 
@@ -591,7 +636,7 @@ Game.SkillRepository.define('poisonslash', function (level) {
     range: 1,
     radius: 0,
     poison: 0.5 + level * 0.05,
-    duration: 1 + Math.floor(level / 2)
+    duration: 1 + Math.floor(level / 5)
   };
 });
 
@@ -701,7 +746,7 @@ Game.SkillRepository.define('acidcloud', function (level) {
     range: 4,
     radius: 1,
     poison: 0.5 + level * 0.05,
-    duration: 3 + Math.floor(level / 2)
+    duration: 3 + Math.floor(level / 5)
   };
 });
 
@@ -909,6 +954,227 @@ Game.SkillRepository.define('lightningbolt', function (level) {
     minatk: 5,
     maxatk: 5 + level * 2,
     range: 5 + Math.floor(level / 10),
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('rainofblades', function (level) {
+  this.symbol = 'rainofblades';
+  this.name = '%c{darkred}rain of blades (' + level + ')%c{}';
+  this.weapon = true;
+  this.selfProtect = true;
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 50 + level * 2,
+    minatk: 15,
+    maxatk: 20 + level + Math.floor(Math.random() * level),
+    confuse: level * 0.02,
+    range: 5,
+    radius: 2,
+    duration: 1
+  };
+});
+
+Game.SkillRepository.define('honor', function (level) {
+  this.symbol = 'honor';
+  this.name = '%c{lightyellow}honor (' + level + ')%c{}';
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 60 + level * 2,
+    shield: 20 + level,
+    duration: 20 + level * 2,
+    restoration: Math.min(level * 0.01, 0.9),
+    str: Math.floor(level / 2),
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('arcaneshield', function (level) {
+  this.symbol = 'arcaneshield';
+  this.name = '%c{purple}arcane shield (' + level + ')%c{}';
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 60 + level * 2,
+    shield: 30 + level,
+    duration: 30 + level * 2,
+    int: Math.floor(level / 2),
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('reflectionshield', function (level) {
+  this.symbol = 'reflectionshield';
+  this.name = '%c{royalblue}reflection shield (' + level + ')%c{}';
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 40 + level * 2,
+    shield: 20 + level,
+    duration: 25 + level * 2,
+    reflection: Math.min(level * 0.01, 0.9),
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('auraofwinter', function (level) {
+  this.symbol = 'auraofwinter';
+  this.name = '%c{steelblue}aura of winter (' + level + ')%c{}';
+  this.minLvl = 20;
+  this.maxLvl = 100;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 40 + level * 2,
+    shield: 25 + level,
+    duration: 20 + level * 2,
+    cold: 0.3 + level * 0.01,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('solareclipse', function (level) {
+  this.symbol = 'solareclipse';
+  this.name = '%c{mediumorchid}solareclipse (' + level + ')%c{}';
+  this.selfProtect = true;
+  this.minLvl = 20;
+  this.maxLvl = 100;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 50 + level * 2,
+    minatk: 25,
+    maxatk: 35 + level + Math.floor(Math.random() * level),
+    range: 1,
+    radius: 1
+  };
+});
+
+Game.SkillRepository.define('supernova', function (level) {
+  this.symbol = 'supernova';
+  this.name = '%c{snow}supernova (' + level + ')%c{}';
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.weapon = true;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 40 + level * 2,
+    minatk: 15,
+    maxatk: 20 + level * 2,
+    range: 5 + Math.floor(level / 10),
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('darkness', function (level) {
+  this.symbol = 'darkness';
+  this.name = '%c{slategray}darkness (' + level + ')%c{}';
+  this.selfProtect = true;
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 50 + level * 2,
+    minatk: 6,
+    maxatk: 15 + level + Math.floor(Math.random() * level),
+    stun: level * 0.02,
+    confuse: 0.3 + level * 0.02,
+    range: 5,
+    radius: 2,
+    duration: 2 + Math.floor(level / 10)
+  };
+});
+
+Game.SkillRepository.define('speedoflight', function (level) {
+  this.symbol = 'speedoflight';
+  this.name = '%c{seashell}speed of light (' + level + ')%c{}';
+  this.minLvl = 25;
+  this.maxLvl = 100;
+  this.target = 'self';
+  this.type = 'chant';
+  this.level = level;
+  this.options = {
+    cost: 50 + level * 2,
+    agi: Math.floor(level / 2),
+    speed: Math.floor(level / 2),
+    duration: 20 + level * 2,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('plague', function (level) {
+  this.symbol = 'plague';
+  this.name = '%c{darkseagreen}acid cloud (' + level + ')%c{}';
+  this.minLvl = 20;
+  this.maxLvl = 100;
+  this.selfProtect = true;
+  this.target = 'range';
+  this.type = 'damage';
+  this.level = level;
+  this.options = {
+    cost: 50 + level * 2,
+    minatk: 10,
+    maxatk: 20 + level + Math.floor(Math.random() * level),
+    range: 6,
+    radius: 2,
+    poison: level * 0.03,
+    duration: Math.floor(level / 3)
+  };
+});
+
+Game.SkillRepository.define('heal', function (level) {
+  this.symbol = 'heal';
+  this.name = '%c{Chartreuse}heal (' + level + ')%c{}';
+  this.minLvl = 15;
+  this.maxLvl = 50;
+  this.target = 'self';
+  this.type = 'support';
+  this.level = level;
+  this.options = {
+    cost: 20 + level * 2,
+    heal: level,
+    range: 0,
+    radius: 0
+  };
+});
+
+Game.SkillRepository.define('teleport', function (level) {
+  this.symbol = 'teleport';
+  this.name = '%c{mistyrose}teleport (' + level + ')%c{}';
+  this.minLvl = 10;
+  this.maxLvl = 50;
+  this.target = 'self';
+  this.type = 'support';
+  this.level = level;
+  this.options = {
+    cost: 15 + level * 2,
+    distance: Math.floor(level / 2),
+    range: 0,
     radius: 0
   };
 });

@@ -200,6 +200,7 @@ const gameTilemap = {
   crackedearth: [416, 480],
   flamechains: [448, 480],
   lightningstrike: [480, 480],
+  arcaneshield: [512, 480],
   magiceye: [0, 512],
   icefall: [32, 512],
   auraoffear: [64, 512],
@@ -215,5 +216,6 @@ const gameTilemap = {
   darkness: [384, 512],
   speedoflight: [416, 512],
   heal: [448, 512],
-  plague: [480, 512]
+  plague: [480, 512],
+  teleport: [512, 512]
 };

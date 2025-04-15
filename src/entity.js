@@ -219,6 +219,13 @@ Entity.prototype.doHunt = function () {
           useSkill = true;
         }
       }
+      if (
+        _skill.type == 'support' &&
+        this.mana > _skill.options.cost &&
+        this.hp * 2 < this.maxHp
+      ) {
+        useSkill = true;
+      }
       if (useSkill) {
         this.doSkills(0, _skill);
         return;
