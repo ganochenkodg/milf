@@ -1011,6 +1011,52 @@ Game.ItemRepository.define('mediumgrowthpotion', function (level) {
   }
 });
 
+Game.ItemRepository.define('largehealingpotion', function (level) {
+  this.name = 'large healing potion (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 40;
+  this.type = 'potion';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
+  this.options = {
+    hp: 60 + Math.floor(Math.random() * level * 3),
+    mana: 60 + Math.floor(Math.random() * level * 3)
+  };
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.price = this.price * 2;
+    this.options.hp += 30;
+    this.options.mana += 30;
+    this.color = '#0f04';
+  }
+});
+
+Game.ItemRepository.define('largegrowthpotion', function (level) {
+  this.name = 'large growth potion (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 50;
+  this.type = 'potion';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
+  this.options = {};
+  switch (ROT.RNG.getItem(['str', 'con', 'agi', 'int'])) {
+    case 'str':
+      this.options.str = Math.floor(level / 3) + Math.floor(Math.random() * 3);
+      break;
+    case 'int':
+      this.options.int = Math.floor(level / 3) + Math.floor(Math.random() * 3);
+      break;
+    case 'con':
+      this.options.con = Math.floor(level / 3) + Math.floor(Math.random() * 3);
+      break;
+    case 'agi':
+      this.options.agi = Math.floor(level / 3) + Math.floor(Math.random() * 3);
+      break;
+  }
+});
+
 Game.ItemRepository.define('wornarmor', function (level) {
   this.name = 'worn armor (' + level + ')';
   this.minLvl = 1;
@@ -1406,7 +1452,7 @@ Game.ItemRepository.define('bookofancientmagic', function (level) {
 Game.ItemRepository.define('bookofmassdestruction', function (level) {
   this.name = 'book of mass destruction (' + level + ')';
   this.minLvl = 5;
-  this.maxLvl = 15;
+  this.maxLvl = 20;
   this.type = 'book';
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#f003';
@@ -1428,8 +1474,8 @@ Game.ItemRepository.define('bookofmassdestruction', function (level) {
 
 Game.ItemRepository.define('bookoflostfreedom', function (level) {
   this.name = 'book of lost freedom (' + level + ')';
-  this.minLvl = 5;
-  this.maxLvl = 15;
+  this.minLvl = 7;
+  this.maxLvl = 20;
   this.type = 'book';
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#acc3';
@@ -1444,20 +1490,515 @@ Game.ItemRepository.define('bookoflostfreedom', function (level) {
   }
 });
 
-Game.ItemRepository.define('bookofmartialarts', function (level) {
-  this.name = 'book of martial arts (' + level + ')';
-  this.minLvl = 4;
-  this.maxLvl = 16;
+Game.ItemRepository.define('bookofmysticarts', function (level) {
+  this.name = 'book of mystic arts (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 25;
   this.type = 'book';
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
-  this.color = '#9ce3';
-  this.skills = [];
-  skillType = ROT.RNG.getItem(['twistingslash', 'lightningstrike']);
-  this.skills.push(Game.SkillRepository.create(skillType, level));
+  this.color = '#9cf3';
+  this.skills = [
+    Game.SkillRepository.createRandom(10, level),
+    Game.SkillRepository.createRandom(10, level)
+  ];
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.level += 3;
     this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
-    this.color = '#9ce5';
+    this.color = '#9cf5';
   }
+});
+
+Game.ItemRepository.define('bookoflostknowledge', function (level) {
+  this.name = 'book of lost knowledge (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#a8c3';
+  this.skills = [
+    Game.SkillRepository.createRandom(15, level),
+    Game.SkillRepository.createRandom(12, level)
+  ];
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 3));
+    this.color = '#a8c5';
+  }
+});
+
+Game.ItemRepository.define('bookofeldritchpower', function (level) {
+  this.name = 'book of eldritch power (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 40;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#8f83';
+  this.skills = [
+    Game.SkillRepository.createRandom(18, level),
+    Game.SkillRepository.createRandom(20, level),
+    Game.SkillRepository.createRandom(15, level)
+  ];
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 3));
+    this.color = '#8f85';
+  }
+});
+
+Game.ItemRepository.define('bookofarcanelegacy', function (level) {
+  this.name = 'book of arcane legacy (' + level + ')';
+  this.minLvl = 25;
+  this.maxLvl = 50;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#fcf3';
+  this.skills = [
+    Game.SkillRepository.createRandom(25, level),
+    Game.SkillRepository.createRandom(20, level),
+    Game.SkillRepository.createRandom(15, level)
+  ];
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 3));
+    this.color = '#fcf5';
+  }
+});
+
+Game.ItemRepository.define('bookofflames', function (level) {
+  this.name = 'book of flames (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#f603';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['fireball', 'flameshield', 'flamechains']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#f605';
+  }
+});
+
+Game.ItemRepository.define('bookofstorms', function (level) {
+  this.name = 'book of storms (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#acf3';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem([
+    'lightningbolt',
+    'lightningstrike',
+    'supernova'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#acf5';
+  }
+});
+
+Game.ItemRepository.define('bookofpoison', function (level) {
+  this.name = 'book of poison (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#6c33';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['poisonarrow', 'plague', 'acidcloud']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#6c35';
+  }
+});
+
+Game.ItemRepository.define('bookoffrost', function (level) {
+  this.name = 'book of frost (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#9cf3';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['icearrow', 'iceshield', 'frozentomb']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#9cf5';
+  }
+});
+
+Game.ItemRepository.define('bookofshadows', function (level) {
+  this.name = 'book of shadows (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 40;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#4443';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['calltheshadows', 'darkness', 'auraoffear']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#4445';
+  }
+});
+
+Game.ItemRepository.define('bookoftheearth', function (level) {
+  this.name = 'book of the earth (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#7b53';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem([
+    'iceshield',
+    'strengthofstone',
+    'crackedearth'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#7b5255';
+  }
+});
+
+Game.ItemRepository.define('bookofwarriors', function (level) {
+  this.name = 'book of warriors (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#b943';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem([
+    'twistingslash',
+    'rapidcut',
+    'rainofblades'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#b945';
+  }
+});
+
+Game.ItemRepository.define('bookofthetide', function (level) {
+  this.name = 'book of the tide (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#00с3';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['tsunami', 'auraofwinter', 'icefall']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#00c5';
+  }
+});
+
+Game.ItemRepository.define('bookofspeed', function (level) {
+  this.name = 'book of speed (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#fe03';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['speedoflight', 'rapidcut', 'honor']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#fe05';
+  }
+});
+
+Game.ItemRepository.define('bookofshields', function (level) {
+  this.name = 'book of shields (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#77bbaaaa';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem([
+    'iceshield',
+    'arcaneshield',
+    'fireshield',
+    'reflectionshield'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#77bbcccc';
+  }
+});
+
+Game.ItemRepository.define('bookofchaos', function (level) {
+  this.name = 'book of chaos (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 40;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#f393';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['fireball', 'acidcloud', 'supernova']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#f395';
+  }
+});
+
+Game.ItemRepository.define('bookoflight', function (level) {
+  this.name = 'book of light (' + level + ')';
+  this.minLvl = 20;
+  this.maxLvl = 40;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#f883';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['solareclipse', 'speedoflight', 'honor']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#f885';
+  }
+});
+
+Game.ItemRepository.define('bookofillusions', function (level) {
+  this.name = 'book of illusions (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#9373';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['magiceye', 'darkness', 'auraoffear']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#9375';
+  }
+});
+
+Game.ItemRepository.define('bookoftravel', function (level) {
+  this.name = 'book of travel (' + level + ')';
+  this.minLvl = 10;
+  this.maxLvl = 30;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#87c3';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem(['teleport', 'speedoflight', 'tsunami']);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#87c5';
+  }
+});
+
+Game.ItemRepository.define('bookofassault', function (level) {
+  this.name = 'book of assault (' + level + ')';
+  this.minLvl = 15;
+  this.maxLvl = 35;
+  this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
+  this.color = '#ff63';
+  this.skills = [];
+
+  let skillType = ROT.RNG.getItem([
+    'twistingslash',
+    'rainofblades',
+    'supernova'
+  ]);
+  this.skills.push(Game.SkillRepository.create(skillType, level));
+
+  if (Math.random() < rareItemChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.level += 3;
+    this.skills.push(Game.SkillRepository.createRandom(level, level + 2));
+    this.color = '#ff65';
+  }
+});
+
+Game.ItemRepository.define('elementalstaff', function (level) {
+  const elements = ['fire', 'ice', 'poison', 'earth', 'light', 'darkness'];
+  const colors = {
+    fire: 'red',
+    ice: 'blue',
+    poison: 'green',
+    earth: 'saddlebrown',
+    light: 'gold',
+    darkness: 'purple'
+  };
+
+  let element1 = ROT.RNG.getItem(elements);
+  let element2 = ROT.RNG.getItem(elements.filter((e) => e !== element1));
+
+  this.name =
+    'staff of %c{' +
+    colors[element1] +
+    '}' +
+    element1 +
+    '%c{} and %c{' +
+    colors[element2] +
+    '}' +
+    element2 +
+    '%c{} (' +
+    level +
+    ')';
+
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#fd05';
+  this.symbol = 'staff' + (Math.floor(Math.random()) + 5);
+  this.skills = [];
+
+  const skillMap = {
+    fire: ['fireball', 'flamechains', 'fireshield'],
+    ice: ['iceshield', 'frozen tomb', 'icearrow', 'icefall'],
+    poison: ['plague', 'acidcloud', 'poisonarrow'],
+    earth: ['strengthofstone', 'crackedearth'],
+    light: ['honor', 'solareclipse', 'supernova'],
+    darkness: ['darkness', 'calltheshadows', 'auraoffear']
+  };
+
+  let skill1 = ROT.RNG.getItem(skillMap[element1]);
+  let skill2 = ROT.RNG.getItem(skillMap[element2]);
+  this.skills.push(Game.SkillRepository.create(skill1, level));
+  this.skills.push(Game.SkillRepository.create(skill2, level));
+
+  this.options = {
+    minatk: 2 + Math.floor(level / 3),
+    maxatk: 4 + Math.floor(level / 2) + Math.floor(Math.random() * level),
+    int: 3 + Math.floor(level / 4),
+    con: 3 + Math.floor(level / 6)
+  };
+});
+
+Game.ItemRepository.define('elementalsword', function (level) {
+  const elements = ['fire', 'ice', 'poison', 'earth', 'light', 'darkness'];
+  const colors = {
+    fire: 'red',
+    ice: 'blue',
+    poison: 'green',
+    earth: 'saddlebrown',
+    light: 'gold',
+    darkness: 'purple'
+  };
+
+  let element1 = ROT.RNG.getItem(elements);
+  let element2 = ROT.RNG.getItem(elements.filter((e) => e !== element1));
+
+  this.name =
+    'sword of %c{' +
+    colors[element1] +
+    '}' +
+    element1 +
+    '%c{} and %c{' +
+    colors[element2] +
+    '}' +
+    element2 +
+    '%c{} (' +
+    level +
+    ')';
+
+  this.minLvl = 1;
+  this.maxLvl = 50;
+  this.type = 'weapon';
+  this.level = level;
+  this.color = '#fd05';
+  this.symbol = 'sword' + (Math.floor(Math.random()) + 5);
+  this.skills = [];
+
+  const skillMap = {
+    fire: ['fireshield', 'rapidcut', 'lightningbolt'],
+    ice: ['rainofblades', 'iceshield', 'tsunami'],
+    poison: ['poisonslash', 'poisonarrow'],
+    earth: ['strengthofstone', 'twistingslash'],
+    light: ['honor', 'lightningstrike', 'supernova'],
+    darkness: ['darkness', 'calltheshadows', 'auraoffear']
+  };
+
+  let skill1 = ROT.RNG.getItem(skillMap[element1]);
+  let skill2 = ROT.RNG.getItem(skillMap[element2]);
+  this.skills.push(Game.SkillRepository.create(skill1, level));
+  this.skills.push(Game.SkillRepository.create(skill2, level));
+
+  this.options = {
+    minatk: 3 + Math.floor(level / 2),
+    maxatk: 8 + Math.floor(level / 1.5) + Math.floor(Math.random() * level),
+    str: 3 + Math.floor(level / 3),
+    con: 3 + Math.floor(level / 4)
+  };
 });
