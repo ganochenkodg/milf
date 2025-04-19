@@ -1854,7 +1854,7 @@ Game.ItemRepository.define('bookoftravel', function (level) {
   this.color = '#87c3';
   this.skills = [];
 
-  let skillType = ROT.RNG.getItem(['teleport', 'speedoflight', 'tsunami']);
+  let skillType = ROT.RNG.getItem(['teleport', 'speedoflight', 'heal']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
 
   if (Math.random() < rareItemChance) {
@@ -1892,12 +1892,12 @@ Game.ItemRepository.define('bookofassault', function (level) {
 Game.ItemRepository.define('elementalstaff', function (level) {
   const elements = ['fire', 'ice', 'poison', 'earth', 'light', 'darkness'];
   const colors = {
-    fire: 'red',
-    ice: 'blue',
-    poison: 'green',
-    earth: 'saddlebrown',
-    light: 'gold',
-    darkness: 'purple'
+    fire: 'indianred',
+    ice: 'lightblue',
+    poison: 'darkseagreen',
+    earth: 'tan',
+    light: 'ivory',
+    darkness: 'silver'
   };
 
   let element1 = ROT.RNG.getItem(elements);
@@ -1929,7 +1929,7 @@ Game.ItemRepository.define('elementalstaff', function (level) {
     ice: ['iceshield', 'frozen tomb', 'icearrow', 'icefall'],
     poison: ['plague', 'acidcloud', 'poisonarrow'],
     earth: ['strengthofstone', 'crackedearth'],
-    light: ['honor', 'solareclipse', 'supernova'],
+    light: ['honor', 'solareclipse', 'supernova', 'heal'],
     darkness: ['darkness', 'calltheshadows', 'auraoffear']
   };
 
@@ -1949,12 +1949,12 @@ Game.ItemRepository.define('elementalstaff', function (level) {
 Game.ItemRepository.define('elementalsword', function (level) {
   const elements = ['fire', 'ice', 'poison', 'earth', 'light', 'darkness'];
   const colors = {
-    fire: 'red',
-    ice: 'blue',
-    poison: 'green',
-    earth: 'saddlebrown',
-    light: 'gold',
-    darkness: 'purple'
+    fire: 'indianred',
+    ice: 'lightblue',
+    poison: 'darkseagreen',
+    earth: 'tan',
+    light: 'ivory',
+    darkness: 'silver'
   };
 
   let element1 = ROT.RNG.getItem(elements);
@@ -1986,7 +1986,7 @@ Game.ItemRepository.define('elementalsword', function (level) {
     ice: ['rainofblades', 'iceshield', 'tsunami'],
     poison: ['poisonslash', 'poisonarrow'],
     earth: ['strengthofstone', 'twistingslash'],
-    light: ['honor', 'lightningstrike', 'supernova'],
+    light: ['honor', 'lightningstrike', 'supernova', 'heal'],
     darkness: ['darkness', 'calltheshadows', 'auraoffear']
   };
 
