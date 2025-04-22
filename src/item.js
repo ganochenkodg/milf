@@ -1916,7 +1916,7 @@ Game.ItemRepository.define('elementalstaff', function (level) {
     level +
     ')';
 
-  this.minLvl = 1;
+  this.minLvl = 8;
   this.maxLvl = 50;
   this.type = 'weapon';
   this.level = level;
@@ -1926,7 +1926,7 @@ Game.ItemRepository.define('elementalstaff', function (level) {
 
   const skillMap = {
     fire: ['fireball', 'flamechains', 'fireshield'],
-    ice: ['iceshield', 'frozen tomb', 'icearrow', 'icefall'],
+    ice: ['iceshield', 'frozentomb', 'icearrow', 'icefall'],
     poison: ['plague', 'acidcloud', 'poisonarrow'],
     earth: ['strengthofstone', 'crackedearth'],
     light: ['honor', 'solareclipse', 'supernova', 'heal'],
@@ -1973,7 +1973,7 @@ Game.ItemRepository.define('elementalsword', function (level) {
     level +
     ')';
 
-  this.minLvl = 1;
+  this.minLvl = 8;
   this.maxLvl = 50;
   this.type = 'weapon';
   this.level = level;

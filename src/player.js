@@ -82,8 +82,9 @@ Player.prototype.goUp = function () {
   Game.messageBox.sendMessage('You went up the stairs.');
 };
 
-Player.prototype.act = function () {
+Player.prototype.act = async function () {
   if (this.stun) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return;
   }
   Game.engine.lock();

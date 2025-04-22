@@ -101,6 +101,9 @@ const gameTilemap = {
   'dark knight': [544, 224],
   zombie: [576, 224],
   ghoul: [608, 224],
+  ettin: [384, 256],
+  'two headed ettin': [416, 256],
+  troll: [448, 256],
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
