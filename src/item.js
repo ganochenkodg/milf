@@ -858,7 +858,7 @@ Game.FoodRepository.define('healingherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    hp: 5 + Math.floor(Math.random() * level)
+    hp: 7 + Math.floor(Math.random() * level * 3)
   };
 });
 
@@ -871,7 +871,7 @@ Game.FoodRepository.define('magicalherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    mana: 5 + Math.floor(Math.random() * level)
+    mana: 7 + Math.floor(Math.random() * level * 3)
   };
 });
 
@@ -884,8 +884,8 @@ Game.FoodRepository.define('ancientherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    hp: 5 + Math.floor(Math.random() * level),
-    mana: 5 + Math.floor(Math.random() * level)
+    hp: 5 + Math.floor(Math.random() * level * 3),
+    mana: 5 + Math.floor(Math.random() * level * 3)
   };
 });
 
@@ -928,8 +928,8 @@ Game.ItemRepository.define('smallhealingpotion', function (level) {
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
   this.options = {
-    hp: 3 + Math.floor(Math.random() * level * 3),
-    mana: 3 + Math.floor(Math.random() * level * 3)
+    hp: 10 + Math.floor(Math.random() * level * 3),
+    mana: 10 + Math.floor(Math.random() * level * 3)
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
