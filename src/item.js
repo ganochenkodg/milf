@@ -1577,7 +1577,7 @@ Game.ItemRepository.define('bookofflames', function (level) {
   this.color = '#f603';
   this.skills = [];
 
-  let skillType = ROT.RNG.getItem(['fireball', 'flameshield', 'flamechains']);
+  let skillType = ROT.RNG.getItem(['fireball', 'fireshield', 'flamechains']);
   this.skills.push(Game.SkillRepository.create(skillType, level));
 
   if (Math.random() < rareItemChance) {
