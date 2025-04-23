@@ -104,6 +104,16 @@ const gameTilemap = {
   ettin: [384, 256],
   'two headed ettin': [416, 256],
   troll: [448, 256],
+  snake1: [480, 256],
+  snake2: [512, 256],
+  snake3: [544, 256],
+  snake4: [576, 256],
+  banshee: [384, 288],
+  reaper: [416, 288],
+  wraith: [448, 288],
+  cultist: [480, 288],
+  witch: [512, 288],
+
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],

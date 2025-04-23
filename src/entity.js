@@ -390,6 +390,32 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   }
 });
 
+Game.EntityRepository.define('snake', function (level) {
+  this.minLvl = 3;
+  this.maxLvl = 15;
+  this.level = level;
+  this.name = 'snake';
+  this.str = 2 + Math.floor(Math.random() * level);
+  this.agi = 5 + Math.floor(Math.random() * level);
+  this.int = 1 + Math.floor(Math.random() * 3);
+  this.con = 3 + Math.floor(Math.random() * level);
+  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true,
+    Skills: true
+  };
+  this.skills = [Game.SkillRepository.create('poisonslash', level - 2)];
+
+  this.symbol = ROT.RNG.getItem(['snake1', 'snake2', 'snake3', 'snake4']);
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.str += 4;
+    this.con += 4;
+  }
+});
+
 Game.EntityRepository.define('littlegoblinwizard', function (level) {
   this.minLvl = 3;
   this.maxLvl = 10;
