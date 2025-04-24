@@ -604,10 +604,10 @@ Game.EntityRepository.define('skeleton', function (level) {
 });
 
 Game.EntityRepository.define('lich', function (level) {
-  this.minLvl = 18;
-  this.maxLvl = 30;
+  this.minLvl = 16;
+  this.maxLvl = 40;
   this.level = level;
-  this.name = 'lich';
+  this.name = ROT.RNG.getItem(['lich', 'banchee', 'cultist', 'witch']);
   this.defense = 6;
   this.str = 3 + Math.floor(Math.random() * level);
   this.agi = 3 + Math.floor(Math.random() * level);
@@ -646,9 +646,9 @@ Game.EntityRepository.define('lich', function (level) {
 
 Game.EntityRepository.define('darkknight', function (level) {
   this.minLvl = 20;
-  this.maxLvl = 35;
+  this.maxLvl = 45;
   this.level = level;
-  this.name = 'dark knight';
+  this.name = ROT.RNG.getItem(['dark knight', 'reaper', 'wraith', 'cultist']);
   this.defense = 10;
   this.str = level + Math.floor(Math.random() * level * 2);
   this.agi = 4 + Math.floor(Math.random() * level);
