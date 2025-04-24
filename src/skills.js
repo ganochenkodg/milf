@@ -271,7 +271,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
 
   if (skill.options.cost > actor.mana) {
     if (actor.player) {
-      Game.messageBox.sendMessage('You have not enough mana.');
+      Game.messageBox.sendMessage("You don't have enough mana.");
     }
     return;
   }
