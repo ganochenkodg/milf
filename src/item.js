@@ -132,7 +132,7 @@ Game.doItem = function (action, num) {
       typeof Game.entity[0].equipment.armor !== 'undefined'
     ) {
       for (let i = 0; i < Game.inventory.length; i++) {
-        if (Game.inventory[i] == Game.entity[0].equipment.weapon) {
+        if (Game.inventory[i] == Game.entity[0].equipment.armor) {
           Game.doItem('unequip', i);
           break;
         }
