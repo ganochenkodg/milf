@@ -351,6 +351,60 @@ Game.EntityRepository.define('cats', function (level) {
   this.symbol = this.name;
 });
 
+Game.EntityRepository.define('insects', function (level) {
+  this.minLvl = 5;
+  this.maxLvl = 16;
+  this.level = level;
+  this.vision = 5;
+  this.defense = 5;
+  this.name = ROT.RNG.getItem([
+    'giant centipede',
+    'lampreymander',
+    'giant earthworm',
+    'giant ant',
+    'lesser giant ant',
+    'giant spider',
+    'lesser giant spider'
+  ]);
+  this.str = 2 + Math.floor(Math.random() * level);
+  this.agi = 4 + Math.floor(Math.random() * level * 2);
+  this.int = 1 + Math.floor(Math.random() * level);
+  this.con = 2 + Math.floor(Math.random() * level);
+  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true
+  };
+  this.symbol = this.name;
+});
+
+Game.EntityRepository.define('monsters720', function (level) {
+  this.minLvl = 7;
+  this.maxLvl = 20;
+  this.level = level;
+  this.vision = 6;
+  this.defense = 8;
+  this.name = ROT.RNG.getItem([
+    'manticore',
+    'lycanthrop',
+    'giant bat',
+    'giant rat',
+    'warg'
+  ]);
+  this.str = 3 + Math.floor(Math.random() * level * 2);
+  this.agi = 2 + Math.floor(Math.random() * level);
+  this.int = 1 + Math.floor(Math.random() * level);
+  this.con = 2 + Math.floor(Math.random() * level);
+  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
+  this.acts = {
+    Hunt: true,
+    Attack: true,
+    Actor: true
+  };
+  this.symbol = this.name;
+});
+
 Game.EntityRepository.define('littlegoblinwarrior', function (level) {
   this.minLvl = 2;
   this.maxLvl = 10;

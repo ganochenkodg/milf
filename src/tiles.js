@@ -119,7 +119,7 @@ const gameTilemap = {
   manticore: [288, 320],
   'giant ant': [320, 320],
   lycanthrope: [352, 320],
-  'giant bata': [384, 320],
+  'giant bat': [384, 320],
   'lesser giant ant': [416, 320],
   'giant spider': [448, 320],
   'lesser giant spider': [480, 320],
