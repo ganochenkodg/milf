@@ -1362,6 +1362,7 @@ Game.ItemRepository.define('bookofarrows', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
 
   this.skills = [];
@@ -1385,6 +1386,7 @@ Game.ItemRepository.define('bookofyoungwarrior', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.skills = [];
   skillType = ROT.RNG.getItem(['poisonslash', 'rapidcut']);
@@ -1402,6 +1404,7 @@ Game.ItemRepository.define('bookoffirstchants', function (level) {
   this.minLvl = 1;
   this.maxLvl = 10;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.skills = [];
   skillType = ROT.RNG.getItem(['iceshield', 'strengthofstone']);
@@ -1419,6 +1422,7 @@ Game.ItemRepository.define('bookofunknownmagic', function (level) {
   this.minLvl = 2;
   this.maxLvl = 10;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#fd04';
   this.skills = [Game.SkillRepository.createRandom(2, level)];
@@ -1435,6 +1439,7 @@ Game.ItemRepository.define('bookofancientmagic', function (level) {
   this.minLvl = 6;
   this.maxLvl = 15;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#fc04';
   this.skills = [
@@ -1454,6 +1459,7 @@ Game.ItemRepository.define('bookofmassdestruction', function (level) {
   this.minLvl = 5;
   this.maxLvl = 20;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#f003';
   this.skills = [];
@@ -1477,6 +1483,7 @@ Game.ItemRepository.define('bookoflostfreedom', function (level) {
   this.minLvl = 7;
   this.maxLvl = 20;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#acc3';
   this.skills = [];
@@ -1495,6 +1502,7 @@ Game.ItemRepository.define('bookofmysticarts', function (level) {
   this.minLvl = 10;
   this.maxLvl = 25;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#9cf3';
   this.skills = [
@@ -1514,6 +1522,7 @@ Game.ItemRepository.define('bookoflostknowledge', function (level) {
   this.minLvl = 15;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#a8c3';
   this.skills = [
@@ -1533,6 +1542,7 @@ Game.ItemRepository.define('bookofeldritchpower', function (level) {
   this.minLvl = 20;
   this.maxLvl = 40;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#8f83';
   this.skills = [
@@ -1553,6 +1563,7 @@ Game.ItemRepository.define('bookofarcanelegacy', function (level) {
   this.minLvl = 25;
   this.maxLvl = 50;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#fcf3';
   this.skills = [
@@ -1573,6 +1584,7 @@ Game.ItemRepository.define('bookofflames', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#f603';
   this.skills = [];
@@ -1593,6 +1605,7 @@ Game.ItemRepository.define('bookofstorms', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#acf3';
   this.skills = [];
@@ -1617,6 +1630,7 @@ Game.ItemRepository.define('bookofpoison', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#6c33';
   this.skills = [];
@@ -1637,6 +1651,7 @@ Game.ItemRepository.define('bookoffrost', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#9cf3';
   this.skills = [];
@@ -1657,6 +1672,7 @@ Game.ItemRepository.define('bookofshadows', function (level) {
   this.minLvl = 20;
   this.maxLvl = 40;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#4443';
   this.skills = [];
@@ -1677,6 +1693,7 @@ Game.ItemRepository.define('bookoftheearth', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#7b53';
   this.skills = [];
@@ -1701,6 +1718,7 @@ Game.ItemRepository.define('bookofwarriors', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#b943';
   this.skills = [];
@@ -1725,6 +1743,7 @@ Game.ItemRepository.define('bookofthetide', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#00с3';
   this.skills = [];
@@ -1745,6 +1764,7 @@ Game.ItemRepository.define('bookofspeed', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#fe03';
   this.skills = [];
@@ -1765,6 +1785,7 @@ Game.ItemRepository.define('bookofshields', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#77bbaaaa';
   this.skills = [];
@@ -1790,6 +1811,7 @@ Game.ItemRepository.define('bookofchaos', function (level) {
   this.minLvl = 20;
   this.maxLvl = 40;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#f393';
   this.skills = [];
@@ -1810,6 +1832,7 @@ Game.ItemRepository.define('bookoflight', function (level) {
   this.minLvl = 20;
   this.maxLvl = 40;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#f883';
   this.skills = [];
@@ -1830,6 +1853,7 @@ Game.ItemRepository.define('bookofillusions', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#9373';
   this.skills = [];
@@ -1850,6 +1874,7 @@ Game.ItemRepository.define('bookoftravel', function (level) {
   this.minLvl = 10;
   this.maxLvl = 30;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#87c3';
   this.skills = [];
@@ -1870,6 +1895,7 @@ Game.ItemRepository.define('bookofassault', function (level) {
   this.minLvl = 15;
   this.maxLvl = 35;
   this.type = 'book';
+  this.symbol = 'book' + (Math.floor(Math.random() * 5) + 1);
   this.symbol = 'book' + (Math.floor(Math.random() * 2) + 1);
   this.color = '#ff63';
   this.skills = [];
@@ -1916,12 +1942,12 @@ Game.ItemRepository.define('elementalstaff', function (level) {
     level +
     ')';
 
-  this.minLvl = 8;
+  this.minLvl = 7;
   this.maxLvl = 50;
   this.type = 'weapon';
   this.level = level;
   this.color = '#fd05';
-  this.symbol = 'staff' + (Math.floor(Math.random()) + 5);
+  this.symbol = 'elementalstaff' + (Math.floor(Math.random()) + 1);
   this.skills = [];
 
   const skillMap = {
@@ -1973,12 +1999,12 @@ Game.ItemRepository.define('elementalsword', function (level) {
     level +
     ')';
 
-  this.minLvl = 8;
+  this.minLvl = 7;
   this.maxLvl = 50;
   this.type = 'weapon';
   this.level = level;
   this.color = '#fd05';
-  this.symbol = 'sword' + (Math.floor(Math.random()) + 5);
+  this.symbol = 'elementalsword' + (Math.floor(Math.random()) + 1);
   this.skills = [];
 
   const skillMap = {
