@@ -49,6 +49,29 @@ var Game = {
     document.body.appendChild(this.messageDisplay.getContainer());
     this.generateMap(1);
     this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 13);
+    if (gameMode == 'easy') {
+      rareMobChance = 0.05;
+      rareItemChance = 0.15;
+      playerStatsMod = 8;
+      for (let k = 0; k < 3; k++) {
+        newItem = Game.ItemRepository.createRandom(1, 5);
+        Game.inventory.push(newItem);
+      }
+    }
+    if (gameMode == 'normal') {
+      rareMobChance = 0.05;
+      rareItemChance = 0.1;
+      playerStatsMod = 6;
+      newItem = Game.ItemRepository.createRandom(1, 3);
+      Game.inventory.push(newItem);
+    }
+
+    if (gameMode == 'hard') {
+      rareMobChance = 0.15;
+      rareItemChance = 0.15;
+      playerStatsMod = 4;
+    }
+
     var freeplace = this.returnFree(Game.map[1]);
     let _player = new Player({
       x: freeplace[0],
