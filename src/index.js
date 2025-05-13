@@ -17,16 +17,19 @@ var Game = {
   checkAffects: null,
   inventory: [],
   skills: [],
-  screenWidth: mapWidth,
-  screenHeight: mapHeight,
+  screenWidth: 25,
+  screenHeight: 10,
   init: function () {
-    if (this.screenWidth < 25) {
-      this.screenWidth = 25;
+    console.log(window.innerWidth);
+    console.log(window.innerHeight);
+    this.screenWidth = Math.floor((window.innerWidth - 300) / 32);
+    this.screenHeight = Math.floor((window.innerHeight - 360) / 32);
+    if (this.screenWidth < 20) {
+      this.screenWidth = 20;
     }
-    if (this.screenHeight < 10) {
-      this.screenHeight = 10;
+    if (this.screenHeight < 11) {
+      this.screenHeight = 11;
     }
-
     this.mainDisplay = new ROT.Display({
       width: this.screenWidth,
       height: this.screenHeight + 1,
@@ -53,6 +56,7 @@ var Game = {
       rareMobChance = 0.05;
       rareItemChance = 0.15;
       playerStatsMod = 8;
+      healingFactor = 5;
       for (let k = 0; k < 3; k++) {
         newItem = Game.ItemRepository.createRandom(1, 5);
         Game.inventory.push(newItem);
@@ -62,6 +66,7 @@ var Game = {
       rareMobChance = 0.05;
       rareItemChance = 0.1;
       playerStatsMod = 6;
+      healingFactor = 2;
       newItem = Game.ItemRepository.createRandom(1, 3);
       Game.inventory.push(newItem);
     }
@@ -70,6 +75,7 @@ var Game = {
       rareMobChance = 0.15;
       rareItemChance = 0.15;
       playerStatsMod = 4;
+      healingFactor = 1;
     }
 
     var freeplace = this.returnFree(Game.map[1]);

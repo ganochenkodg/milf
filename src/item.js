@@ -858,7 +858,7 @@ Game.FoodRepository.define('healingherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    hp: 7 + Math.floor(Math.random() * level * 3)
+    hp: (7 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
 });
 
@@ -871,7 +871,7 @@ Game.FoodRepository.define('magicalherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    mana: 7 + Math.floor(Math.random() * level * 3)
+    mana: (7 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
 });
 
@@ -884,8 +884,8 @@ Game.FoodRepository.define('ancientherb', function (level) {
   this.color = '#0000';
   this.symbol = 'herb' + (Math.floor(Math.random() * 12) + 1);
   this.options = {
-    hp: 5 + Math.floor(Math.random() * level * 3),
-    mana: 5 + Math.floor(Math.random() * level * 3)
+    hp: (5 + Math.floor(Math.random() * level * 3)) * healingFactor,
+    mana: (5 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
 });
 
@@ -928,12 +928,11 @@ Game.ItemRepository.define('smallhealingpotion', function (level) {
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
   this.options = {
-    hp: 10 + Math.floor(Math.random() * level * 3),
-    mana: 10 + Math.floor(Math.random() * level * 3)
+    hp: (10 + Math.floor(Math.random() * level * 3)) * healingFactor,
+    mana: (10 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
     this.options.hp += 10;
     this.options.mana += 10;
     this.color = '#0f04';
@@ -974,12 +973,11 @@ Game.ItemRepository.define('mediumhealingpotion', function (level) {
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
   this.options = {
-    hp: 30 + Math.floor(Math.random() * level * 3),
-    mana: 30 + Math.floor(Math.random() * level * 3)
+    hp: (30 + Math.floor(Math.random() * level * 3)) * healingFactor,
+    mana: (30 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
     this.options.hp += 30;
     this.options.mana += 30;
     this.color = '#0f04';
@@ -1020,12 +1018,11 @@ Game.ItemRepository.define('largehealingpotion', function (level) {
   this.color = '#0000';
   this.symbol = 'potion' + (Math.floor(Math.random() * 9) + 1);
   this.options = {
-    hp: 60 + Math.floor(Math.random() * level * 3),
-    mana: 60 + Math.floor(Math.random() * level * 3)
+    hp: (60 + Math.floor(Math.random() * level * 3)) * healingFactor,
+    mana: (60 + Math.floor(Math.random() * level * 3)) * healingFactor
   };
   if (Math.random() < rareItemChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
-    this.price = this.price * 2;
     this.options.hp += 30;
     this.options.mana += 30;
     this.color = '#0f04';

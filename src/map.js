@@ -128,7 +128,7 @@ Game.GameMap = function (width, height, terrain, level) {
   for (let i = 0; i < maxMon; i++) {
     freePlace = Game.returnFree(this);
     tempEntity = Game.EntityRepository.createRandom(level, level + 2);
-    //tempEntity = Game.EntityRepository.create('animal', '1');
+    //tempEntity = Game.EntityRepository.create('container', 1);
     tempEntity.x = freePlace[0];
     tempEntity.y = freePlace[1];
     tempEntity.depth = level;
@@ -230,32 +230,6 @@ Game.generateMap = function (level) {
 
   var terrain = ROT.RNG.getItem(terrains);
   Game.map[level] = new Game.GameMap(newMapWidth, newMapHeight, terrain, level);
-
-  /*
-  //create monsters
-  let tempentity = null;
-  let freeplace = null;
-  let maxmon = Math.floor(Math.random() * level) * 2 + 15;
-  for (let i = 0; i < maxmon; i++) {
-    freeplace = this.returnFree(level);
-    tempentity = Game.EntityRepository.createRandom(level - 1, level + 1);
-    tempentity.x = freeplace[0];
-    tempentity.y = freeplace[1];
-    tempentity.depth = level;
-    if (Math.random() * 100 < RareMobChance) {
-      if (Math.random() * 100 < RareBossChance) {
-        tempentity.randomize(3);
-      } else {
-        tempentity.randomize(2);
-      }
-    }
-    Game.map[level].Tiles[tempentity.x][tempentity.y].Mob = true;
-    Game.entity.push(tempentity);
-    if ('Actor' in Game.entity[Game.entity.length - 1].acts) {
-      scheduler.add(Game.entity[Game.entity.length - 1], true);
-    }
-  }
-  */
 };
 
 Game.clearTiles = function () {

@@ -72,6 +72,11 @@ const gameTilemap = {
   bluesquare: [32, 192],
   redsquare: [64, 192],
   greensquare: [96, 192],
+  //containers
+  chest: [256, 32],
+  barrel: [388, 32],
+  coffin: [480, 32],
+  crypt: [544, 32],
   //enemies
   dog: [0, 224],
   puppy: [32, 224],
