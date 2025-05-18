@@ -100,6 +100,7 @@ Entity.prototype.doDie = function () {
         tempEntity.x = this.x;
         tempEntity.y = this.y;
         tempEntity.depth = this.depth;
+        tempEntity.name += '%c{gray} (' + tempEntity.level + ')%c{}';
         Game.entity.push(tempEntity);
         scheduler.add(Game.entity[Game.entity.length - 1], true);
         Game.messageBox.sendMessage(
@@ -803,6 +804,33 @@ Game.EntityRepository.define('troll', function (level) {
       4 + Math.floor(Math.random() * 4)
     )
   ];
+  if (Math.random() < rareMobChance) {
+    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.con += 10;
+    this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
+  }
+});
+
+Game.EntityRepository.define('weird', function (level) {
+  this.minLvl = 10;
+  this.maxLvl = 40;
+  this.level = level;
+  this.name = ROT.RNG.getItem([
+    'dryad',
+    'wendigo',
+    'forest spirit',
+    'writhing',
+    'myconid'
+  ]);
+  this.defense = 10;
+  this.str = 10 + Math.floor(Math.random() * level);
+  this.agi = 6 + Math.floor(Math.random() * level);
+  this.int = 6 + Math.floor(Math.random() * level);
+  this.con = 7 + Math.floor(Math.random() * level);
+  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
+  this.acts = { Actor: true, Skills: true };
+  this.symbol = this.name;
+  this.skills = [Game.SkillRepository.createRandom(level - 2, level + 2)];
   if (Math.random() < rareMobChance) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.con += 10;

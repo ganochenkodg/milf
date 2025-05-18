@@ -143,6 +143,7 @@ Game.Repository.prototype.define = function (name, template) {
 };
 
 Game.Repository.prototype.create = function (name, level) {
+  level = Math.max(1, level);
   if (!this._templates[name]) {
     throw new Error(
       "No template named '" + name + "' in repository '" + this._name + "'"
@@ -153,6 +154,8 @@ Game.Repository.prototype.create = function (name, level) {
 };
 
 Game.Repository.prototype.createRandom = function (minlvl, maxlvl) {
+  minlvl = Math.max(1, minlvl);
+  maxlvl = Math.max(minlvl, maxlvl);
   var keys = Object.keys(this._templates);
   var result = this.create(
     keys[(keys.length * Math.random()) << 0],

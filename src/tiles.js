@@ -130,6 +130,11 @@ const gameTilemap = {
   'lesser giant spider': [480, 320],
   warg: [512, 320],
   'giant rat': [544, 320],
+  dryad: [320, 352],
+  wendigo: [352, 352],
+  'forest spirit': [384, 352],
+  myconid: [416, 352],
+  writhing: [444, 352],
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],

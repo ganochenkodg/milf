@@ -132,15 +132,9 @@ Game.GameMap = function (width, height, terrain, level) {
     tempEntity.x = freePlace[0];
     tempEntity.y = freePlace[1];
     tempEntity.depth = level;
-    /*
-    if (Math.random() * 100 < RareMobChance) {
-      if (Math.random() * 100 < RareBossChance) {
-        tempentity.randomize(3);
-      } else {
-        tempentity.randomize(2);
-      }
+    if ('Actor' in tempEntity.acts) {
+      tempEntity.name += '%c{gray} (' + tempEntity.level + ')%c{}';
     }
-    */
     this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
     Game.entity.push(tempEntity);
     if ('Actor' in Game.entity[Game.entity.length - 1].acts) {
