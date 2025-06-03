@@ -620,7 +620,7 @@ Game.ItemRepository.define('sparkwand', function (level) {
 });
 
 Game.ItemRepository.define('apprenticestaff', function (level) {
-  this.name = 'apprenticestaff (' + level + ')';
+  this.name = 'apprentice staff (' + level + ')';
   this.minLvl = 5;
   this.maxLvl = 15;
   this.type = 'weapon';

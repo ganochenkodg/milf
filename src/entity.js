@@ -415,7 +415,7 @@ Game.EntityRepository.define('monsters720', function (level) {
   this.defense = 8;
   this.name = ROT.RNG.getItem([
     'manticore',
-    'lycanthrop',
+    'lycanthrope',
     'giant bat',
     'giant rat',
     'warg'
