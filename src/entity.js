@@ -815,13 +815,7 @@ Game.EntityRepository.define('weird', function (level) {
   this.minLvl = 10;
   this.maxLvl = 40;
   this.level = level;
-  this.name = ROT.RNG.getItem([
-    'dryad',
-    'wendigo',
-    'forest spirit',
-    'writhing',
-    'myconid'
-  ]);
+  this.name = ROT.RNG.getItem(['dryad', 'wendigo', 'forest spirit', 'myconid']);
   this.defense = 10;
   this.str = 10 + Math.floor(Math.random() * level);
   this.agi = 6 + Math.floor(Math.random() * level);

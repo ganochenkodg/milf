@@ -134,7 +134,9 @@ const gameTilemap = {
   wendigo: [352, 352],
   'forest spirit': [384, 352],
   myconid: [416, 352],
-  writhing: [444, 352],
+  cursed1: [448, 352],
+  cursed2: [480, 352],
+  cursed3: [512, 352],
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
