@@ -89,6 +89,14 @@ Entity.prototype.doDie = function () {
         );
         Game.map[level].Tiles[this.x][this.y].items.push(newItem);
       }
+      if (this.name.startsWith('%c{mediumaquamarine}fleshlord')) {
+        let newItem = Game.FoodRepository.create(
+          'heartoffleshlord',
+          this.level
+        );
+        Game.map[level].Tiles[this.x][this.y].items.push(newItem);
+      }
+
       scheduler.remove(this);
       Game.map[level].Tiles[this.x][this.y].Mob = false;
     } else {
@@ -107,7 +115,6 @@ Entity.prototype.doDie = function () {
           'The ' + tempEntity.name + ' appears from the ' + this.name + '.'
         );
       } else {
-        console.log(this);
         Game.map[level].Tiles[this.x][this.y].Mob = false;
         if (Math.random() < 0.7) {
           let newItem = Game.ItemRepository.createRandom(
@@ -204,7 +211,10 @@ Entity.prototype.doHunt = function () {
   });
 
   var key = Game.entity[0].x + ',' + Game.entity[0].y;
-  if (key in enemyMap && enemyMap[key] < enemyRadius) {
+  if (
+    (key in enemyMap && enemyMap[key] < enemyRadius) ||
+    this.name.startsWith('%c{mediumaquamarine}fleshlord')
+  ) {
     var x = Game.entity[0].x;
     var y = Game.entity[0].y;
 
@@ -829,5 +839,28 @@ Game.EntityRepository.define('weird', function (level) {
     this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
     this.con += 10;
     this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
+  }
+});
+
+Game.EntityRepository.define('fleshlord', function (level) {
+  this.minLvl = -100;
+  this.maxLvl = -50;
+  this.level = level + 8;
+  this.name = '%c{mediumaquamarine}fleshlord%c{}';
+  this.defense = level - 5;
+  this.str = 10 + Math.floor(Math.random() * level);
+  this.agi = 10;
+  this.int = 6 + Math.floor(Math.random() * level);
+  this.con = 20 + Math.floor(Math.random() * level);
+  this.maxAtk = 15 + level + Math.floor(Math.random() * level);
+  this.vision = 30;
+  this.speed = 80;
+  this.acts = { Actor: true, Skills: true };
+  this.symbol = 'fleshlord3';
+  this.deadMessage = ' turned into chunks of flesh.';
+  this.skills = [];
+  let numSkills = 2 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < numSkills; i++) {
+    this.skills.push(Game.SkillRepository.createRandom(10, level));
   }
 });

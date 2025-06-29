@@ -141,6 +141,19 @@ Game.GameMap = function (width, height, terrain, level) {
       scheduler.add(Game.entity[Game.entity.length - 1], true);
     }
   }
+  if (level % 10 == 0) {
+    //if (level % 2 == 0) {
+    freePlace = Game.returnFree(this);
+    tempEntity = Game.EntityRepository.create('fleshlord', level);
+    tempEntity.x = freePlace[0];
+    tempEntity.y = freePlace[1];
+    tempEntity.depth = level;
+    tempEntity.name += '%c{lavender} (' + tempEntity.level + ')%c{}';
+    this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
+    Game.entity.push(tempEntity);
+    scheduler.add(Game.entity[Game.entity.length - 1], true);
+    Game.messageBox.sendMessage('%c{mediumaquamarine}IT FOLLOWS YOU!%c{}');
+  }
   let maxItems = 3 + Math.floor(Math.random() * 5);
   let newItem;
   let newFoodItem;

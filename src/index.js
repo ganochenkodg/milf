@@ -20,8 +20,6 @@ var Game = {
   screenWidth: 25,
   screenHeight: 10,
   init: function () {
-    console.log(window.innerWidth);
-    console.log(window.innerHeight);
     this.screenWidth = Math.floor((window.innerWidth - 300) / 32);
     this.screenHeight = Math.floor((window.innerHeight - 360) / 32);
     if (this.screenWidth < 20) {
@@ -184,6 +182,16 @@ Game.drawAll = function () {
   this.messageBox.Draw();
 };
 
+Game.drawEnd = function (endType) {
+  let xOffset = Math.floor(Game.screenWidth / 2) - 3;
+  let yOffset = Math.floor(Game.screenHeight / 2) - 2;
+  for (let y = 0; y <= 5; y++) {
+    for (let x = 0; x <= 5; x++) {
+      Game.mainDisplay.draw(x + xOffset, y + yOffset, `${endType}end${x}${y}`);
+    }
+  }
+};
+
 Game.drawBar = function () {
   for (let i = 0; i < 10; i++) {
     Game.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
@@ -217,6 +225,9 @@ Game.drawBar = function () {
         _color = 'green';
       } else {
         _color = 'red';
+      }
+      if (Game.inventory[i].symbol == 'heartoffleshlord') {
+        _color = 'purple';
       }
       Game.mainDisplay.draw(
         i + Game.screenWidth - 10,

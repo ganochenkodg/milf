@@ -6,7 +6,7 @@ Item = function (properties) {
   this.maxLvl = properties['maxLvl'] || 1;
   this.minLvl = properties['minLvl'] || 1;
   this.options = properties['options'] || [];
-  this.skills = properties['skills'] || [];
+  this.skills = properties['skills'];
   this.symbol = properties['symbol'] || '';
   this.type = properties['type'] || 'other';
   this.level = properties['level'] || 1;
@@ -15,25 +15,12 @@ Item = function (properties) {
 };
 
 Item.prototype.isEquipped = function () {
-  if (typeof Game.entity[0].equipment.weapon !== 'undefined') {
-    if (Game.entity[0].equipment.weapon == this) {
-      return true;
-    }
-  }
-  if (typeof Game.entity[0].equipment.armor !== 'undefined') {
-    if (Game.entity[0].equipment.armor == this) {
-      return true;
-    }
-  }
-  if (typeof Game.entity[0].books !== 'undefined') {
-    for (let i = 0; i < Game.entity[0].books.length; i++) {
-      if (Game.entity[0].books[i] == this) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+  const entity = Game.entity[0];
+  return (
+    entity.equipment.weapon === this ||
+    entity.equipment.armor === this ||
+    (entity.books && entity.books.includes(this))
+  );
 };
 
 Game.pickupItem = function () {
@@ -292,6 +279,13 @@ Game.doFoodOptions = function (num) {
       Game.entity[0].con += value;
       Game.messageBox.sendMessage('You feel tighter.');
     }
+    if (key == 'speed') {
+      Game.entity[0].speed += value;
+      Game.messageBox.sendMessage('Your speed was changed.');
+    }
+  }
+  if (Game.inventory[num].symbol == 'heartoffleshlord') {
+    Game.entity[0].mutate();
   }
   Game.entity[0].applyStats();
 };
@@ -917,6 +911,22 @@ Game.FoodRepository.define('mysticalmushroom', function (level) {
     this.options.vision = 1;
     this.color = '#0f04';
   }
+});
+
+Game.FoodRepository.define('heartoffleshlord', function (level) {
+  this.name = 'heart of fleshlord';
+  this.minLvl = -100;
+  this.maxLvl = -50;
+  this.type = 'food';
+  this.level = level;
+  this.color = '#0000';
+  this.symbol = 'heartoffleshlord';
+  this.options = {
+    str: 5,
+    int: 5,
+    con: 20,
+    speed: -10
+  };
 });
 
 Game.ItemRepository.define('smallhealingpotion', function (level) {

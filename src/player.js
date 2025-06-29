@@ -60,6 +60,28 @@ Player.prototype.applyStats = function () {
   }
 };
 
+Player.prototype.mutate = function () {
+  let affectApplied = Game.isAffectApplied(this, { symbol: 'fleshlordchant2' });
+  if (affectApplied[0]) {
+    this.affects[affectApplied[1]].symbol = 'fleshlordchant3';
+    this.name = '%c{mediumaquamarine}fleshlord%c{}';
+    this.symbol = 'fleshlord3';
+    this.color = '#0000';
+    return;
+  }
+  affectApplied = Game.isAffectApplied(this, { symbol: 'fleshlordchant1' });
+  if (affectApplied[0]) {
+    this.affects[affectApplied[1]].symbol = 'fleshlordchant2';
+    this.color = '#626b';
+    return;
+  }
+  Game.addAffect(0, {
+    duration: 999999999,
+    symbol: 'fleshlordchant1'
+  });
+  this.color = '#6267';
+};
+
 Player.prototype.move = function (newx, newy) {
   if (this.frozen) return;
   this.x = newx;
@@ -94,6 +116,7 @@ Player.prototype.act = async function () {
       'You are dead! Press %c{red}F5%c{} to start new game.'
     );
     Game.drawAll();
+    Game.drawEnd('bad');
     return;
   }
   this.doDie();
