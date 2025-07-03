@@ -42,6 +42,15 @@ Player = function (properties) {
   };
 };
 
+Game.doWin = function () {
+  Game.engine.lock();
+  Game.messageBox.sendMessage(
+    '%c{gold}You found a way out from infinite dungeon! Congratulations!%c{}'
+  );
+  Game.drawAll();
+  Game.drawEnd('good');
+};
+
 Player.prototype.applyStats = function () {
   this.maxHp = 15 + this.con * 6 + this.str * 3;
   this.maxMana = 10 + this.int * 8;
@@ -428,6 +437,11 @@ Player.prototype.handleEvent = function (e) {
           newx = this.x;
           newy = this.y;
           level = Game.entity[0].depth;
+        }
+        if (Game.map[level].Tiles[newx][newy].Symbol == 'portal') {
+          Game.doWin();
+          window.removeEventListener('keydown', this);
+          return;
         }
         break;
       case 33:

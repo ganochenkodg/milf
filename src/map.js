@@ -179,6 +179,31 @@ Game.returnFree = function (map) {
   return [xrand, yrand];
 };
 
+Game.createPortal = function (x, y, level) {
+  var xrand = x;
+  var yrand = y;
+  for (let i = -1; i < 2; i++) {
+    for (let j = -1; j < 2; j++) {
+      if (
+        !(
+          Game.map[level].Tiles[x + i][y + j].Blocked ||
+          Game.map[level].Tiles[x + i][y + j].Mob ||
+          Game.map[level].Tiles[x + i][y + j].Stairup ||
+          Game.map[level].Tiles[x + i][y + j].Stairdown
+        )
+      ) {
+        xrand = x + i;
+        yrand = y + j;
+        Game.map[level].Tiles[xrand][yrand].Symbol = 'portal';
+        Game.drawAll();
+        return;
+      }
+    }
+  }
+  Game.map[level].Tiles[xrand][yrand].Symbol = 'portal';
+  Game.drawAll();
+};
+
 Game.returnDoor = function (map) {
   var xrand;
   var yrand;

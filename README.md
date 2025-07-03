@@ -8,7 +8,9 @@
 
 Explore the infinite dungeon, full of scaling random monsters, items and skills. Play it online [here](https://ganochenkodg.github.io/milf/).
 
-The project is under active development, more skills, monsters and items will be added soon!
+In your journey you can meet some mutated bosses, and their hearts could enhance your body or help you to find a way out!
+
+The project is under active development and may contain bugs!
 
 ## Keyboard
 

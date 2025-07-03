@@ -59,6 +59,7 @@ const gameTilemap = {
   skullsdooropen: [160, 160],
   skullsstairdown: [192, 160],
   skullsstairup: [224, 160],
+  portal: [448, 0],
   //ui
   hp1: [256, 64],
   hp2: [288, 64],
@@ -213,14 +214,13 @@ const gameTilemap = {
   fleshlordchant1: [544, 352],
   fleshlordchant2: [576, 352],
   fleshlordchant3: [608, 352],
-
   //player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
   wizard2: [320, 0],
   wizard3: [352, 0],
   warrior2: [384, 0],
-  warrior3: [420, 0],
+  warrior3: [416, 0],
   //food
   mushroom1: [256, 128],
   mushroom2: [288, 128],
