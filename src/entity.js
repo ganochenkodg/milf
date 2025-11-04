@@ -1,4 +1,6 @@
-Entity = function (properties) {
+'use strict';
+
+const Entity = function (properties) {
   properties = properties || {};
   this.x = properties['x'] || 0;
   this.y = properties['y'] || 0;
@@ -46,7 +48,7 @@ Entity = function (properties) {
 };
 
 function mobPasses(x, y) {
-  var level = Game.entity[0].depth;
+  const level = Game.entity[0].depth;
   if (
     x > 0 &&
     x < Game.map[level].width &&
@@ -75,22 +77,22 @@ Entity.prototype.act = function () {
 
 Entity.prototype.doDie = function () {
   if (this.hp < 1) {
-    var level = this.depth;
-    Game.messageBox.sendMessage('The ' + this.name + this.deadMessage);
+    const level = this.depth;
+    Game.messageBox.sendMessage(`The ${this.name}${this.deadMessage}`);
     if ('Actor' in this.acts) {
       Game.entity[0].piety +=
         1 +
         Math.floor(Math.random() * this.level) +
         Math.floor(Math.pow(1.8, this.level));
       if (this.name.startsWith('%c{lightsalmon}rare')) {
-        let newItem = Game.ItemRepository.createRandom(
+        const newItem = Game.ItemRepository.createRandom(
           this.level,
           this.level + 2
         );
         Game.map[level].Tiles[this.x][this.y].items.push(newItem);
       }
       if (this.name.startsWith('%c{mediumaquamarine}fleshlord')) {
-        let newItem = Game.FoodRepository.create(
+        const newItem = Game.FoodRepository.create(
           'heartoffleshlord',
           this.level
         );
@@ -101,23 +103,23 @@ Entity.prototype.doDie = function () {
       Game.map[level].Tiles[this.x][this.y].Mob = false;
     } else {
       if (Math.random() < 0.25) {
-        let tempEntity = Game.EntityRepository.create(
+        const tempEntity = Game.EntityRepository.create(
           ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton']),
           this.level
         );
         tempEntity.x = this.x;
         tempEntity.y = this.y;
         tempEntity.depth = this.depth;
-        tempEntity.name += '%c{gray} (' + tempEntity.level + ')%c{}';
+        tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
         Game.entity.push(tempEntity);
         scheduler.add(Game.entity[Game.entity.length - 1], true);
         Game.messageBox.sendMessage(
-          'The ' + tempEntity.name + ' appears from the ' + this.name + '.'
+          `The ${tempEntity.name} appears from the ${this.name}.`
         );
       } else {
         Game.map[level].Tiles[this.x][this.y].Mob = false;
         if (Math.random() < 0.7) {
-          let newItem = Game.ItemRepository.createRandom(
+          const newItem = Game.ItemRepository.createRandom(
             this.level,
             this.level + 2
           );
@@ -125,7 +127,7 @@ Entity.prototype.doDie = function () {
         }
       }
     }
-    for (var i = 0; i < Game.entity.length; i++) {
+    for (let i = 0; i < Game.entity.length; i++) {
       if (Game.entity[i] === this) {
         Game.entity.splice(i, 1);
       }
@@ -144,41 +146,27 @@ Entity.prototype.doAttack = function (targetNum) {
     _color = '%c{lime}';
   }
   if (this.confuse && Math.random() > 0.5) {
-    let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-    newx = this.x + _confused[0];
-    newy = this.y + _confused[1];
+    const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
+    let newx = this.x + _confused[0];
+    let newy = this.y + _confused[1];
     for (let i = 0; i < Game.entity.length; i++) {
       if (
         Game.entity[i].x == newx &&
         Game.entity[i].y == newy &&
         Game.entity[i].depth == this.depth
       ) {
-        let result = Game.entity[i].doGetDamage(dmg);
+        const result = Game.entity[i].doGetDamage(dmg);
         Game.messageBox.sendMessage(
-          'The ' +
-            this.name +
-            ' occasionally hits ' +
-            Game.entity[i].name +
-            ' for ' +
-            _color +
-            result +
-            ' %c{}damage.'
+          `The ${this.name} occasionally hits ${Game.entity[i].name} for ${_color}${result} %c{}damage.`
         );
         Game.checkShields(this, Game.entity[i], 'physical', result);
         Game.entity[i].doDie();
       }
     }
   } else {
-    let result = Game.entity[targetNum].doGetDamage(dmg);
+    const result = Game.entity[targetNum].doGetDamage(dmg);
     Game.messageBox.sendMessage(
-      'The ' +
-        this.name +
-        ' hits ' +
-        (targetNum == 0 ? 'you' : 'the ' + Game.entity[targetNum].name) +
-        ' for ' +
-        _color +
-        result +
-        ' %c{}damage.'
+      `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${Game.entity[targetNum].name}`} for ${_color}${result} %c{}damage.`
     );
     Game.checkShields(this, Game.entity[targetNum], 'physical', result);
     Game.entity[targetNum].doDie();
@@ -187,13 +175,13 @@ Entity.prototype.doAttack = function (targetNum) {
 };
 
 Entity.prototype.doGetDamage = function (dmg) {
-  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
   this.hp -= _dmg;
   return _dmg;
 };
 
 Entity.prototype.doGetSkillDamage = function (dmg) {
-  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
   this.hp -= _dmg;
   return _dmg;
 };
@@ -202,28 +190,28 @@ Entity.prototype.doHunt = function () {
   if (this.hp < 1) {
     return;
   }
-  var level = this.depth;
-  var targetNum = 0;
-  let enemyRadius = this.vision + 1;
-  let enemyMap = [];
+  const level = this.depth;
+  const targetNum = 0;
+  const enemyRadius = this.vision + 1;
+  const enemyMap = [];
   fov.compute(this.x, this.y, this.vision, function (x, y, r, visibility) {
     enemyMap[x + ',' + y] = r;
   });
 
-  var key = Game.entity[0].x + ',' + Game.entity[0].y;
+  const key = `${Game.entity[0].x},${Game.entity[0].y}`;
   if (
     (key in enemyMap && enemyMap[key] < enemyRadius) ||
     this.name.startsWith('%c{mediumaquamarine}fleshlord')
   ) {
-    var x = Game.entity[0].x;
-    var y = Game.entity[0].y;
+    const x = Game.entity[0].x;
+    const y = Game.entity[0].y;
 
-    var astar = new ROT.Path.AStar(x, y, mobPasses, {
+    const astar = new ROT.Path.AStar(x, y, mobPasses, {
       topology: 8
     });
 
-    var path = [];
-    var pathCallback = function (x, y) {
+    const path = [];
+    const pathCallback = (x, y) => {
       path.push([x, y]);
     };
     Game.map[level].Tiles[this.x][this.y].Mob = false;
@@ -235,8 +223,8 @@ Entity.prototype.doHunt = function () {
     }
 
     if ('Skills' in this.acts && Math.random(0) > 0.2) {
-      var useSkill = false;
-      let _skill = ROT.RNG.getItem(this.skills);
+      let useSkill = false;
+      const _skill = ROT.RNG.getItem(this.skills);
       if (
         _skill.type == 'damage' &&
         path.length < _skill.options.range + 1 &&
@@ -245,7 +233,7 @@ Entity.prototype.doHunt = function () {
         useSkill = true;
       }
       if (_skill.type == 'chant' && this.mana > _skill.options.cost) {
-        let affectApplied = Game.isAffectApplied(this, _skill);
+        const affectApplied = Game.isAffectApplied(this, _skill);
         if (!affectApplied[0]) {
           useSkill = true;
         }
@@ -265,9 +253,9 @@ Entity.prototype.doHunt = function () {
 
     if (path.length > 1) {
       if (this.confuse && Math.random() > 0.5) {
-        let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-        let newx = this.x + _confused[0];
-        let newy = this.y + _confused[1];
+        const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
+        const newx = this.x + _confused[0];
+        const newy = this.y + _confused[1];
         this.move(newx, newy);
       } else {
         this.move(path[0][0], path[0][1]);
@@ -294,7 +282,7 @@ Entity.prototype.doSkills = function (targetNum, skill) {
 
 Entity.prototype.move = function (newx, newy) {
   if (this.frozen) return;
-  var level = this.depth;
+  const level = this.depth;
   Game.map[level].Tiles[this.x][this.y].Mob = false;
   this.x = newx;
   this.y = newy;
@@ -305,13 +293,13 @@ Entity.prototype.Draw = function () {
   if (this.depth != Game.entity[0].depth) {
     return;
   }
-  var level = this.depth;
+  const level = this.depth;
   if (Game.map[level].Tiles[this.x][this.y].Visible) {
     let hpbar = Math.min(8, Math.floor((this.hp * 8) / this.maxHp));
     if (hpbar < 1) {
       hpbar = 1;
     }
-    let _color = Game.map[level].Tiles[this.x][this.y].Color;
+    const _color = Game.map[level].Tiles[this.x][this.y].Color;
     Game.mainDisplay.draw(
       Game.getCamera(this.x, this.y)[0],
       Game.getCamera(this.x, this.y)[1],
@@ -323,9 +311,7 @@ Entity.prototype.Draw = function () {
 };
 
 Game.drawEntities = function () {
-  for (let i = 0; i < Game.entity.length; i++) {
-    Game.entity[i].Draw();
-  }
+  Game.entity.forEach(entity => entity.Draw());
 };
 
 Game.EntityRepository = new Game.Repository('entities', Entity);
@@ -469,7 +455,7 @@ Game.EntityRepository.define('littlegoblinwarrior', function (level) {
 
   this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 4;
     this.con += 4;
     this.skills.push(
@@ -496,7 +482,7 @@ Game.EntityRepository.define('snake', function (level) {
 
   this.symbol = ROT.RNG.getItem(['snake1', 'snake2', 'snake3', 'snake4']);
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 4;
     this.con += 4;
   }
@@ -530,7 +516,7 @@ Game.EntityRepository.define('littlegoblinwizard', function (level) {
   ];
   this.symbol = ROT.RNG.getItem(['goblin7', 'goblin8']);
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.int += 4;
     this.agi += 4;
     this.skills.push(
@@ -567,7 +553,7 @@ Game.EntityRepository.define('goblinwarrior', function (level) {
 
   this.symbol = ROT.RNG.getItem(['goblin4', 'goblin5']);
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 4;
     this.con += 4;
     this.skills.push(Game.SkillRepository.create('iceshield', 4));
@@ -601,7 +587,7 @@ Game.EntityRepository.define('goblinwizard', function (level) {
   ];
   this.symbol = ROT.RNG.getItem(['goblin1', 'goblin2']);
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.int += 4;
     this.agi += 4;
     this.skills.push(Game.SkillRepository.create('iceshield', 3));
@@ -623,7 +609,7 @@ Game.EntityRepository.define('skeleton', function (level) {
   this.deadMessage = ' turned to ash.';
   this.acts = { Actor: true };
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 2;
     this.agi += 2;
     this.con += 2;
@@ -660,7 +646,7 @@ Game.EntityRepository.define('lich', function (level) {
   this.symbol = this.name;
   this.deadMessage = ' turned to ash.';
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.int += 4;
     this.con += 4;
     this.skills.push(
@@ -693,7 +679,7 @@ Game.EntityRepository.define('darkknight', function (level) {
   this.symbol = this.name;
   this.deadMessage = ' turned to ash.';
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 3;
     this.con += 3;
     this.skills.push(
@@ -720,7 +706,7 @@ Game.EntityRepository.define('zombie', function (level) {
   this.deadMessage = ' turned to ash.';
   this.acts = { Actor: true };
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 3;
     this.con += 5;
   }
@@ -746,7 +732,7 @@ Game.EntityRepository.define('ghoul', function (level) {
     )
   ];
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 2;
     this.agi += 2;
     this.skills.push(Game.SkillRepository.createRandom(15, level));
@@ -767,7 +753,7 @@ Game.EntityRepository.define('ettin', function (level) {
   this.acts = { Actor: true };
   this.symbol = this.name;
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 5;
     this.con += 3;
   }
@@ -788,7 +774,7 @@ Game.EntityRepository.define('twoheadedettin', function (level) {
   this.symbol = this.name;
   this.skills = [Game.SkillRepository.createRandom(10, level)];
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.str += 4;
     this.con += 4;
     this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
@@ -815,7 +801,7 @@ Game.EntityRepository.define('troll', function (level) {
     )
   ];
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.con += 10;
     this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
   }
@@ -836,7 +822,7 @@ Game.EntityRepository.define('weird', function (level) {
   this.symbol = this.name;
   this.skills = [Game.SkillRepository.createRandom(level - 2, level + 2)];
   if (Math.random() < rareMobChance) {
-    this.name = '%c{lightsalmon}rare ' + this.name + '%c{}';
+    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.con += 10;
     this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
   }
@@ -859,7 +845,7 @@ Game.EntityRepository.define('fleshlord', function (level) {
   this.symbol = 'fleshlord3';
   this.deadMessage = ' turned into chunks of flesh.';
   this.skills = [];
-  let numSkills = 2 + Math.floor(Math.random() * 3);
+  const numSkills = 2 + Math.floor(Math.random() * 3);
   for (let i = 0; i < numSkills; i++) {
     this.skills.push(Game.SkillRepository.createRandom(10, level));
   }

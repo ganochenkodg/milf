@@ -1,7 +1,9 @@
+'use strict';
+
 Game.map = {};
 
-function lightPasses(x, y) {
-  var level = Game.entity[0].depth;
+const lightPasses = (x, y) => {
+  const level = Game.entity[0].depth;
   if (
     x > 0 &&
     x < Game.map[level].width &&
@@ -13,7 +15,7 @@ function lightPasses(x, y) {
   return false;
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
+const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
 
 Game.Tile = function (properties) {
   properties = properties || {};
@@ -47,26 +49,27 @@ Game.GameMap = function (width, height, terrain, level) {
     }
   }
 
-  let random = Math.random();
+  const random = Math.random();
+  let digger;
   if (random > 0.2) {
-    var digger = new ROT.Map.Uniform(width, height, {
+    digger = new ROT.Map.Uniform(width, height, {
       roomWidth: [2, 10],
       roomHeight: [2, 8],
       corridorLength: [1, 8],
       roomDugPercentage: Math.random() / 2 + 0.3
     });
   } else if (random < 0.1) {
-    var digger = new ROT.Map.Digger(width, height, {
+    digger = new ROT.Map.Digger(width, height, {
       roomWidth: [2, 10],
       roomHeight: [2, 14],
       corridorLength: [1, 10],
       dugPercentage: 0.6
     });
   } else {
-    var digger = new ROT.Map.DividedMaze(width, height);
+    digger = new ROT.Map.DividedMaze(width, height);
   }
 
-  var digCallback = function (x, y, value) {
+  const digCallback = function (x, y, value) {
     if (value) {
       this.Tiles[x][y].Symbol = terrain + 'wall';
       return;
@@ -97,8 +100,8 @@ Game.GameMap = function (width, height, terrain, level) {
     }
   }
 
-  var doorPlace;
-  var doorAmount = Math.floor(Math.random() * 10) + 5;
+  let doorPlace;
+  const doorAmount = Math.floor(Math.random() * 10) + 5;
   for (let i = 0; i < doorAmount; i++) {
     doorPlace = Game.returnDoor(this);
     let xloc = doorPlace[0];
@@ -109,7 +112,7 @@ Game.GameMap = function (width, height, terrain, level) {
     this.Tiles[xloc][yloc].Door = true;
   }
 
-  var stairPlace = Game.returnFree(this);
+  let stairPlace = Game.returnFree(this);
   let xloc = stairPlace[0];
   let yloc = stairPlace[1];
   this.Tiles[xloc][yloc].Symbol = terrain + 'stairdown';
@@ -124,7 +127,7 @@ Game.GameMap = function (width, height, terrain, level) {
   //monsters
   let tempEntity = null;
   let freePlace = null;
-  let maxMon = Math.floor(Math.random() * level) * 2 + 15;
+  const maxMon = Math.floor(Math.random() * level) * 2 + 15;
   for (let i = 0; i < maxMon; i++) {
     freePlace = Game.returnFree(this);
     tempEntity = Game.EntityRepository.createRandom(level, level + 2);
@@ -133,7 +136,7 @@ Game.GameMap = function (width, height, terrain, level) {
     tempEntity.y = freePlace[1];
     tempEntity.depth = level;
     if ('Actor' in tempEntity.acts) {
-      tempEntity.name += '%c{gray} (' + tempEntity.level + ')%c{}';
+      tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
     }
     this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
     Game.entity.push(tempEntity);
@@ -141,20 +144,20 @@ Game.GameMap = function (width, height, terrain, level) {
       scheduler.add(Game.entity[Game.entity.length - 1], true);
     }
   }
-  if (level % 10 == 0) {
+  if (level % 10 === 0) {
     //if (level % 2 == 0) {
     freePlace = Game.returnFree(this);
     tempEntity = Game.EntityRepository.create('fleshlord', level);
     tempEntity.x = freePlace[0];
     tempEntity.y = freePlace[1];
     tempEntity.depth = level;
-    tempEntity.name += '%c{lavender} (' + tempEntity.level + ')%c{}';
+    tempEntity.name += `%c{lavender} (${tempEntity.level})%c{}`;
     this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
     Game.entity.push(tempEntity);
     scheduler.add(Game.entity[Game.entity.length - 1], true);
     Game.messageBox.sendMessage('%c{mediumaquamarine}IT FOLLOWS YOU!%c{}');
   }
-  let maxItems = 3 + Math.floor(Math.random() * 5);
+  const maxItems = 3 + Math.floor(Math.random() * 5);
   let newItem;
   let newFoodItem;
   for (let i = 0; i < maxItems; i++) {
@@ -170,8 +173,8 @@ Game.GameMap = function (width, height, terrain, level) {
 };
 
 Game.returnFree = function (map) {
-  var xrand = 0;
-  var yrand = 0;
+  let xrand = 0;
+  let yrand = 0;
   while (map.Tiles[xrand][yrand].Blocked || map.Tiles[xrand][yrand].Mob) {
     xrand = Math.round(Math.random() * (map.width - 1));
     yrand = Math.round(Math.random() * (map.height - 1));
@@ -180,8 +183,8 @@ Game.returnFree = function (map) {
 };
 
 Game.createPortal = function (x, y, level) {
-  var xrand = x;
-  var yrand = y;
+  let xrand = x;
+  let yrand = y;
   for (let i = -1; i < 2; i++) {
     for (let j = -1; j < 2; j++) {
       if (
@@ -205,9 +208,9 @@ Game.createPortal = function (x, y, level) {
 };
 
 Game.returnDoor = function (map) {
-  var xrand;
-  var yrand;
-  var result = false;
+  let xrand;
+  let yrand;
+  let result = false;
   while (!result) {
     xrand = Math.round(Math.random() * (map.width - 3)) + 1;
     yrand = Math.round(Math.random() * (map.height - 3)) + 1;
@@ -257,10 +260,10 @@ Game.getStairdown = function (level) {
 };
 
 Game.generateMap = function (level) {
-  var newMapWidth = Math.floor(Math.random() * 40) + 35;
-  var newMapHeight = Math.floor(Math.random() * 30) + 15;
+  const newMapWidth = Math.floor(Math.random() * 40) + 35;
+  const newMapHeight = Math.floor(Math.random() * 30) + 15;
 
-  var terrain = ROT.RNG.getItem(terrains);
+  const terrain = ROT.RNG.getItem(terrains);
   Game.map[level] = new Game.GameMap(newMapWidth, newMapHeight, terrain, level);
 };
 
@@ -274,15 +277,15 @@ Game.clearTiles = function () {
 
 Game.drawMap = function () {
   Game.clearTiles();
-  var level = Game.entity[0].depth;
+  const level = Game.entity[0].depth;
   for (let i = 0; i < Game.map[level].width; i++) {
     for (let j = 0; j < Game.map[level].height; j++) {
       let _color = '#000f';
       if (Game.map[level].Tiles[i][j].Visited) {
         _color = '#0009';
       }
-      let xco = Game.getCamera(i, j)[0];
-      let yco = Game.getCamera(i, j)[1];
+      const xco = Game.getCamera(i, j)[0];
+      const yco = Game.getCamera(i, j)[1];
       if (
         yco < Game.screenHeight &&
         yco > -1 &&
@@ -321,8 +324,8 @@ Game.drawMap = function () {
       if (r > 9) {
         r = 9;
       }
-      let xco = Game.getCamera(x, y)[0];
-      let yco = Game.getCamera(x, y)[1];
+      const xco = Game.getCamera(x, y)[0];
+      const yco = Game.getCamera(x, y)[1];
       let _color = '#000' + r;
       if (
         yco < Game.screenHeight &&
@@ -359,7 +362,7 @@ Game.drawMap = function () {
 Game.getCamera = function (x, y) {
   let xoffset = 0;
   let yoffset = 0;
-  var level = Game.entity[0].depth;
+  const level = Game.entity[0].depth;
   if (Math.round(this.screenWidth / 2) - Game.entity[0].x - 1 > 0) {
     xoffset = Game.entity[0].x - Math.round(this.screenWidth / 2) + 1;
   }
@@ -384,9 +387,9 @@ Game.getCamera = function (x, y) {
       Math.round(this.screenHeight / 2) -
       Game.map[level].height;
   }
-  let newx =
+  const newx =
     Math.round(this.screenWidth / 2) + x - Game.entity[0].x - 1 + xoffset;
-  let newy =
+  const newy =
     Math.round(this.screenHeight / 2) + y - Game.entity[0].y - 1 + yoffset;
   return [newx, newy];
 };

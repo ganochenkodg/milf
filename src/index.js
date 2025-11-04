@@ -1,5 +1,7 @@
-var scheduler = new ROT.Scheduler.Speed();
-var mode = {
+'use strict';
+
+const scheduler = new ROT.Scheduler.Speed();
+let mode = {
   mode: 'play',
   chosenItem: -1,
   chosenSkill: -1,
@@ -9,7 +11,7 @@ var mode = {
   blinkmap: null
 };
 
-var Game = {
+const Game = {
   mainDisplay: null,
   messageDisplay: null,
   messageBox: null,
@@ -50,34 +52,34 @@ var Game = {
     document.body.appendChild(this.messageDisplay.getContainer());
     this.generateMap(1);
     this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 13);
-    if (gameMode == 'easy') {
+    if (gameMode === 'easy') {
       rareMobChance = 0.05;
       rareItemChance = 0.15;
       playerStatsMod = 8;
       healingFactor = 5;
       for (let k = 0; k < 3; k++) {
-        newItem = Game.ItemRepository.createRandom(1, 5);
+        let newItem = Game.ItemRepository.createRandom(1, 5);
         Game.inventory.push(newItem);
       }
     }
-    if (gameMode == 'normal') {
+    if (gameMode === 'normal') {
       rareMobChance = 0.05;
       rareItemChance = 0.1;
       playerStatsMod = 6;
       healingFactor = 2;
-      newItem = Game.ItemRepository.createRandom(1, 3);
+      let newItem = Game.ItemRepository.createRandom(1, 3);
       Game.inventory.push(newItem);
     }
 
-    if (gameMode == 'hard') {
+    if (gameMode === 'hard') {
       rareMobChance = 0.15;
       rareItemChance = 0.15;
       playerStatsMod = 4;
       healingFactor = 1;
     }
 
-    var freeplace = this.returnFree(Game.map[1]);
-    let _player = new Player({
+    const freeplace = this.returnFree(Game.map[1]);
+    const _player = new Player({
       x: freeplace[0],
       y: freeplace[1]
     });
@@ -95,7 +97,7 @@ var Game = {
   }
 };
 
-hpRegen = function () {
+const hpRegen = function () {
   this.getSpeed = () => {
     return 15;
   };
@@ -103,7 +105,7 @@ hpRegen = function () {
 
 hpRegen.prototype.act = function () {
   for (let i = 0; i < Game.entity.length; i++) {
-    let addHp =
+    const addHp =
       1 +
       Math.floor(Game.entity[i].maxHp / 100) +
       Math.floor(Game.entity[i].con / 5);
@@ -112,21 +114,21 @@ hpRegen.prototype.act = function () {
   }
 };
 
-manaRegen = function () {
+const manaRegen = function () {
   this.getSpeed = () => {
     return 15;
   };
 };
 
 manaRegen.prototype.act = function () {
-  for (let i = 0; i < Game.entity.length; i++) {
-    let addMana =
+  Game.entity.forEach(entity => {
+    const addMana =
       1 +
-      Math.floor(Game.entity[i].maxMana / 100) +
-      Math.floor(Game.entity[i].int / 5);
-    Game.entity[i].mana += addMana;
-    Game.entity[i].mana = Math.min(Game.entity[i].mana, Game.entity[i].maxMana);
-  }
+      Math.floor(entity.maxMana / 100) +
+      Math.floor(entity.int / 5);
+    entity.mana += addMana;
+    entity.mana = Math.min(entity.mana, entity.maxMana);
+  });
 };
 
 Game.Repository = function (name, ctor) {
@@ -144,22 +146,22 @@ Game.Repository.prototype.create = function (name, level) {
   level = Math.max(1, level);
   if (!this._templates[name]) {
     throw new Error(
-      "No template named '" + name + "' in repository '" + this._name + "'"
+      `No template named '${name}' in repository '${this._name}'`
     );
   }
-  let template = new this._templates[name](level);
+  const template = new this._templates[name](level);
   return new this._ctor(template);
 };
 
 Game.Repository.prototype.createRandom = function (minlvl, maxlvl) {
   minlvl = Math.max(1, minlvl);
   maxlvl = Math.max(minlvl, maxlvl);
-  var keys = Object.keys(this._templates);
-  var result = this.create(
+  const keys = Object.keys(this._templates);
+  let result = this.create(
     keys[(keys.length * Math.random()) << 0],
     minlvl + Math.floor(Math.random() * (maxlvl - minlvl))
   );
-  var iterator = 0;
+  let iterator = 0;
   while (result.maxLvl < minlvl || result.minLvl > maxlvl) {
     iterator++;
     result = this.create(
@@ -183,8 +185,8 @@ Game.drawAll = function () {
 };
 
 Game.drawEnd = function (endType) {
-  let xOffset = Math.floor(Game.screenWidth / 2) - 3;
-  let yOffset = Math.floor(Game.screenHeight / 2) - 2;
+  const xOffset = Math.floor(Game.screenWidth / 2) - 3;
+  const yOffset = Math.floor(Game.screenHeight / 2) - 2;
   for (let y = 0; y <= 5; y++) {
     for (let x = 0; x <= 5; x++) {
       Game.mainDisplay.draw(x + xOffset, y + yOffset, `${endType}end${x}${y}`);
@@ -221,6 +223,7 @@ Game.drawBar = function () {
         'blanksquare'
       );
     } else {
+      let _color;
       if (Game.inventory[i].isEquipped()) {
         _color = 'green';
       } else {
@@ -232,7 +235,7 @@ Game.drawBar = function () {
       Game.mainDisplay.draw(
         i + Game.screenWidth - 10,
         Game.screenHeight,
-        [_color + 'square', Game.inventory[i].symbol],
+        [`${_color}square`, Game.inventory[i].symbol],
         ['#0000', Game.inventory[i].color],
         ['#0000', '#0000']
       );

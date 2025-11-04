@@ -1,6 +1,8 @@
+'use strict';
+
 Game.entity = [];
 
-Player = function (properties) {
+const Player = function (properties) {
   properties = properties || {};
   this.x = properties['x'];
   this.y = properties['y'];
@@ -98,7 +100,7 @@ Player.prototype.move = function (newx, newy) {
 };
 
 Player.prototype.goDown = function () {
-  var stairloc = Game.getStairup(Game.entity[0].depth + 1);
+  const stairloc = Game.getStairup(Game.entity[0].depth + 1);
   Game.entity[0].x = stairloc[0];
   Game.entity[0].y = stairloc[1];
   Game.entity[0].depth++;
@@ -106,7 +108,7 @@ Player.prototype.goDown = function () {
 };
 
 Player.prototype.goUp = function () {
-  var stairloc = Game.getStairdown(Game.entity[0].depth - 1);
+  const stairloc = Game.getStairdown(Game.entity[0].depth - 1);
   Game.entity[0].x = stairloc[0];
   Game.entity[0].y = stairloc[1];
   Game.entity[0].depth--;
@@ -133,7 +135,7 @@ Player.prototype.act = async function () {
 };
 
 Player.prototype.Draw = function () {
-  let _color = Game.map[Game.entity[0].depth].Tiles[this.x][this.y].Color;
+  const _color = Game.map[Game.entity[0].depth].Tiles[this.x][this.y].Color;
   Game.mainDisplay.draw(
     Game.getCamera(Game.entity[0].x, Game.entity[0].y)[0],
     Game.getCamera(Game.entity[0].x, Game.entity[0].y)[1],
@@ -145,79 +147,54 @@ Player.prototype.Draw = function () {
     [_color, this.color],
     ['transparent', 'transparent']
   );
-  var xoffset = Game.screenWidth * 4 - 38;
-  Game.messageDisplay.drawText(xoffset, 2, 'Name: ' + Game.entity[0].name);
+  const xoffset = Game.screenWidth * 4 - 38;
+  Game.messageDisplay.drawText(xoffset, 2, `Name: ${Game.entity[0].name}`);
   Game.messageDisplay.drawText(
     xoffset,
     3,
-    'HP: %c{red}' +
-      Game.entity[0].hp +
-      '/' +
-      Game.entity[0].maxHp +
-      ' %c{}Mana: %c{blue}' +
-      Game.entity[0].mana +
-      '/' +
-      Game.entity[0].maxMana
+    `HP: %c{red}${Game.entity[0].hp}/${Game.entity[0].maxHp} %c{}Mana: %c{blue}${Game.entity[0].mana}/${Game.entity[0].maxMana}`
   );
   Game.messageDisplay.drawText(
     xoffset,
     4,
-    'Str: %c{gold}' +
-      Game.entity[0].str +
-      ' %c{}Int: %c{turquoise}' +
-      Game.entity[0].int
+    `Str: %c{gold}${Game.entity[0].str} %c{}Int: %c{turquoise}${Game.entity[0].int}`
   );
   Game.messageDisplay.drawText(
     xoffset,
     5,
-    'Con: %c{yellowgreen}' +
-      Game.entity[0].con +
-      ' %c{}Agi: %c{wheat}' +
-      Game.entity[0].agi
+    `Con: %c{yellowgreen}${Game.entity[0].con} %c{}Agi: %c{wheat}${Game.entity[0].agi}`
   );
   Game.messageDisplay.drawText(
     xoffset,
     6,
-    'Defense: %c{coral}' +
-      Game.entity[0].defense +
-      ' %c{}Speed: %c{lightblue}' +
-      this.getSpeed() +
-      '%'
+    `Defense: %c{coral}${Game.entity[0].defense} %c{}Speed: %c{lightblue}${this.getSpeed()}%`
   );
   Game.messageDisplay.drawText(
     xoffset,
     7,
-    'Attack: %c{red}' +
-      Game.entity[0].getMinAtk() +
-      ' - ' +
-      Game.entity[0].getMaxAtk()
+    `Attack: %c{red}${Game.entity[0].getMinAtk()} - ${Game.entity[0].getMaxAtk()}`
   );
   Game.messageDisplay.drawText(
     xoffset,
     14,
-    'Lvl: ' +
-      Game.entity[0].depth +
-      ' x: ' +
-      Game.entity[0].x +
-      ' y: ' +
-      Game.entity[0].y
+    `Lvl: ${Game.entity[0].depth} x: ${Game.entity[0].x} y: ${Game.entity[0].y}`
   );
 
-  let _piety = 'Piety: %c{crimson}';
+  const _piety = 'Piety: %c{crimson}';
   Game.messageDisplay.drawText(xoffset, 10, _piety + Game.entity[0].piety);
-  var item = null;
+  let item = null;
   if (typeof Game.entity[0].equipment.weapon === 'undefined') {
     item = '-';
   } else {
     item = Game.entity[0].equipment.weapon.name;
   }
-  Game.messageDisplay.drawText(xoffset, 8, 'Weapon: ' + item);
+  Game.messageDisplay.drawText(xoffset, 8, `Weapon: ${item}`);
   if (typeof Game.entity[0].equipment.armor === 'undefined') {
     item = '-';
   } else {
     item = Game.entity[0].equipment.armor.name;
   }
-  Game.messageDisplay.drawText(xoffset, 9, 'Armor: ' + item);
+  Game.messageDisplay.drawText(xoffset, 9, `Armor: ${item}`);
   if (Game.entity[0].affects.length > 0) {
     for (let i = 0; i < Game.entity[0].affects.length; i++) {
       Game.mainDisplay.draw(
@@ -231,56 +208,36 @@ Player.prototype.Draw = function () {
 };
 
 Player.prototype.doGetDamage = function (dmg) {
-  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
   this.hp -= _dmg;
   return _dmg;
 };
 
 Player.prototype.doGetSkillDamage = function (dmg) {
-  _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
   this.hp -= _dmg;
   return _dmg;
 };
 
 Player.prototype.doAttack = function (x, y) {
-  for (let i = 0; i < Game.entity.length; i++) {
-    if (
-      Game.entity[i].x == x &&
-      Game.entity[i].y == y &&
-      Game.entity[i].depth == Game.entity[0].depth
-    ) {
-      let dmg =
-        this.getMinAtk() +
-        Math.floor(Math.random() * (this.getMaxAtk() - this.getMinAtk()));
-      let _color = '%c{}';
-      if (Math.random() < 0.05) {
-        dmg = dmg * 2;
-        _color = '%c{lime}';
-      }
-      /*
-      if (Game.entity[i].summoned) {
-        let tmpx = this.x;
-        let tmpy = this.y;
-        this.x = Game.entity[i].x;
-        this.y = Game.entity[i].y;
-        Game.entity[i].Move(tmpx, tmpy);
-      } else {
-      */
-      let result = Game.entity[i].doGetDamage(dmg);
-      Game.messageBox.sendMessage(
-        'You hit the ' +
-          Game.entity[i].name +
-          ' for ' +
-          _color +
-          result +
-          ' %c{}damage.'
-      );
-      Game.checkShields(this, Game.entity[i], 'physical', result);
-      Game.entity[i].doDie();
-      // }
-      Game.drawMap();
-      Game.drawEntities();
+  const target = Game.entity.find(e => e.x === x && e.y === y && e.depth === Game.entity[0].depth);
+  if (target) {
+    let dmg =
+      this.getMinAtk() +
+      Math.floor(Math.random() * (this.getMaxAtk() - this.getMinAtk()));
+    let _color = '%c{}';
+    if (Math.random() < 0.05) {
+      dmg = dmg * 2;
+      _color = '%c{lime}';
     }
+    const result = target.doGetDamage(dmg);
+    Game.messageBox.sendMessage(
+      `You hit the ${target.name} for ${_color}${result} %c{}damage.`
+    );
+    Game.checkShields(this, target, 'physical', result);
+    target.doDie();
+    Game.drawMap();
+    Game.drawEntities();
   }
 };
 
@@ -291,11 +248,11 @@ Player.prototype.doWorship = function () {
     );
     return;
   }
-  let level = Math.floor(Math.log2(Game.entity[0].piety / 15 + 1));
-  let threshold = 15 * (Math.pow(2, level) - 1);
-  let newItem = Game.ItemRepository.createRandom(level, level + 1);
+  const level = Math.floor(Math.log2(Game.entity[0].piety / 15 + 1));
+  const threshold = 15 * (Math.pow(2, level) - 1);
+  const newItem = Game.ItemRepository.createRandom(level, level + 1);
   Game.messageBox.sendMessage(
-    '%c{gold}God of Random%c{} gifts you the ' + newItem.name + '.'
+    `%c{gold}God of Random%c{} gifts you the ${newItem.name}.`
   );
   if (Game.inventory.length > 9) {
     Game.map[Game.entity[0].depth].Tiles[Game.entity[0].x][
@@ -308,11 +265,11 @@ Player.prototype.doWorship = function () {
 };
 
 Player.prototype.handleEvent = function (e) {
-  var newx = this.x;
-  var newy = this.y;
-  var level = Game.entity[0].depth;
-  var code = e.keyCode;
-  var keyMap = {};
+  let newx = this.x;
+  let newy = this.y;
+  let level = Game.entity[0].depth;
+  const code = e.keyCode;
+  const keyMap = {};
   keyMap[38] = 0;
   keyMap[33] = 1;
   keyMap[39] = 2;
@@ -322,7 +279,7 @@ Player.prototype.handleEvent = function (e) {
   keyMap[37] = 6;
   keyMap[36] = 7;
 
-  if (mode.mode == 'skill') {
+  if (mode.mode === 'skill') {
     newx = mode.skillx;
     newy = mode.skilly;
     switch (code) {
@@ -354,14 +311,14 @@ Player.prototype.handleEvent = function (e) {
       case 39:
       case 40:
       case 34:
-        var diff = ROT.DIRS[8][keyMap[code]];
+        const diff = ROT.DIRS[8][keyMap[code]];
         newx = newx + diff[0];
         newy = newy + diff[1];
         break;
       default:
         break;
     }
-    var key = newx + ',' + newy;
+    const key = newx + ',' + newy;
     if (key in mode.skillMap) {
       mode.skillx = newx;
       mode.skilly = newy;
@@ -370,22 +327,22 @@ Player.prototype.handleEvent = function (e) {
     return;
   }
 
-  if (mode.mode == 'item') {
-    var num = mode.chosenItem;
+  if (mode.mode === 'item') {
+    const num = mode.chosenItem;
     switch (code) {
       case 69:
-        if (Game.inventory[num].type == 'food') {
+        if (Game.inventory[num].type === 'food') {
           Game.doItem('eat', num);
           break;
         }
-        if (Game.inventory[num].type == 'potion') {
+        if (Game.inventory[num].type === 'potion') {
           Game.doItem('drink', num);
           break;
         }
         if (
-          Game.inventory[num].type == 'weapon' ||
-          Game.inventory[num].type == 'armor' ||
-          Game.inventory[num].type == 'book'
+          Game.inventory[num].type === 'weapon' ||
+          Game.inventory[num].type === 'armor' ||
+          Game.inventory[num].type === 'book'
         ) {
           if (Game.inventory[num].isEquipped()) {
             Game.doItem('unequip', num);
@@ -415,7 +372,7 @@ Player.prototype.handleEvent = function (e) {
     return;
   }
 
-  if (mode.mode == 'play') {
+  if (mode.mode === 'play') {
     switch (code) {
       case 87:
         this.doWorship();
@@ -438,7 +395,7 @@ Player.prototype.handleEvent = function (e) {
           newy = this.y;
           level = Game.entity[0].depth;
         }
-        if (Game.map[level].Tiles[newx][newy].Symbol == 'portal') {
+        if (Game.map[level].Tiles[newx][newy].Symbol === 'portal') {
           Game.doWin();
           window.removeEventListener('keydown', this);
           return;
@@ -452,7 +409,7 @@ Player.prototype.handleEvent = function (e) {
       case 38:
       case 39:
       case 40:
-        var diff = ROT.DIRS[8][keyMap[code]];
+        const diff = ROT.DIRS[8][keyMap[code]];
         newx = newx + diff[0];
         newy = newy + diff[1];
         break;
@@ -490,7 +447,7 @@ Player.prototype.handleEvent = function (e) {
         return;
     }
     if (this.confuse && Math.random() > 0.5) {
-      let _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
+      const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
       newx = this.x + _confused[0];
       newy = this.y + _confused[1];
     }

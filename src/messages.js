@@ -1,3 +1,5 @@
+'use strict';
+
 Game.messageBox = {};
 Game.MessageBox = function (width, height) {
   this.width = width;
@@ -13,7 +15,7 @@ Game.MessageBox.prototype.sendMessage = function (message) {
 };
 
 Game.MessageBox.prototype.Draw = function () {
-  for (let i = 0; i < this.messages.length; i++) {
-    Game.messageDisplay.drawText(1, i + 2, this.messages[i]);
-  }
+  this.messages.forEach((message, i) => {
+    Game.messageDisplay.drawText(1, i + 2, message);
+  });
 };

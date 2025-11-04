@@ -1,4 +1,6 @@
-var tileSet = document.createElement('img');
+'use strict';
+
+const tileSet = document.createElement('img');
 tileSet.src = 'resources/tiles.png';
 const terrains = ['dungeon', 'stone', 'maze', 'swamp', 'bricks', 'skulls'];
 const playerTiles = [

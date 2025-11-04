@@ -1,4 +1,6 @@
-var rareMobChance = 0.05;
-var rareItemChance = 0.1;
-var playerStatsMod = 6;
-var healingFactor = 2;
+'use strict';
+
+let rareMobChance = 0.05;
+let rareItemChance = 0.1;
+let playerStatsMod = 6;
+let healingFactor = 2;
