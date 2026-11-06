@@ -2,63 +2,61 @@
 
 Game.skills = [];
 
-const Skill = function (properties) {
-  properties = properties || {};
-  this.name = properties['name'] || '';
-  this.maxLvl = properties['maxLvl'] || 1;
-  this.minLvl = properties['minLvl'] || 1;
-  this.action = properties['action'] || '';
-  this.level = properties['level'] || 1;
-  this.options = properties['options'] || {};
-  this.symbol = properties['symbol'] || '';
-  this.target = properties['target'] || '';
-  this.type = properties['type'] || '';
-  this.selfProtect = properties['selfProtect'] || false;
-  this.weapon = properties['weapon'] || false;
-};
+const INT_SCALED_KEYS = new Set(['minatk', 'maxatk', 'shield', 'heal']);
+const AFFECT_STAT_KEYS = new Set(['str', 'con', 'int', 'agi', 'speed', 'vision']);
+const STATUS_AFFECTS = [
+  ['stun', 'stun', 'stunned.'],
+  ['confuse', 'confuse', 'confused.'],
+  ['freeze', 'frozen', 'frozen.']
+];
 
-const isFloat = (n) => {
-  return n === +n && n !== (n | 0);
-};
+class Skill {
+  constructor(properties = {}) {
+    this.name = properties.name || '';
+    this.maxLvl = properties.maxLvl || 1;
+    this.minLvl = properties.minLvl || 1;
+    this.action = properties.action || '';
+    this.level = properties.level || 1;
+    this.options = properties.options || {};
+    this.symbol = properties.symbol || '';
+    this.target = properties.target || '';
+    this.type = properties.type || '';
+    this.selfProtect = properties.selfProtect || false;
+    this.weapon = properties.weapon || false;
+  }
+}
+
+const isFloat = (n) => n === +n && n !== (n | 0);
 
 Game.chooseSkill = function (num) {
-  if (num === -1) {
-    num = 9;
-  }
-  if (typeof Game.skills[num] === 'undefined') {
-    Game.messageBox.sendMessage(
-      `You don't have any skill in slot [${num + 1}].`
-    );
+  if (num === -1) num = 9;
+  const skill = Game.skills[num];
+  const player = Game.entity[0];
+
+  if (!skill) {
+    Game.messageBox.sendMessage(`You don't have any skill in slot [${num + 1}].`);
     Game.drawAll();
     window.removeEventListener('keydown', this);
     Game.engine.unlock();
     return;
   }
+
   Game.messageDisplay.clear();
   Game.drawBar();
-
   Game.messageDisplay.draw(num * 4 + 1, 0, num + 1, '#0f0');
-  Game.messageDisplay.drawText(1, 2, Game.skills[num].name);
-  let iterator = 2;
-  for (let [key, value] of Object.entries(Game.skills[num].options)) {
-    iterator++;
+  Game.messageDisplay.drawText(1, 2, skill.name);
+
+  let row = 2;
+  for (let [key, value] of Object.entries(skill.options)) {
+    row++;
     if (isFloat(value)) value = value.toFixed(2);
-    if (
-      key === 'minatk' ||
-      key === 'maxatk' ||
-      key === 'shield' ||
-      key === 'heal'
-    ) {
-      Game.messageDisplay.drawText(
-        1,
-        iterator,
-        `${key}: ${Math.floor(value * (1 + Game.entity[0].int * 0.07))}`
-      );
-    } else {
-      Game.messageDisplay.drawText(1, iterator, `${key}: ${value}`);
-    }
+    const displayValue = INT_SCALED_KEYS.has(key)
+      ? Math.floor(value * (1 + player.int * 0.07))
+      : value;
+    Game.messageDisplay.drawText(1, row, `${key}: ${displayValue}`);
   }
-  Game.entity[0].Draw();
+
+  player.Draw();
   mode.mode = 'skill';
   mode.chosenSkill = num;
   Game.generateSkillMap();
@@ -68,30 +66,25 @@ Game.chooseSkill = function (num) {
 
 Game.generateSkillMap = function () {
   mode.skillMap = {};
-  const level = Game.entity[0].depth;
-  const _range = Math.min(
+  const player = Game.entity[0];
+  const range = Math.min(
     Game.skills[mode.chosenSkill].options.range,
-    Game.entity[0].vision
+    player.vision
   );
-  fov.compute(
-    Game.entity[0].x,
-    Game.entity[0].y,
-    _range,
-    function (x, y, r, visibility) {
-      mode.skillMap[x + ',' + y] = 1;
-    }
-  );
+  fov.compute(player.x, player.y, range, (x, y) => {
+    mode.skillMap[`${x},${y}`] = 1;
+  });
 };
 
 Game.setSkillNearestTarget = function () {
-  const level = Game.entity[0].depth;
-  mode.skillx = Game.entity[0].x;
-  mode.skilly = Game.entity[0].y;
+  const player = Game.entity[0];
+  mode.skillx = player.x;
+  mode.skilly = player.y;
   for (let i = 1; i < Game.entity.length; i++) {
-    const key = Game.entity[i].x + ',' + Game.entity[i].y;
-    if (key in mode.skillMap && Game.entity[i].depth == level) {
-      mode.skillx = Game.entity[i].x;
-      mode.skilly = Game.entity[i].y;
+    const entity = Game.entity[i];
+    if (entity.depth === player.depth && `${entity.x},${entity.y}` in mode.skillMap) {
+      mode.skillx = entity.x;
+      mode.skilly = entity.y;
       return;
     }
   }
@@ -99,175 +92,72 @@ Game.setSkillNearestTarget = function () {
 
 Game.drawSkillMap = function () {
   this.drawMap();
-  const level = Game.entity[0].depth;
-  const _range = Math.min(
-    Game.skills[mode.chosenSkill].options.range,
-    Game.entity[0].vision
-  );
-  fov.compute(
-    Game.entity[0].x,
-    Game.entity[0].y,
-    _range,
-    function (x, y, r, visibility) {
-      const xco = Game.getCamera(x, y)[0];
-      const yco = Game.getCamera(x, y)[1];
-      const _color = '#ff97';
-      if (
-        yco < Game.screenHeight &&
-        yco > -1 &&
-        xco < Game.screenWidth &&
-        xco > -1
-      ) {
-        if (typeof Game.map[level].Tiles[x][y].items[0] !== 'undefined') {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            [
-              Game.map[level].Tiles[x][y].Symbol,
-              Game.map[level].Tiles[x][y].items[0].symbol
-            ],
-            ['#0000', _color]
-          );
-        } else {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            Game.map[level].Tiles[x][y].Symbol,
-            _color
-          );
-        }
-        Game.map[level].Tiles[x][y].Color = _color;
-      }
-    }
-  );
-  fov.compute(
-    mode.skillx,
-    mode.skilly,
-    Game.skills[mode.chosenSkill].options.radius,
-    function (x, y, r, visibility) {
-      const xco = Game.getCamera(x, y)[0];
-      const yco = Game.getCamera(x, y)[1];
-      const _color = '#8f17';
-      if (
-        yco < Game.screenHeight &&
-        yco > -1 &&
-        xco < Game.screenWidth &&
-        xco > -1
-      ) {
-        if (typeof Game.map[level].Tiles[x][y].items[0] !== 'undefined') {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            [
-              Game.map[level].Tiles[x][y].Symbol,
-              Game.map[level].Tiles[x][y].items[0].symbol
-            ],
-            ['#0000', _color]
-          );
-        } else {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            Game.map[level].Tiles[x][y].Symbol,
-            _color
-          );
-        }
-        Game.map[level].Tiles[x][y].Color = _color;
-      }
-    }
-  );
+  const player = Game.entity[0];
+  const level = player.depth;
+  const skill = Game.skills[mode.chosenSkill];
+  const range = Math.min(skill.options.range, player.vision);
+
+  fov.compute(player.x, player.y, range, (x, y) => {
+    Game.drawTile(x, y, level, '#ff97');
+  });
+  fov.compute(mode.skillx, mode.skilly, skill.options.radius, (x, y) => {
+    Game.drawTile(x, y, level, '#8f17');
+  });
   Game.drawEntities();
 };
 
 Game.isAffectApplied = function (actor, affect) {
-  let affectApplied = false;
-  let affectNum = -1;
   if ('shield' in affect) {
-    for (let i = 0; i < actor.affects.length; i++) {
-      if ('shield' in actor.affects[i]) {
-        affectApplied = true;
-        affectNum = i;
-        break;
-      }
-    }
+    const idx = actor.affects.findIndex((a) => 'shield' in a);
+    if (idx !== -1) return [true, idx];
   }
-  for (let i = 0; i < actor.affects.length; i++) {
-    if (actor.affects[i].symbol == affect.symbol) {
-      affectApplied = true;
-      affectNum = i;
-      break;
-    }
-  }
-  return [affectApplied, affectNum];
+  const idx = actor.affects.findIndex((a) => a.symbol === affect.symbol);
+  return [idx !== -1, idx];
 };
 
 Game.checkShields = function (actor, target, type, dmg) {
-  for (let i = 0; i < target.affects.length; i++) {
-    let _affect = target.affects[i];
-    if ('shield' in _affect) {
-      if (type === 'physical') {
-        if ('cold' in _affect) {
-          if (Math.random() < _affect.cold)
-            actor.affects.push({
-              freeze: true,
-              duration: 2,
-              symbol: 'freeze'
-            });
-        }
-        if ('fear' in _affect) {
-          if (Math.random() < _affect.fear) {
-            actor.affects.push({
-              confuse: true,
-              duration: 2,
-              symbol: 'confuse'
-            });
-          }
-        }
-        if ('fire' in _affect) {
-          let fireDmg = Math.max(Math.floor(Math.random() * _affect.fire), 1);
-          actor.hp -= fireDmg;
-          let _actor = actor.player
-            ? 'You were burned for '
-            : `The ${actor.name} was burned for `;
-          Game.messageBox.sendMessage(`${_actor}%c{red}${fireDmg} %c{}damage.`);
-        }
+  for (const affect of target.affects) {
+    if (!('shield' in affect)) continue;
+
+    if (type === 'physical') {
+      if ('cold' in affect && Math.random() < affect.cold) {
+        actor.affects.push({ freeze: true, duration: 2, symbol: 'freeze' });
       }
-      if ('reflection' in _affect) {
-        let reflectDmg = Math.max(
-          Math.floor(Math.random() * _affect.reflection),
-          1
-        );
-        actor.hp -= reflectDmg;
-        let _actor = actor.player ? 'You got ' : `The ${actor.name} got `;
-        Game.messageBox.sendMessage(
-          `${_actor}%c{indigo}${reflectDmg} %c{}damage.`
-        );
+      if ('fear' in affect && Math.random() < affect.fear) {
+        actor.affects.push({ confuse: true, duration: 2, symbol: 'confuse' });
       }
-      if ('restoration' in _affect) {
-        let restoreDmg = Math.max(
-          Math.floor(Math.random() * _affect.restoration),
-          1
-        );
-        target.hp += restoreDmg;
-        let _actor = target.player ? 'You got ' : `The ${target.name} got `;
-        Game.messageBox.sendMessage(
-          `${_actor}%c{ivory}${restoreDmg} %c{} restored HP.`
-        );
+      if ('fire' in affect) {
+        const fireDmg = Math.max(roll(affect.fire), 1);
+        actor.hp -= fireDmg;
+        const prefix = actor.player
+          ? 'You were burned for '
+          : `The ${actor.name} was burned for `;
+        Game.messageBox.sendMessage(`${prefix}%c{red}${fireDmg} %c{}damage.`);
       }
+    }
+
+    if ('reflection' in affect) {
+      const reflectDmg = Math.max(roll(affect.reflection * dmg), 1);
+      actor.hp -= reflectDmg;
+      const prefix = actor.player ? 'You got ' : `The ${actor.name} got `;
+      Game.messageBox.sendMessage(`${prefix}%c{indigo}${reflectDmg} %c{}damage.`);
+    }
+
+    if ('restoration' in affect) {
+      const restoreDmg = Math.max(roll(affect.restoration * dmg), 1);
+      target.hp = Math.min(target.hp + restoreDmg, target.maxHp);
+      const prefix = target.player ? 'You got ' : `The ${target.name} got `;
+      Game.messageBox.sendMessage(
+        `${prefix}%c{ivory}${restoreDmg} %c{} restored HP.`
+      );
     }
   }
 };
 
 Game.useSkill = function (actor, skill, skillx, skilly) {
-  let result = 0;
-  if (
-    actor.player &&
-    skill.weapon &&
-    typeof Game.entity[0].equipment.weapon == undefined
-  ) {
-    Game.messageBox.sendMessage(
-      'You must equip some weapon to use this skill.'
-    );
+  if (actor.player && skill.weapon && !Game.entity[0].equipment.weapon) {
+    Game.messageBox.sendMessage('You must equip some weapon to use this skill.');
+    return;
   }
 
   if (skill.options.cost > actor.mana) {
@@ -276,878 +166,347 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
     }
     return;
   }
+
   actor.mana -= skill.options.cost;
   Game.messageBox.sendMessage(
     actor.player
       ? `You cast ${skill.name}.`
       : `The ${actor.name} casts ${skill.name}.`
   );
+
   if (actor.confuse && Math.random() > 0.5) {
-    const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-    skillx += _confused[0];
-    skilly += _confused[1];
+    const [dx, dy] = ROT.DIRS[8][roll(8)];
+    skillx += dx;
+    skilly += dy;
   }
-  //find mob collision
-  const skillAstar = new ROT.Path.AStar(skillx, skilly, lightPasses, {
-    topology: 8
-  });
+
   const skillPath = [];
-  const skillPathCallback = (x, y) => {
-    skillPath.push([x, y]);
-  };
-  skillAstar.compute(actor.x, actor.y, skillPathCallback);
-  for (let i = 1; i < skillPath.length; i++) {
-    skillx = skillPath[i][0];
-    skilly = skillPath[i][1];
-    if (Game.map[actor.depth].Tiles[skillx][skilly].Mob) {
-      break;
-    }
-  }
-  mode.skillMap = {};
-  const level = Game.entity[0].depth;
-  fov.compute(
-    skillx,
-    skilly,
-    skill.options.radius,
-    function (x, y, r, visibility) {
-      mode.skillMap[x + ',' + y] = 1;
-    }
+  new ROT.Path.AStar(skillx, skilly, lightPasses, { topology: 8 }).compute(
+    actor.x,
+    actor.y,
+    (x, y) => skillPath.push([x, y])
   );
-  if (skill.selfProtect) delete mode.skillMap[actor.x + ',' + actor.y];
-  for (let i = 0; i < Game.entity.length; i++) {
-    const key = Game.entity[i].x + ',' + Game.entity[i].y;
-    if (key in mode.skillMap) {
-      const _color = skill.name.match(/^([^}]+)}/)[0];
-
-      if (skill.type === 'damage') {
-        result += Math.floor(
-          (Math.random() * (skill.options.maxatk - skill.options.minatk) +
-            skill.options.minatk) *
-            (1 + actor.int * 0.07)
-        );
-        if (skill.weapon) {
-          result += Math.floor(
-            (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
-              (1 + actor.str * 0.07)
-          );
-        }
-        const dmg = Game.entity[i].doGetSkillDamage(result);
-        Game.messageBox.sendMessage(
-          `${i === 0 ? 'You' : 'The ' + Game.entity[i].name} got ${_color}${dmg}%c{} damage.`
-        );
-        Game.checkShields(actor, Game.entity[i], 'skill', dmg);
-        if ('poison' in skill.options) {
-          if (Math.random() < skill.options.poison) {
-            Game.addAffect(i, {
-              poison: Math.floor(skill.options.maxatk / 2),
-              duration: skill.options.duration,
-              symbol: 'poison'
-            });
-          }
-        }
-        if ('stun' in skill.options) {
-          if (Math.random() < skill.options.stun) {
-            Game.addAffect(i, {
-              stun: true,
-              duration: skill.options.duration,
-              symbol: 'stun'
-            });
-          }
-        }
-        if ('confuse' in skill.options) {
-          if (Math.random() < skill.options.confuse) {
-            Game.addAffect(i, {
-              confuse: true,
-              duration: skill.options.duration,
-              symbol: 'confuse'
-            });
-          }
-        }
-        if ('freeze' in skill.options) {
-          if (Math.random() < skill.options.freeze) {
-            Game.addAffect(i, {
-              freeze: true,
-              duration: skill.options.duration,
-              symbol: 'freeze'
-            });
-          }
-        }
-      }
-
-      if (skill.type === 'chant') {
-        const _affect = { ...skill.options, ...{ symbol: skill.symbol } };
-        const affectApplied = Game.isAffectApplied(actor, _affect);
-        if (affectApplied[0]) {
-          Game.removeAffect(i, affectApplied[1]);
-        }
-        if ('shield' in _affect) {
-          _affect.shield = Math.floor(_affect.shield * (1 + actor.int * 0.07));
-        }
-        Game.addAffect(i, _affect);
-      }
-
-      if (skill.type === 'support') {
-        if ('heal' in skill.options) {
-          let _heal = Math.floor(skill.options.heal * (1 + actor.int * 0.07));
-          actor.hp += _heal;
-          actor.hp = Math.min(actor.hp, actor.maxHp);
-          Game.messageBox.sendMessage(
-            `${actor.player ? 'You' : 'The ' + actor.name} restored ${_color}${_heal}%c{} life.`
-          );
-        }
-        if ('distance' in skill.options) {
-          let iterator = 0;
-          let freeplace = Game.returnFree(Game.map[actor.depth]);
-          const _dist = skill.options.distance;
-          while (
-            freeplace[0] + _dist < actor.x ||
-            freeplace[0] > actor.x + _dist ||
-            freeplace[1] + _dist < actor.y ||
-            freeplace[1] > actor.y + _dist
-          ) {
-            iterator++;
-            freeplace = Game.returnFree(Game.map[actor.depth]);
-            if (iterator > 100) break;
-          }
-          actor.x = freeplace[0];
-          actor.y = freeplace[1];
-          Game.messageBox.sendMessage(
-            `${actor.player ? 'You' : 'The ' + actor.name}${_color} teleported%c{} in random position.`
-          );
-        }
-      }
-
-      Game.entity[i].doDie();
-    }
+  for (let i = 1; i < skillPath.length; i++) {
+    [skillx, skilly] = skillPath[i];
+    if (Game.map[actor.depth].Tiles[skillx][skilly].Mob) break;
   }
+
+  mode.skillMap = {};
+  fov.compute(skillx, skilly, skill.options.radius, (x, y) => {
+    mode.skillMap[`${x},${y}`] = 1;
+  });
+  if (skill.selfProtect) {
+    delete mode.skillMap[`${actor.x},${actor.y}`];
+  }
+
+  const color = skill.name.match(/^([^}]+)}/)[0];
+
+  for (let i = Game.entity.length - 1; i >= 0; i--) {
+    const target = Game.entity[i];
+    if (target.depth !== actor.depth) continue;
+    if (!(`${target.x},${target.y}` in mode.skillMap)) continue;
+
+    if (skill.type === 'damage') {
+      let rawDmg = Math.floor(
+        (Math.random() * (skill.options.maxatk - skill.options.minatk) +
+          skill.options.minatk) *
+          (1 + actor.int * 0.07)
+      );
+      if (skill.weapon) {
+        rawDmg += Math.floor(
+          (Math.random() * (actor.maxAtk - actor.minAtk) + actor.minAtk) *
+            (1 + actor.str * 0.07)
+        );
+      }
+
+      const dmg = target.doGetSkillDamage(rawDmg);
+      Game.messageBox.sendMessage(
+        `${i === 0 ? 'You' : `The ${target.name}`} got ${color}${dmg}%c{} damage.`
+      );
+      Game.checkShields(actor, target, 'skill', dmg);
+
+      if ('poison' in skill.options && Math.random() < skill.options.poison) {
+        Game.addAffect(i, {
+          poison: Math.floor(skill.options.maxatk / 2),
+          duration: skill.options.duration,
+          symbol: 'poison'
+        });
+      }
+      for (const [optKey] of STATUS_AFFECTS) {
+        if (optKey in skill.options && Math.random() < skill.options[optKey]) {
+          Game.addAffect(i, {
+            [optKey]: true,
+            duration: skill.options.duration,
+            symbol: optKey
+          });
+        }
+      }
+    }
+
+    if (skill.type === 'chant') {
+      const affect = { ...skill.options, symbol: skill.symbol };
+      const [applied, idx] = Game.isAffectApplied(actor, affect);
+      if (applied) {
+        Game.removeAffect(i, idx);
+      }
+      if ('shield' in affect) {
+        affect.shield = Math.floor(affect.shield * (1 + actor.int * 0.07));
+      }
+      Game.addAffect(i, affect);
+    }
+
+    if (skill.type === 'support') {
+      if ('heal' in skill.options) {
+        const heal = Math.floor(skill.options.heal * (1 + actor.int * 0.07));
+        actor.hp = Math.min(actor.hp + heal, actor.maxHp);
+        Game.messageBox.sendMessage(
+          `${actor.player ? 'You' : `The ${actor.name}`} restored ${color}${heal}%c{} life.`
+        );
+      }
+      if ('distance' in skill.options) {
+        const map = Game.map[actor.depth];
+        const dist = skill.options.distance;
+        let freeplace = Game.returnFree(map);
+        for (
+          let tries = 0;
+          tries <= 100 &&
+          (Math.abs(freeplace[0] - actor.x) > dist ||
+            Math.abs(freeplace[1] - actor.y) > dist);
+          tries++
+        ) {
+          freeplace = Game.returnFree(map);
+        }
+        if (!actor.player) {
+          map.Tiles[actor.x][actor.y].Mob = false;
+        }
+        [actor.x, actor.y] = freeplace;
+        if (!actor.player) {
+          map.Tiles[actor.x][actor.y].Mob = true;
+        }
+        Game.messageBox.sendMessage(
+          `${actor.player ? 'You' : `The ${actor.name}`}${color} teleported%c{} in random position.`
+        );
+      }
+    }
+
+    target.doDie();
+  }
+  actor.doDie();
 };
 
-Game.addAffect = function (targetNum, affect) {
+function applyAffectModifiers(targetNum, affect, sign) {
+  const target = Game.entity[targetNum];
+  const active = sign > 0;
   for (const [key, value] of Object.entries(affect)) {
-    if (key === 'str') Game.entity[targetNum].str += value;
-    if (key === 'con') Game.entity[targetNum].con += value;
-    if (key === 'int') Game.entity[targetNum].int += value;
-    if (key === 'agi') Game.entity[targetNum].agi += value;
-    if (key === 'speed') Game.entity[targetNum].speed += value;
-    if (key === 'shield') {
+    if (AFFECT_STAT_KEYS.has(key)) {
+      target[key] += sign * value;
+    } else if (key === 'shield') {
       if (targetNum === 0) {
-        Game.entity[targetNum].shield += value;
-        Game.entity[targetNum].applyStats();
+        target.shield += sign * value;
+        target.applyStats();
       } else {
-        Game.entity[targetNum].defense += value;
+        target.defense += sign * value;
       }
+    } else if (key === 'stun') {
+      target.stun = active;
+    } else if (key === 'freeze') {
+      target.frozen = active;
+    } else if (key === 'confuse') {
+      target.confuse = active;
     }
-    if (key === 'stun') Game.entity[targetNum].stun = true;
-    if (key === 'freeze') Game.entity[targetNum].frozen = true;
-    if (key === 'confuse') Game.entity[targetNum].confuse = true;
   }
+}
+
+Game.addAffect = function (targetNum, affect) {
+  applyAffectModifiers(targetNum, affect, 1);
   Game.entity[targetNum].affects.push(affect);
 };
 
 Game.removeAffect = function (targetNum, affectNum) {
-  for (const [key, value] of Object.entries(
-    Game.entity[targetNum].affects[affectNum]
-  )) {
-    if (key === 'str') Game.entity[targetNum].str -= value;
-    if (key === 'con') Game.entity[targetNum].con -= value;
-    if (key === 'int') Game.entity[targetNum].int -= value;
-    if (key === 'agi') Game.entity[targetNum].agi -= value;
-    if (key === 'speed') Game.entity[targetNum].speed -= value;
-    if (key === 'shield') {
-      if (targetNum === 0) {
-        Game.entity[targetNum].shield -= value;
-        Game.entity[targetNum].applyStats();
-      } else {
-        Game.entity[targetNum].defense -= value;
-      }
-    }
-    if (key === 'stun') Game.entity[targetNum].stun = false;
-    if (key === 'freeze') Game.entity[targetNum].frozen = false;
-    if (key === 'confuse') Game.entity[targetNum].confuse = false;
-  }
-  Game.entity[targetNum].affects.splice(affectNum, 1);
+  const target = Game.entity[targetNum];
+  applyAffectModifiers(targetNum, target.affects[affectNum], -1);
+  target.affects.splice(affectNum, 1);
 };
 
-const checkAffects = function () {
-  this.getSpeed = function () {
+class checkAffects {
+  getSpeed() {
     return 100;
-  };
-};
+  }
 
-checkAffects.prototype.act = function () {
-  for (let i = 0; i < Game.entity.length; i++) {
-    const entity = Game.entity[i];
-    const _actor = i === 0 ? 'You are ' : `The ${entity.name} is `;
-    for (let j = entity.affects.length - 1; j >= 0; j--) {
-      const affect = entity.affects[j];
-      if ('poison' in affect) {
-        const dmg = Math.floor(Math.random() * affect.poison);
-        const result = entity.doGetSkillDamage(dmg);
-        if (Game.map[entity.depth].Tiles[entity.x][entity.y].Visible) {
-          Game.messageBox.sendMessage(
-            `${_actor}poisoned and got %c{lightgreen}${result}%c{} damage.`
-          );
-        }
-      }
-      if ('stun' in affect) {
-        entity.stun = true;
-        if (Game.map[entity.depth].Tiles[entity.x][entity.y].Visible && i > 0) {
-          Game.messageBox.sendMessage(`${_actor}stunned.`);
-        }
-      }
-      if ('confuse' in affect) {
-        entity.confuse = true;
-        if (Game.map[entity.depth].Tiles[entity.x][entity.y].Visible && i > 0) {
-          Game.messageBox.sendMessage(`${_actor}confused.`);
-        }
-      }
-      if ('freeze' in affect) {
-        entity.frozen = true;
-        if (Game.map[entity.depth].Tiles[entity.x][entity.y].Visible && i > 0) {
-          Game.messageBox.sendMessage(`${_actor}frozen.`);
-        }
-      }
+  act() {
+    const playerDepth = Game.entity[0].depth;
+    for (let i = Game.entity.length - 1; i >= 0; i--) {
+      const entity = Game.entity[i];
+      if (entity.depth !== playerDepth) continue;
 
-      affect.duration -= 1;
-      if (affect.duration < 1) {
-        Game.removeAffect(i, j);
+      const actorPrefix = i === 0 ? 'You are ' : `The ${entity.name} is `;
+      const visible = Game.map[entity.depth].Tiles[entity.x][entity.y].Visible;
+
+      for (let j = entity.affects.length - 1; j >= 0; j--) {
+        const affect = entity.affects[j];
+        if ('poison' in affect) {
+          const dmg = roll(affect.poison);
+          const result = entity.doGetSkillDamage(dmg);
+          if (visible) {
+            Game.messageBox.sendMessage(
+              `${actorPrefix}poisoned and got %c{lightgreen}${result}%c{} damage.`
+            );
+          }
+        }
+        for (const [affectKey, entityProp, statusMsg] of STATUS_AFFECTS) {
+          if (affectKey in affect) {
+            entity[entityProp] = true;
+            if (visible && i > 0) {
+              Game.messageBox.sendMessage(`${actorPrefix}${statusMsg}`);
+            }
+          }
+        }
+
+        affect.duration -= 1;
+        if (affect.duration < 1) {
+          Game.removeAffect(i, j);
+        }
       }
       entity.doDie();
     }
   }
-};
+}
 
 Game.SkillRepository = new Game.Repository('skills', Skill);
 
-Game.SkillRepository.define('firearrow', function (level) {
-  this.symbol = 'firearrow';
-  this.name = `%c{orange}fire arrow (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 5;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 4 + level * 2,
-    minatk: 1,
-    maxatk: 8 + Math.floor(Math.random() * level * 2),
-    range: 3 + Math.floor(level / 2),
-    radius: 0
-  };
-});
+const SKILL_DEFS = [
+  ['firearrow', 'orange', 'fire arrow', 1, 5, 'range', 'damage', {}, (l) => ({
+    cost: 4 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 3 + Math.floor(l / 2), radius: 0
+  })],
+  ['poisonarrow', 'lightgreen', 'poison arrow', 1, 5, 'range', 'damage', {}, (l) => ({
+    cost: 6 + l * 2, minatk: 1, maxatk: 6 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
+    poison: 0.5 + l * 0.05, duration: 2 + Math.floor(l / 5)
+  })],
+  ['stonearrow', 'tan', 'stone arrow', 1, 5, 'range', 'damage', {}, (l) => ({
+    cost: 6 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
+    confuse: 0.2 + l * 0.02, duration: 2 + Math.floor(l / 5)
+  })],
+  ['icearrow', 'lightblue', 'ice arrow', 1, 5, 'range', 'damage', {}, (l) => ({
+    cost: 6 + l * 2, minatk: 1, maxatk: 6 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
+    freeze: 0.2 + l * 0.04, duration: 2 + Math.floor(l / 5)
+  })],
+  ['poisonslash', 'darkseagreen', 'poison slash', 1, 10, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 12 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 1, radius: 0,
+    poison: 0.5 + l * 0.05, duration: 1 + Math.floor(l / 5)
+  })],
+  ['rapidcut', 'salmon', 'rapid cut', 1, 10, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 8 + l * 2, minatk: 4, maxatk: 4 + l * 2, range: 1, radius: 0
+  })],
+  ['iceshield', 'lightsteelblue', 'ice shield', 1, 10, 'self', 'chant', {}, (l) => ({
+    cost: 14 + l * 2, shield: 2 + l, duration: 8 + l * 2, cold: 0.1 + l * 0.01, range: 0, radius: 0
+  })],
+  ['strengthofstone', 'papayawhip', 'strength of stone', 1, 10, 'self', 'chant', {}, (l) => ({
+    cost: 10 + l * 2, str: 2 + l, duration: 8 + l * 2, range: 0, radius: 0
+  })],
+  ['twistingslash', 'coral', 'twisting slash', 3, 13, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 20 + l * 2, minatk: 2, maxatk: 10 + l * 2, range: 1, radius: 1
+  })],
+  ['fireball', 'orange', 'fireball', 3, 15, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 20 + l * 2, minatk: 8, maxatk: 12 + l * 2, range: 5 + Math.floor(l / 3), radius: 1
+  })],
+  ['acidcloud', 'lightgreen', 'acid cloud', 5, 15, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 22 + l * 2, minatk: 4, maxatk: 6 + l * 2, range: 4, radius: 1,
+    poison: 0.5 + l * 0.05, duration: 3 + Math.floor(l / 5)
+  })],
+  ['calltheshadows', 'lightslategray', 'call the shadows', 10, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 30 + l * 2, minatk: 10, maxatk: 16 + l * 2, range: 4, radius: 1,
+    stun: 0.3 + l * 0.03, duration: 2
+  })],
+  ['tsunami', 'mediumturquoise', 'tsunami', 8, 18, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 25 + l * 2, minatk: 12, maxatk: 14 + l * 2,
+    confuse: 0.4 + l * 0.01, range: 3 + Math.floor(l / 3), radius: 2
+  })],
+  ['crackedearth', 'brown', 'cracked earth', 10, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 30 + l * 2, minatk: 4, maxatk: 24 + l * 2, range: 5 + Math.floor(l / 3), radius: 1
+  })],
+  ['flamechains', 'crimson', 'flame chains', 12, 24, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 30 + l * 2, minatk: 20, maxatk: 20 + l * 2,
+    stun: 0.2 + l * 0.04, range: 6, radius: 0, duration: Math.floor(l / 5)
+  })],
+  ['lightningstrike', 'azure', 'lightning strike', 8, 20, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 16 + l * 2, minatk: 8, maxatk: 10 + l * 2,
+    confuse: l * 0.05, range: 1, radius: 1, duration: 1
+  })],
+  ['magiceye', 'lavender', 'magic eye', 5, 40, 'self', 'chant', {}, (l) => ({
+    cost: 40 + l * 2, vision: 1 + Math.floor(l / 15), duration: 10 + l * 2, range: 0, radius: 0
+  })],
+  ['icefall', 'skyblue', 'icefall', 5, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 15 + l * 2, minatk: 6, maxatk: 6 + l * 2,
+    freeze: 0.4 + l * 0.03, range: 5, radius: 1, duration: 2 + Math.floor(l / 10)
+  })],
+  ['auraoffear', 'thistle', 'aura of fear', 5, 20, 'self', 'chant', {}, (l) => ({
+    cost: 30 + l * 2, shield: 6 + l, duration: 15 + l * 2, fear: 0.3 + l * 0.01, range: 0, radius: 0
+  })],
+  ['frozentomb', 'cornflowerblue', 'frozen tomb', 15, 30, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 30 + l * 2, minatk: 15, maxatk: 25 + l * 2,
+    freeze: 0.4 + l * 0.02, range: 6, radius: 0, duration: Math.floor(l / 5)
+  })],
+  ['fireshield', 'thistle', 'fire shield', 10, 25, 'self', 'chant', {}, (l) => ({
+    cost: 40 + l * 2, shield: 10 + l, duration: 15 + l * 2, fire: l * 2, range: 0, radius: 0
+  })],
+  ['lightningbolt', 'aliceblue', 'lightning bolt', 5, 45, 'range', 'damage', {}, (l) => ({
+    cost: 15 + l * 2, minatk: 5, maxatk: 5 + l * 2, range: 5 + Math.floor(l / 10), radius: 0
+  })],
+  ['rainofblades', 'darkred', 'rain of blades', 25, 100, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 50 + l * 2, minatk: 15, maxatk: 20 + l * 2,
+    confuse: l * 0.02, range: 5, radius: 2, duration: 1
+  })],
+  ['honor', 'lightyellow', 'honor', 25, 100, 'self', 'chant', {}, (l) => ({
+    cost: 60 + l * 2, shield: 20 + l, duration: 20 + l * 2,
+    restoration: Math.min(l * 0.01, 0.9), str: Math.floor(l / 2), range: 0, radius: 0
+  })],
+  ['arcaneshield', 'purple', 'arcane shield', 25, 100, 'self', 'chant', {}, (l) => ({
+    cost: 60 + l * 2, shield: 30 + l, duration: 30 + l * 2, int: Math.floor(l / 2), range: 0, radius: 0
+  })],
+  ['reflectionshield', 'royalblue', 'reflection shield', 25, 100, 'self', 'chant', {}, (l) => ({
+    cost: 40 + l * 2, shield: 20 + l, duration: 25 + l * 2,
+    reflection: Math.min(l * 0.01, 0.9), range: 0, radius: 0
+  })],
+  ['auraofwinter', 'steelblue', 'aura of winter', 20, 100, 'self', 'chant', {}, (l) => ({
+    cost: 40 + l * 2, shield: 25 + l, duration: 20 + l * 2, cold: 0.3 + l * 0.01, range: 0, radius: 0
+  })],
+  ['solareclipse', 'mediumorchid', 'solar eclipse', 20, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 50 + l * 2, minatk: 25, maxatk: 35 + l * 2, range: 1, radius: 1
+  })],
+  ['supernova', 'snow', 'supernova', 25, 100, 'range', 'damage', { weapon: true }, (l) => ({
+    cost: 40 + l * 2, minatk: 15, maxatk: 20 + l * 2, range: 5 + Math.floor(l / 10), radius: 0
+  })],
+  ['darkness', 'slategray', 'darkness', 25, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 50 + l * 2, minatk: 6, maxatk: 15 + l * 2,
+    stun: l * 0.02, confuse: 0.3 + l * 0.02, range: 5, radius: 2, duration: 2 + Math.floor(l / 10)
+  })],
+  ['speedoflight', 'seashell', 'speed of light', 25, 100, 'self', 'chant', {}, (l) => ({
+    cost: 50 + l * 2, agi: Math.floor(l / 2), speed: Math.floor(l / 2),
+    duration: 20 + l * 2, range: 0, radius: 0
+  })],
+  ['plague', 'darkseagreen', 'plague', 20, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
+    cost: 50 + l * 2, minatk: 10, maxatk: 20 + l * 2, range: 6, radius: 2,
+    poison: l * 0.03, duration: Math.floor(l / 3)
+  })],
+  ['heal', 'Chartreuse', 'heal', 15, 50, 'self', 'support', {}, (l) => ({
+    cost: 20 + l * 2, heal: l, range: 0, radius: 0
+  })],
+  ['teleport', 'mistyrose', 'teleport', 10, 50, 'self', 'support', {}, (l) => ({
+    cost: 15 + l * 2, distance: Math.floor(l / 2), range: 0, radius: 0
+  })]
+];
 
-Game.SkillRepository.define('poisonarrow', function (level) {
-  this.symbol = 'poisonarrow';
-  this.name = `%c{lightgreen}poison arrow (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 5;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 6 + level * 2,
-    minatk: 1,
-    maxatk: 6 + Math.floor(Math.random() * level * 2),
-    range: 2 + Math.floor(level / 2),
-    radius: 0,
-    poison: 0.5 + level * 0.05,
-    duration: 2 + Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('stonearrow', function (level) {
-  this.symbol = 'stonearrow';
-  this.name = `%c{tan}stone arrow (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 5;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 6 + level * 2,
-    minatk: 1,
-    maxatk: 8 + Math.floor(Math.random() * level * 2),
-    range: 2 + Math.floor(level / 2),
-    radius: 0,
-    confuse: 0.2 + level * 0.02,
-    duration: 2 + Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('icearrow', function (level) {
-  this.symbol = 'icearrow';
-  this.name = `%c{lightblue}ice arrow (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 5;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 6 + level * 2,
-    minatk: 1,
-    maxatk: 6 + Math.floor(Math.random() * level * 2),
-    range: 2 + Math.floor(level / 2),
-    radius: 0,
-    freeze: 0.2 + level * 0.04,
-    duration: 2 + Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('poisonslash', function (level) {
-  this.symbol = 'poisonslash';
-  this.name = `%c{darkseagreen}poison slash (${level})%c{}`;
-  this.weapon = true;
-  this.minLvl = 1;
-  this.maxLvl = 10;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 12 + level * 2,
-    minatk: 1,
-    maxatk: 8 + level + Math.floor(Math.random() * level),
-    range: 1,
-    radius: 0,
-    poison: 0.5 + level * 0.05,
-    duration: 1 + Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('rapidcut', function (level) {
-  this.symbol = 'rapidcut';
-  this.name = `%c{salmon}rapid cut (${level})%c{}`;
-  this.weapon = true;
-  this.minLvl = 1;
-  this.maxLvl = 10;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 8 + level * 2,
-    minatk: 4,
-    maxatk: 4 + level + Math.floor(Math.random() * level),
-    range: 1,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('iceshield', function (level) {
-  this.symbol = 'iceshield';
-  this.name = `%c{lightsteelblue}ice shield (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 10;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 14 + level * 2,
-    shield: 2 + level,
-    duration: 8 + level * 2,
-    cold: 0.1 + level * 0.01,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('strengthofstone', function (level) {
-  this.symbol = 'strengthofstone';
-  this.name = `%c{papayawhip}strength of stone (${level})%c{}`;
-  this.minLvl = 1;
-  this.maxLvl = 10;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 10 + level * 2,
-    str: 2 + level,
-    duration: 8 + level * 2,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('twistingslash', function (level) {
-  this.symbol = 'twistingslash';
-  this.name = `%c{coral}twisting slash (${level})%c{}`;
-  this.weapon = true;
-  this.selfProtect = true;
-  this.minLvl = 3;
-  this.maxLvl = 13;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 20 + level * 2,
-    minatk: 2,
-    maxatk: 10 + level + Math.floor(Math.random() * level),
-    range: 1,
-    radius: 1
-  };
-});
-
-Game.SkillRepository.define('fireball', function (level) {
-  this.symbol = 'fireball';
-  this.name = `%c{orange}fireball (${level})%c{}`;
-  this.minLvl = 3;
-  this.maxLvl = 15;
-  this.target = 'range';
-  this.selfProtect = true;
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 20 + level * 2,
-    minatk: 8,
-    maxatk: 12 + level + Math.floor(Math.random() * level),
-    range: 5 + Math.floor(level / 3),
-    radius: 1
-  };
-});
-
-Game.SkillRepository.define('acidcloud', function (level) {
-  this.symbol = 'acidcloud';
-  this.name = `%c{lightgreen}acid cloud (${level})%c{}`;
-  this.minLvl = 5;
-  this.maxLvl = 15;
-  this.selfProtect = true;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 22 + level * 2,
-    minatk: 4,
-    maxatk: 6 + level + Math.floor(Math.random() * level),
-    range: 4,
-    radius: 1,
-    poison: 0.5 + level * 0.05,
-    duration: 3 + Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('calltheshadows', function (level) {
-  this.symbol = 'calltheshadows';
-  this.name = `%c{lightslategray}call the shadows (${level})%c{}`;
-  this.minLvl = 10;
-  this.maxLvl = 20;
-  this.selfProtect = true;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 30 + level * 2,
-    minatk: 10,
-    maxatk: 16 + level + Math.floor(Math.random() * level),
-    range: 4,
-    radius: 1,
-    stun: 0.3 + level * 0.03,
-    duration: 2
-  };
-});
-
-Game.SkillRepository.define('tsunami', function (level) {
-  this.symbol = 'tsunami';
-  this.name = `%c{mediumturquoise}tsunami (${level})%c{}`;
-  this.minLvl = 8;
-  this.maxLvl = 18;
-  this.target = 'range';
-  this.selfProtect = true;
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 25 + level * 2,
-    minatk: 12,
-    maxatk: 14 + level + Math.floor(Math.random() * level),
-    confuse: 0.4 + level * 0.01,
-    range: 3 + Math.floor(level / 3),
-    radius: 2
-  };
-});
-
-Game.SkillRepository.define('crackedearth', function (level) {
-  this.symbol = 'crackedearth';
-  this.name = `%c{brown}cracked earth (${level})%c{}`;
-  this.minLvl = 10;
-  this.maxLvl = 20;
-  this.target = 'range';
-  this.selfProtect = true;
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 30 + level * 2,
-    minatk: 4,
-    maxatk: 24 + level + Math.floor(Math.random() * level),
-    range: 5 + Math.floor(level / 3),
-    radius: 1
-  };
-});
-
-Game.SkillRepository.define('flamechains', function (level) {
-  this.symbol = 'flamechains';
-  this.name = `%c{crimson}flame chains (${level})%c{}`;
-  this.minLvl = 12;
-  this.maxLvl = 24;
-  this.target = 'range';
-  this.selfProtect = true;
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 30 + level * 2,
-    minatk: 20,
-    maxatk: 20 + level + Math.floor(Math.random() * level),
-    stun: 0.2 + level * 0.04,
-    range: 6,
-    radius: 0,
-    duration: Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('lightningstrike', function (level) {
-  this.symbol = 'lightningstrike';
-  this.name = `%c{azure}lightning strike (${level})%c{}`;
-  this.weapon = true;
-  this.selfProtect = true;
-  this.minLvl = 8;
-  this.maxLvl = 20;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 16 + level * 2,
-    minatk: 8,
-    maxatk: 10 + level + Math.floor(Math.random() * level),
-    confuse: level * 0.05,
-    range: 1,
-    radius: 1,
-    duration: 1
-  };
-});
-
-Game.SkillRepository.define('magiceye', function (level) {
-  this.symbol = 'magiceye';
-  this.name = `%c{lavender}magic eye (${level})%c{}`;
-  this.minLvl = 5;
-  this.maxLvl = 40;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 40 + level * 2,
-    vision: 1 + Math.floor(level / 15),
-    duration: 10 + level * 2,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('icefall', function (level) {
-  this.symbol = 'icefall';
-  this.name = `%c{skyblue}icefall (${level})%c{}`;
-  this.selfProtect = true;
-  this.minLvl = 5;
-  this.maxLvl = 20;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 15 + level * 2,
-    minatk: 6,
-    maxatk: 6 + level + Math.floor(Math.random() * level),
-    freeze: 0.4 + level * 0.03,
-    range: 5,
-    radius: 1,
-    duration: 2 + Math.floor(level / 10)
-  };
-});
-
-Game.SkillRepository.define('auraoffear', function (level) {
-  this.symbol = 'auraoffear';
-  this.name = `%c{thistle}aura of fear (${level})%c{}`;
-  this.minLvl = 5;
-  this.maxLvl = 20;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 30 + level * 2,
-    shield: 6 + level,
-    duration: 15 + level * 2,
-    fear: 0.3 + level * 0.01,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('frozentomb', function (level) {
-  this.symbol = 'frozentomb';
-  this.name = `%c{cornflowerblue}frozen tomb (${level})%c{}`;
-  this.minLvl = 15;
-  this.maxLvl = 30;
-  this.target = 'range';
-  this.selfProtect = true;
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 30 + level * 2,
-    minatk: 15,
-    maxatk: 25 + level + Math.floor(Math.random() * level),
-    freeze: 0.4 + level * 0.02,
-    range: 6,
-    radius: 0,
-    duration: Math.floor(level / 5)
-  };
-});
-
-Game.SkillRepository.define('fireshield', function (level) {
-  this.symbol = 'fireshield';
-  this.name = `%c{thistle}fire shield (${level})%c{}`;
-  this.minLvl = 10;
-  this.maxLvl = 25;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 40 + level * 2,
-    shield: 10 + level,
-    duration: 15 + level * 2,
-    fire: level * 2,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('lightningbolt', function (level) {
-  this.symbol = 'lightningbolt';
-  this.name = `%c{aliceblue}lightning bolt (${level})%c{}`;
-  this.minLvl = 5;
-  this.maxLvl = 45;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 15 + level * 2,
-    minatk: 5,
-    maxatk: 5 + level * 2,
-    range: 5 + Math.floor(level / 10),
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('rainofblades', function (level) {
-  this.symbol = 'rainofblades';
-  this.name = `%c{darkred}rain of blades (${level})%c{}`;
-  this.weapon = true;
-  this.selfProtect = true;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 50 + level * 2,
-    minatk: 15,
-    maxatk: 20 + level + Math.floor(Math.random() * level),
-    confuse: level * 0.02,
-    range: 5,
-    radius: 2,
-    duration: 1
-  };
-});
-
-Game.SkillRepository.define('honor', function (level) {
-  this.symbol = 'honor';
-  this.name = `%c{lightyellow}honor (${level})%c{}`;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 60 + level * 2,
-    shield: 20 + level,
-    duration: 20 + level * 2,
-    restoration: Math.min(level * 0.01, 0.9),
-    str: Math.floor(level / 2),
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('arcaneshield', function (level) {
-  this.symbol = 'arcaneshield';
-  this.name = `%c{purple}arcane shield (${level})%c{}`;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 60 + level * 2,
-    shield: 30 + level,
-    duration: 30 + level * 2,
-    int: Math.floor(level / 2),
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('reflectionshield', function (level) {
-  this.symbol = 'reflectionshield';
-  this.name = `%c{royalblue}reflection shield (${level})%c{}`;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 40 + level * 2,
-    shield: 20 + level,
-    duration: 25 + level * 2,
-    reflection: Math.min(level * 0.01, 0.9),
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('auraofwinter', function (level) {
-  this.symbol = 'auraofwinter';
-  this.name = `%c{steelblue}aura of winter (${level})%c{}`;
-  this.minLvl = 20;
-  this.maxLvl = 100;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 40 + level * 2,
-    shield: 25 + level,
-    duration: 20 + level * 2,
-    cold: 0.3 + level * 0.01,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('solareclipse', function (level) {
-  this.symbol = 'solareclipse';
-  this.name = `%c{mediumorchid}solar eclipse (${level})%c{}`;
-  this.selfProtect = true;
-  this.minLvl = 20;
-  this.maxLvl = 100;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 50 + level * 2,
-    minatk: 25,
-    maxatk: 35 + level + Math.floor(Math.random() * level),
-    range: 1,
-    radius: 1
-  };
-});
-
-Game.SkillRepository.define('supernova', function (level) {
-  this.symbol = 'supernova';
-  this.name = `%c{snow}supernova (${level})%c{}`;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.weapon = true;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 40 + level * 2,
-    minatk: 15,
-    maxatk: 20 + level * 2,
-    range: 5 + Math.floor(level / 10),
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('darkness', function (level) {
-  this.symbol = 'darkness';
-  this.name = `%c{slategray}darkness (${level})%c{}`;
-  this.selfProtect = true;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 50 + level * 2,
-    minatk: 6,
-    maxatk: 15 + level + Math.floor(Math.random() * level),
-    stun: level * 0.02,
-    confuse: 0.3 + level * 0.02,
-    range: 5,
-    radius: 2,
-    duration: 2 + Math.floor(level / 10)
-  };
-});
-
-Game.SkillRepository.define('speedoflight', function (level) {
-  this.symbol = 'speedoflight';
-  this.name = `%c{seashell}speed of light (${level})%c{}`;
-  this.minLvl = 25;
-  this.maxLvl = 100;
-  this.target = 'self';
-  this.type = 'chant';
-  this.level = level;
-  this.options = {
-    cost: 50 + level * 2,
-    agi: Math.floor(level / 2),
-    speed: Math.floor(level / 2),
-    duration: 20 + level * 2,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('plague', function (level) {
-  this.symbol = 'plague';
-  this.name = `%c{darkseagreen}plague (${level})%c{}`;
-  this.minLvl = 20;
-  this.maxLvl = 100;
-  this.selfProtect = true;
-  this.target = 'range';
-  this.type = 'damage';
-  this.level = level;
-  this.options = {
-    cost: 50 + level * 2,
-    minatk: 10,
-    maxatk: 20 + level + Math.floor(Math.random() * level),
-    range: 6,
-    radius: 2,
-    poison: level * 0.03,
-    duration: Math.floor(level / 3)
-  };
-});
-
-Game.SkillRepository.define('heal', function (level) {
-  this.symbol = 'heal';
-  this.name = `%c{Chartreuse}heal (${level})%c{}`;
-  this.minLvl = 15;
-  this.maxLvl = 50;
-  this.target = 'self';
-  this.type = 'support';
-  this.level = level;
-  this.options = {
-    cost: 20 + level * 2,
-    heal: level,
-    range: 0,
-    radius: 0
-  };
-});
-
-Game.SkillRepository.define('teleport', function (level) {
-  this.symbol = 'teleport';
-  this.name = `%c{mistyrose}teleport (${level})%c{}`;
-  this.minLvl = 10;
-  this.maxLvl = 50;
-  this.target = 'self';
-  this.type = 'support';
-  this.level = level;
-  this.options = {
-    cost: 15 + level * 2,
-    distance: Math.floor(level / 2),
-    range: 0,
-    radius: 0
-  };
-});
+for (const [key, color, label, minLvl, maxLvl, target, type, flags, optionsFn] of SKILL_DEFS) {
+  Game.SkillRepository.define(key, function (level) {
+    this.symbol = key;
+    this.name = `%c{${color}}${label} (${level})%c{}`;
+    this.minLvl = minLvl;
+    this.maxLvl = maxLvl;
+    this.target = target;
+    this.type = type;
+    this.level = level;
+    if (flags.weapon) this.weapon = true;
+    if (flags.selfProtect) this.selfProtect = true;
+    this.options = optionsFn(level);
+  });
+}

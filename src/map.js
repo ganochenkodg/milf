@@ -3,393 +3,289 @@
 Game.map = {};
 
 const lightPasses = (x, y) => {
-  const level = Game.entity[0].depth;
-  if (
+  const map = Game.map[Game.entity[0].depth];
+  return (
     x > 0 &&
-    x < Game.map[level].width &&
+    x < map.width &&
     y > 0 &&
-    y < Game.map[level].height
-  ) {
-    return !Game.map[level].Tiles[x][y].BlocksSight;
-  }
-  return false;
-}
+    y < map.height &&
+    !map.Tiles[x][y].BlocksSight
+  );
+};
 
 const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
 
-Game.Tile = function (properties) {
-  properties = properties || {};
-  this.x = properties['x'];
-  this.y = properties['y'];
-  this.Blocked = properties['Blocked'] || true;
-  this.BlocksSight = properties['BlocksSight'] || true;
-  this.Visited = properties['Visited'] || false;
-  this.Visible = properties['Visible'] || false;
-  this.Symbol = properties['Symbol'] || 'dungeonwall';
-  this.Mob = false;
-  this.Color = '';
-  this.Door = false;
-  this.Stairup = false;
-  this.Stairdown = false;
-  this.items = [];
+Game.Tile = class Tile {
+  constructor(properties = {}) {
+    this.x = properties.x;
+    this.y = properties.y;
+    this.Blocked = properties.Blocked ?? true;
+    this.BlocksSight = properties.BlocksSight ?? true;
+    this.Visited = properties.Visited ?? false;
+    this.Visible = properties.Visible ?? false;
+    this.Symbol = properties.Symbol || 'dungeonwall';
+    this.Mob = false;
+    this.Color = '';
+    this.Door = false;
+    this.Stairup = false;
+    this.Stairdown = false;
+    this.items = [];
+  }
 };
 
-Game.GameMap = function (width, height, terrain, level) {
-  this.width = width;
-  this.height = height;
-  this.Tiles = {};
+Game.GameMap = class GameMap {
+  constructor(width, height, terrain, level) {
+    this.width = width;
+    this.height = height;
+    this.Tiles = {};
 
-  for (let i = 0; i < this.width; i++) {
-    this.Tiles[i] = new Array(this.height);
-    for (let j = 0; j < this.height; j++) {
-      this.Tiles[i][j] = new Game.Tile({
-        x: i,
-        y: j
+    for (let x = 0; x < width; x++) {
+      this.Tiles[x] = new Array(height);
+      for (let y = 0; y < height; y++) {
+        this.Tiles[x][y] = new Game.Tile({ x, y });
+      }
+    }
+
+    const rollGen = Math.random();
+    let digger;
+    if (rollGen > 0.2) {
+      digger = new ROT.Map.Uniform(width, height, {
+        roomWidth: [2, Math.min(8, width - 4)],
+        roomHeight: [2, Math.min(6, height - 4)],
+        corridorLength: [1, 6],
+        roomDugPercentage: Math.random() / 2 + 0.3
       });
+    } else if (rollGen < 0.1) {
+      digger = new ROT.Map.Digger(width, height, {
+        roomWidth: [2, Math.min(8, width - 4)],
+        roomHeight: [2, Math.min(9, height - 4)],
+        corridorLength: [1, 7],
+        dugPercentage: 0.6
+      });
+    } else {
+      digger = new ROT.Map.DividedMaze(width, height);
     }
-  }
 
-  const random = Math.random();
-  let digger;
-  if (random > 0.2) {
-    digger = new ROT.Map.Uniform(width, height, {
-      roomWidth: [2, 10],
-      roomHeight: [2, 8],
-      corridorLength: [1, 8],
-      roomDugPercentage: Math.random() / 2 + 0.3
-    });
-  } else if (random < 0.1) {
-    digger = new ROT.Map.Digger(width, height, {
-      roomWidth: [2, 10],
-      roomHeight: [2, 14],
-      corridorLength: [1, 10],
-      dugPercentage: 0.6
-    });
-  } else {
-    digger = new ROT.Map.DividedMaze(width, height);
-  }
-
-  const digCallback = function (x, y, value) {
-    if (value) {
-      this.Tiles[x][y].Symbol = terrain + 'wall';
-      return;
-    }
-    this.Tiles[x][y].Symbol = terrain + 'floor';
-    if (Math.random() < 0.02) {
-      this.Tiles[x][y].Symbol = terrain + 'floorrandom';
-    }
-    this.Tiles[x][y].Blocked = false;
-    this.Tiles[x][y].BlocksSight = false;
-  };
-  digger.create(digCallback.bind(this));
-
-  for (let i = 1; i < width - 1; i++) {
-    for (let j = 1; j < height - 1; j++) {
-      if (this.Tiles[i][j].BlocksSight && !this.Tiles[i][j + 1].BlocksSight) {
-        this.Tiles[i][j].Symbol = terrain + 'wallhor';
+    digger.create((x, y, isWall) => {
+      const tile = this.Tiles[x][y];
+      if (isWall) {
+        tile.Symbol = `${terrain}wall`;
+        return;
       }
-      if (
-        this.Tiles[i][j].BlocksSight &&
-        this.Tiles[i][j + 1].BlocksSight &&
-        this.Tiles[i + 1][j].BlocksSight &&
-        this.Tiles[i - 1][j].BlocksSight &&
-        !this.Tiles[i][j - 1].BlocksSight
-      ) {
-        this.Tiles[i][j].Symbol = terrain + 'wallhor';
+      tile.Symbol = Math.random() < 0.02 ? `${terrain}floorrandom` : `${terrain}floor`;
+      tile.Blocked = false;
+      tile.BlocksSight = false;
+    });
+
+    for (let x = 1; x < width - 1; x++) {
+      for (let y = 1; y < height - 1; y++) {
+        const tile = this.Tiles[x][y];
+        if (!tile.BlocksSight) continue;
+        const openBelow = !this.Tiles[x][y + 1].BlocksSight;
+        const openAboveOnly =
+          this.Tiles[x][y + 1].BlocksSight &&
+          this.Tiles[x + 1][y].BlocksSight &&
+          this.Tiles[x - 1][y].BlocksSight &&
+          !this.Tiles[x][y - 1].BlocksSight;
+        if (openBelow || openAboveOnly) {
+          tile.Symbol = `${terrain}wallhor`;
+        }
       }
     }
+
+    const doorAmount = randInt(3, 9);
+    for (let i = 0; i < doorAmount; i++) {
+      const doorPos = Game.returnDoor(this);
+      if (!doorPos) break;
+      const tile = this.Tiles[doorPos[0]][doorPos[1]];
+      tile.Symbol = `${terrain}doorclose`;
+      tile.Blocked = true;
+      tile.BlocksSight = true;
+      tile.Door = true;
+    }
+
+    const [downX, downY] = Game.returnFree(this);
+    this.Tiles[downX][downY].Symbol = `${terrain}stairdown`;
+    this.Tiles[downX][downY].Stairdown = true;
+
+    if (level > 1) {
+      const [upX, upY] = Game.returnFree(this);
+      this.Tiles[upX][upY].Symbol = `${terrain}stairup`;
+      this.Tiles[upX][upY].Stairup = true;
+    }
+
+    let freeCount = 0;
+    for (let x = 1; x < width - 1; x++) {
+      for (let y = 1; y < height - 1; y++) {
+        if (!this.Tiles[x][y].Blocked && !this.Tiles[x][y].Mob) freeCount++;
+      }
+    }
+
+    const maxMon = Math.min(Math.floor(freeCount * 0.4), roll(level) * 2 + 10);
+    for (let i = 0; i < maxMon; i++) {
+      this.spawnEntity(Game.EntityRepository.createRandom(level, level + 2), level, 'gray');
+    }
+
+    if (level % 10 === 0) {
+      this.spawnEntity(Game.EntityRepository.create('fleshlord', level), level, 'lavender');
+      Game.messageBox.sendMessage('%c{mediumaquamarine}IT FOLLOWS YOU!%c{}');
+    }
+
+    const maxItems = randInt(3, 7);
+    const minItemLvl = Math.max(1, level - 5);
+    for (let i = 0; i < maxItems; i++) {
+      const [ix, iy] = Game.returnFree(this);
+      this.Tiles[ix][iy].items.push(Game.ItemRepository.createRandom(minItemLvl, level + 1));
+    }
+    for (let i = 0; i < maxItems + 3; i++) {
+      const [fx, fy] = Game.returnFree(this);
+      this.Tiles[fx][fy].items.push(Game.FoodRepository.createRandom(minItemLvl, level + 1));
+    }
   }
 
-  let doorPlace;
-  const doorAmount = Math.floor(Math.random() * 10) + 5;
-  for (let i = 0; i < doorAmount; i++) {
-    doorPlace = Game.returnDoor(this);
-    let xloc = doorPlace[0];
-    let yloc = doorPlace[1];
-    this.Tiles[xloc][yloc].Symbol = terrain + 'doorclose';
-    this.Tiles[xloc][yloc].Blocked = true;
-    this.Tiles[xloc][yloc].BlocksSight = true;
-    this.Tiles[xloc][yloc].Door = true;
-  }
-
-  let stairPlace = Game.returnFree(this);
-  let xloc = stairPlace[0];
-  let yloc = stairPlace[1];
-  this.Tiles[xloc][yloc].Symbol = terrain + 'stairdown';
-  this.Tiles[xloc][yloc].Stairdown = true;
-  if (level > 1) {
-    stairPlace = Game.returnFree(this);
-    let xloc = stairPlace[0];
-    let yloc = stairPlace[1];
-    this.Tiles[xloc][yloc].Symbol = terrain + 'stairup';
-    this.Tiles[xloc][yloc].Stairup = true;
-  }
-  //monsters
-  let tempEntity = null;
-  let freePlace = null;
-  const maxMon = Math.floor(Math.random() * level) * 2 + 15;
-  for (let i = 0; i < maxMon; i++) {
-    freePlace = Game.returnFree(this);
-    tempEntity = Game.EntityRepository.createRandom(level, level + 2);
-    //tempEntity = Game.EntityRepository.create('container', 1);
-    tempEntity.x = freePlace[0];
-    tempEntity.y = freePlace[1];
-    tempEntity.depth = level;
-    if ('Actor' in tempEntity.acts) {
-      tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
+  spawnEntity(entity, level, levelColor) {
+    const [x, y] = Game.returnFree(this);
+    entity.x = x;
+    entity.y = y;
+    entity.depth = level;
+    if ('Actor' in entity.acts) {
+      entity.name += `%c{${levelColor}} (${entity.level})%c{}`;
+      scheduler.add(entity, true);
     }
-    this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
-    Game.entity.push(tempEntity);
-    if ('Actor' in Game.entity[Game.entity.length - 1].acts) {
-      scheduler.add(Game.entity[Game.entity.length - 1], true);
-    }
-  }
-  if (level % 10 === 0) {
-    //if (level % 2 == 0) {
-    freePlace = Game.returnFree(this);
-    tempEntity = Game.EntityRepository.create('fleshlord', level);
-    tempEntity.x = freePlace[0];
-    tempEntity.y = freePlace[1];
-    tempEntity.depth = level;
-    tempEntity.name += `%c{lavender} (${tempEntity.level})%c{}`;
-    this.Tiles[tempEntity.x][tempEntity.y].Mob = true;
-    Game.entity.push(tempEntity);
-    scheduler.add(Game.entity[Game.entity.length - 1], true);
-    Game.messageBox.sendMessage('%c{mediumaquamarine}IT FOLLOWS YOU!%c{}');
-  }
-  const maxItems = 3 + Math.floor(Math.random() * 5);
-  let newItem;
-  let newFoodItem;
-  for (let i = 0; i < maxItems; i++) {
-    newItem = Game.ItemRepository.createRandom(1, level);
-    freePlace = Game.returnFree(this);
-    this.Tiles[freePlace[0]][freePlace[1]].items.push(newItem);
-  }
-  for (let i = 0; i < maxItems + 3; i++) {
-    newFoodItem = Game.FoodRepository.createRandom(1, level);
-    freePlace = Game.returnFree(this);
-    this.Tiles[freePlace[0]][freePlace[1]].items.push(newFoodItem);
+    this.Tiles[x][y].Mob = true;
+    Game.entity.push(entity);
   }
 };
 
 Game.returnFree = function (map) {
-  let xrand = 0;
-  let yrand = 0;
-  while (map.Tiles[xrand][yrand].Blocked || map.Tiles[xrand][yrand].Mob) {
-    xrand = Math.round(Math.random() * (map.width - 1));
-    yrand = Math.round(Math.random() * (map.height - 1));
+  let x = 0;
+  let y = 0;
+  while (map.Tiles[x][y].Blocked || map.Tiles[x][y].Mob) {
+    x = randInt(0, map.width - 1);
+    y = randInt(0, map.height - 1);
   }
-  return [xrand, yrand];
+  return [x, y];
 };
 
 Game.createPortal = function (x, y, level) {
-  let xrand = x;
-  let yrand = y;
-  for (let i = -1; i < 2; i++) {
-    for (let j = -1; j < 2; j++) {
-      if (
-        !(
-          Game.map[level].Tiles[x + i][y + j].Blocked ||
-          Game.map[level].Tiles[x + i][y + j].Mob ||
-          Game.map[level].Tiles[x + i][y + j].Stairup ||
-          Game.map[level].Tiles[x + i][y + j].Stairdown
-        )
-      ) {
-        xrand = x + i;
-        yrand = y + j;
-        Game.map[level].Tiles[xrand][yrand].Symbol = 'portal';
+  const map = Game.map[level];
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      const nx = x + i;
+      const ny = y + j;
+      if (nx <= 0 || nx >= map.width - 1 || ny <= 0 || ny >= map.height - 1) continue;
+      const tile = map.Tiles[nx][ny];
+      if (!tile.Blocked && !tile.Mob && !tile.Stairup && !tile.Stairdown) {
+        tile.Symbol = 'portal';
         Game.drawAll();
         return;
       }
     }
   }
-  Game.map[level].Tiles[xrand][yrand].Symbol = 'portal';
+  const [fx, fy] = Game.returnFree(map);
+  map.Tiles[fx][fy].Symbol = 'portal';
   Game.drawAll();
 };
 
 Game.returnDoor = function (map) {
-  let xrand;
-  let yrand;
-  let result = false;
-  while (!result) {
-    xrand = Math.round(Math.random() * (map.width - 3)) + 1;
-    yrand = Math.round(Math.random() * (map.height - 3)) + 1;
-    result = Game.isDoorReady(xrand, yrand, map);
+  for (let tries = 0; tries < 200; tries++) {
+    const x = randInt(1, map.width - 2);
+    const y = randInt(1, map.height - 2);
+    if (Game.isDoorReady(x, y, map)) return [x, y];
   }
-  return [xrand, yrand];
+  return null;
 };
 
 Game.isDoorReady = function (x, y, map) {
-  if (
-    map.Tiles[x - 1][y].Blocked &&
-    map.Tiles[x + 1][y].Blocked &&
-    !map.Tiles[x][y - 1].Blocked &&
-    !map.Tiles[x][y + 1].Blocked
-  ) {
-    return true;
-  }
-  if (
-    map.Tiles[x][y - 1].Blocked &&
-    map.Tiles[x][y + 1].Blocked &&
-    !map.Tiles[x - 1][y].Blocked &&
-    !map.Tiles[x + 1][y].Blocked
-  ) {
-    return true;
-  }
-  return false;
+  const left = map.Tiles[x - 1][y].Blocked;
+  const right = map.Tiles[x + 1][y].Blocked;
+  const up = map.Tiles[x][y - 1].Blocked;
+  const down = map.Tiles[x][y + 1].Blocked;
+  return (left && right && !up && !down) || (up && down && !left && !right);
 };
 
-Game.getStairup = function (level) {
-  for (let i = 0; i < Game.map[level].width; i++) {
-    for (let j = 0; j < Game.map[level].height; j++) {
-      if (Game.map[level].Tiles[i][j].Stairup) {
-        return [i, j];
-      }
+Game.findTile = function (level, predicate) {
+  const map = Game.map[level];
+  for (let x = 0; x < map.width; x++) {
+    for (let y = 0; y < map.height; y++) {
+      if (predicate(map.Tiles[x][y])) return [x, y];
     }
   }
 };
 
-Game.getStairdown = function (level) {
-  for (let i = 0; i < Game.map[level].width; i++) {
-    for (let j = 0; j < Game.map[level].height; j++) {
-      if (Game.map[level].Tiles[i][j].Stairdown) {
-        return [i, j];
-      }
-    }
-  }
-};
+Game.getStairup = (level) => Game.findTile(level, (t) => t.Stairup);
+Game.getStairdown = (level) => Game.findTile(level, (t) => t.Stairdown);
 
 Game.generateMap = function (level) {
-  const newMapWidth = Math.floor(Math.random() * 40) + 35;
-  const newMapHeight = Math.floor(Math.random() * 30) + 15;
-
+  const width = randInt(25, 45);
+  const height = randInt(15, 25);
   const terrain = ROT.RNG.getItem(terrains);
-  Game.map[level] = new Game.GameMap(newMapWidth, newMapHeight, terrain, level);
+  Game.map[level] = new Game.GameMap(width, height, terrain, level);
 };
 
 Game.clearTiles = function () {
-  for (let i = 0; i < this.screenWidth; i++) {
-    for (let j = 0; j < this.screenHeight; j++) {
-      Game.mainDisplay.draw(i, j, '', 'black');
+  for (let x = 0; x < this.screenWidth; x++) {
+    for (let y = 0; y < this.screenHeight; y++) {
+      Game.mainDisplay.draw(x, y, '', 'black');
     }
   }
+};
+
+Game.drawTile = function (x, y, level, color) {
+  const [xco, yco] = Game.getCamera(x, y);
+  if (xco < 0 || xco >= Game.screenWidth || yco < 0 || yco >= Game.screenHeight) {
+    return;
+  }
+  const tile = Game.map[level].Tiles[x][y];
+  if (tile.items[0]) {
+    Game.mainDisplay.draw(xco, yco, [tile.Symbol, tile.items[0].symbol], ['#0000', color]);
+  } else {
+    Game.mainDisplay.draw(xco, yco, tile.Symbol, color);
+  }
+  tile.Color = color;
 };
 
 Game.drawMap = function () {
   Game.clearTiles();
-  const level = Game.entity[0].depth;
-  for (let i = 0; i < Game.map[level].width; i++) {
-    for (let j = 0; j < Game.map[level].height; j++) {
-      let _color = '#000f';
-      if (Game.map[level].Tiles[i][j].Visited) {
-        _color = '#0009';
-      }
-      const xco = Game.getCamera(i, j)[0];
-      const yco = Game.getCamera(i, j)[1];
-      if (
-        yco < Game.screenHeight &&
-        yco > -1 &&
-        xco < Game.screenWidth &&
-        xco > -1
-      ) {
-        if (typeof Game.map[level].Tiles[i][j].items[0] !== 'undefined') {
-          this.mainDisplay.draw(
-            xco,
-            yco,
-            [
-              Game.map[level].Tiles[i][j].Symbol,
-              Game.map[level].Tiles[i][j].items[0].symbol
-            ],
-            ['#0000', _color]
-          );
-        } else {
-          this.mainDisplay.draw(
-            xco,
-            yco,
-            Game.map[level].Tiles[i][j].Symbol,
-            _color
-          );
-        }
-        Game.map[level].Tiles[i][j].Color = _color;
-      }
-      Game.map[level].Tiles[i][j].Visible = false;
+  const player = Game.entity[0];
+  const level = player.depth;
+  const map = Game.map[level];
+
+  for (let x = 0; x < map.width; x++) {
+    for (let y = 0; y < map.height; y++) {
+      const tile = map.Tiles[x][y];
+      Game.drawTile(x, y, level, tile.Visited ? '#0009' : '#000f');
+      tile.Visible = false;
     }
   }
 
-  fov.compute(
-    Game.entity[0].x,
-    Game.entity[0].y,
-    Game.entity[0].vision,
-    function (x, y, r, visibility) {
-      if (r > 9) {
-        r = 9;
-      }
-      const xco = Game.getCamera(x, y)[0];
-      const yco = Game.getCamera(x, y)[1];
-      let _color = '#000' + r;
-      if (
-        yco < Game.screenHeight &&
-        yco > -1 &&
-        xco < Game.screenWidth &&
-        xco > -1
-      ) {
-        if (typeof Game.map[level].Tiles[x][y].items[0] !== 'undefined') {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            [
-              Game.map[level].Tiles[x][y].Symbol,
-              Game.map[level].Tiles[x][y].items[0].symbol
-            ],
-            ['#0000', _color]
-          );
-        } else {
-          Game.mainDisplay.draw(
-            xco,
-            yco,
-            Game.map[level].Tiles[x][y].Symbol,
-            _color
-          );
-        }
-        Game.map[level].Tiles[x][y].Color = _color;
-      }
-      Game.map[level].Tiles[x][y].Visited = true;
-      Game.map[level].Tiles[x][y].Visible = true;
-    }
-  );
+  fov.compute(player.x, player.y, player.vision, (x, y, r) => {
+    Game.drawTile(x, y, level, '#000' + Math.min(9, r));
+    map.Tiles[x][y].Visited = true;
+    map.Tiles[x][y].Visible = true;
+  });
+};
+
+const computeAxisCamera = (coord, playerCoord, mapSize, screenSize) => {
+  if (mapSize <= screenSize) {
+    return Math.floor((screenSize - mapSize) / 2) + coord;
+  }
+  const half = Math.round(screenSize / 2);
+  let offset = 0;
+  if (half - playerCoord - 1 > 0) {
+    offset = playerCoord - half + 1;
+  }
+  if (mapSize - playerCoord - 1 < half) {
+    offset = playerCoord + half - mapSize;
+  }
+  return half + coord - playerCoord - 1 + offset;
 };
 
 Game.getCamera = function (x, y) {
-  let xoffset = 0;
-  let yoffset = 0;
-  const level = Game.entity[0].depth;
-  if (Math.round(this.screenWidth / 2) - Game.entity[0].x - 1 > 0) {
-    xoffset = Game.entity[0].x - Math.round(this.screenWidth / 2) + 1;
-  }
-  if (
-    Game.map[level].width - Game.entity[0].x - 1 <
-    Math.round(this.screenWidth / 2)
-  ) {
-    xoffset =
-      Game.entity[0].x +
-      Math.round(this.screenWidth / 2) -
-      Game.map[level].width;
-  }
-  if (Math.round(this.screenHeight / 2) - Game.entity[0].y - 1 > 0) {
-    yoffset = Game.entity[0].y - Math.round(this.screenHeight / 2) + 1;
-  }
-  if (
-    Game.map[level].height - Game.entity[0].y - 1 <
-    Math.round(this.screenHeight / 2)
-  ) {
-    yoffset =
-      Game.entity[0].y +
-      Math.round(this.screenHeight / 2) -
-      Game.map[level].height;
-  }
-  const newx =
-    Math.round(this.screenWidth / 2) + x - Game.entity[0].x - 1 + xoffset;
-  const newy =
-    Math.round(this.screenHeight / 2) + y - Game.entity[0].y - 1 + yoffset;
-  return [newx, newy];
+  const player = Game.entity[0];
+  const map = Game.map[player.depth];
+  return [
+    computeAxisCamera(x, player.x, map.width, this.screenWidth),
+    computeAxisCamera(y, player.y, map.height, this.screenHeight)
+  ];
 };

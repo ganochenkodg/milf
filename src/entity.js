@@ -1,852 +1,913 @@
 'use strict';
 
-const Entity = function (properties) {
-  properties = properties || {};
-  this.x = properties['x'] || 0;
-  this.y = properties['y'] || 0;
-  this.player = false;
-  this.depth = properties['depth'] || 1;
-  this.level = properties['level'] || 1;
-  this.name = properties['name'] || 'npc';
-  this.maxLvl = properties['maxLvl'] || 1;
-  this.minLvl = properties['minLvl'] || 1;
-  this.acts = properties['acts'] || {};
-  this.drop = properties['drop'] || {};
-  this.str = properties['str'] || 1;
-  this.agi = properties['agi'] || 1;
-  this.int = properties['int'] || 1;
-  this.con = properties['con'] || 1;
-  this.skills = properties['skills'] || [];
-  this.vision = properties['vision'] || 5;
-  this.speed = properties['speed'] || 100;
-  this.symbol = properties['symbol'] || 'wolf';
-  this.deadMessage = properties['deadMessage'] || ' is dead.';
-  this.maxHp = 15 + this.con * 6 + this.str * 3;
-  this.hp = this.maxHp;
-  this.maxMana = 10 + this.int * 8;
-  this.mana = this.maxMana;
-  this.color = '#0000';
-  this.confuse = false;
-  this.stun = false;
-  this.summoned = false;
-  this.frozen = false;
-  this.minAtk = properties['minAtk'] || 1;
-  this.maxAtk = properties['maxAtk'] || 4;
-  this.defense =
-    properties['defense'] + Math.floor((this.agi + this.con) * 0.1) || 1;
-  this.affects = [];
-  this.timestamp = Math.random() * 1000 + Date.now();
-  this.getSpeed = function () {
+class Entity {
+  constructor(properties = {}) {
+    this.x = properties.x || 0;
+    this.y = properties.y || 0;
+    this.player = false;
+    this.depth = properties.depth || 1;
+    this.level = properties.level || 1;
+    this.name = properties.name || 'npc';
+    this.maxLvl = properties.maxLvl || 1;
+    this.minLvl = properties.minLvl || 1;
+    this.acts = properties.acts || {};
+    this.drop = properties.drop || {};
+    this.str = properties.str || 1;
+    this.agi = properties.agi || 1;
+    this.int = properties.int || 1;
+    this.con = properties.con || 1;
+    this.skills = properties.skills || [];
+    this.vision = properties.vision || 5;
+    this.speed = properties.speed || 100;
+    this.symbol = properties.symbol || 'wolf';
+    this.deadMessage = properties.deadMessage || ' is dead.';
+    this.maxHp = 15 + this.con * 6 + this.str * 3;
+    this.hp = this.maxHp;
+    this.maxMana = 10 + this.int * 8;
+    this.mana = this.maxMana;
+    this.color = '#0000';
+    this.confuse = false;
+    this.stun = false;
+    this.summoned = false;
+    this.frozen = false;
+    this.maxAtk = properties.maxAtk || 4;
+    this.minAtk = properties.minAtk || Math.max(1, Math.floor(this.maxAtk * 0.35));
+    this.defense =
+      (properties.defense || 0) +
+        Math.floor(this.level * 0.6) +
+        Math.floor((this.agi + this.con) * 0.25) || 1;
+    this.affects = [];
+    this.state = 'idle';
+    this.targetPos = null;
+    this.wanderPath = null;
+    this.timestamp = Math.random() * 1000 + Date.now();
+  }
+
+  getSpeed() {
     return this.speed + this.agi * 0.5;
-  };
-  this.getMinAtk = function () {
+  }
+
+  getMinAtk() {
     return Math.floor(this.minAtk * (1 + this.str * 0.05));
-  };
-  this.getMaxAtk = function () {
+  }
+
+  getMaxAtk() {
     return Math.floor(this.maxAtk * (1 + this.str * 0.05));
-  };
-};
+  }
 
-function mobPasses(x, y) {
-  const level = Game.entity[0].depth;
-  if (
-    x > 0 &&
-    x < Game.map[level].width &&
-    y > 0 &&
-    y < Game.map[level].height
-  ) {
-    return (
-      !Game.map[level].Tiles[x][y].Blocked && !Game.map[level].Tiles[x][y].Mob
-    );
+  act() {
+    this.doDie();
+    if (this.stun || this.depth !== Game.entity[0].depth) return;
+    if ('Actor' in this.acts) {
+      this.doHunt();
+    }
   }
-  return false;
-}
 
-Entity.prototype.act = function () {
-  this.doDie();
-  if (this.stun) {
-    return;
-  }
-  if (this.depth != Game.entity[0].depth) {
-    return;
-  }
-  if ('Actor' in this.acts) {
-    this.doHunt();
-  }
-};
+  doDie() {
+    if (this.hp >= 1) return;
 
-Entity.prototype.doDie = function () {
-  if (this.hp < 1) {
     const level = this.depth;
+    const tile = Game.map[level].Tiles[this.x][this.y];
     Game.messageBox.sendMessage(`The ${this.name}${this.deadMessage}`);
+
     if ('Actor' in this.acts) {
       Game.entity[0].piety +=
-        1 +
-        Math.floor(Math.random() * this.level) +
-        Math.floor(Math.pow(1.8, this.level));
+        1 + roll(this.level) + Math.floor(Math.pow(1.8, this.level));
       if (this.name.startsWith('%c{lightsalmon}rare')) {
-        const newItem = Game.ItemRepository.createRandom(
-          this.level,
-          this.level + 2
-        );
-        Game.map[level].Tiles[this.x][this.y].items.push(newItem);
+        tile.items.push(Game.ItemRepository.createRandom(this.level, this.level + 2));
       }
       if (this.name.startsWith('%c{mediumaquamarine}fleshlord')) {
-        const newItem = Game.FoodRepository.create(
-          'heartoffleshlord',
-          this.level
-        );
-        Game.map[level].Tiles[this.x][this.y].items.push(newItem);
+        tile.items.push(Game.FoodRepository.create('heartoffleshlord', this.level));
       }
-
       scheduler.remove(this);
-      Game.map[level].Tiles[this.x][this.y].Mob = false;
+      tile.Mob = false;
+    } else if (Math.random() < 0.25) {
+      const tempEntity = Game.EntityRepository.create(
+        ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton']),
+        this.level
+      );
+      tempEntity.x = this.x;
+      tempEntity.y = this.y;
+      tempEntity.depth = this.depth;
+      tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
+      Game.entity.push(tempEntity);
+      scheduler.add(tempEntity, true);
+      Game.messageBox.sendMessage(
+        `The ${tempEntity.name} appears from the ${this.name}.`
+      );
     } else {
-      if (Math.random() < 0.25) {
-        const tempEntity = Game.EntityRepository.create(
-          ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton']),
-          this.level
-        );
-        tempEntity.x = this.x;
-        tempEntity.y = this.y;
-        tempEntity.depth = this.depth;
-        tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
-        Game.entity.push(tempEntity);
-        scheduler.add(Game.entity[Game.entity.length - 1], true);
-        Game.messageBox.sendMessage(
-          `The ${tempEntity.name} appears from the ${this.name}.`
-        );
-      } else {
-        Game.map[level].Tiles[this.x][this.y].Mob = false;
-        if (Math.random() < 0.7) {
-          const newItem = Game.ItemRepository.createRandom(
-            this.level,
-            this.level + 2
-          );
-          Game.map[level].Tiles[this.x][this.y].items.push(newItem);
-        }
+      tile.Mob = false;
+      if (Math.random() < 0.7) {
+        tile.items.push(Game.ItemRepository.createRandom(this.level, this.level + 2));
       }
     }
-    for (let i = 0; i < Game.entity.length; i++) {
-      if (Game.entity[i] === this) {
-        Game.entity.splice(i, 1);
-      }
+
+    const idx = Game.entity.indexOf(this);
+    if (idx !== -1) {
+      Game.entity.splice(idx, 1);
     }
     Game.drawAll();
   }
-};
 
-Entity.prototype.doAttack = function (targetNum) {
-  let dmg =
-    this.getMinAtk() +
-    Math.floor(Math.random() * (this.getMaxAtk() - this.getMinAtk()));
-  let _color = '%c{}';
-  if (Math.random() < 0.05) {
-    dmg = dmg * 2;
-    _color = '%c{lime}';
-  }
-  if (this.confuse && Math.random() > 0.5) {
-    const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-    let newx = this.x + _confused[0];
-    let newy = this.y + _confused[1];
-    for (let i = 0; i < Game.entity.length; i++) {
-      if (
-        Game.entity[i].x == newx &&
-        Game.entity[i].y == newy &&
-        Game.entity[i].depth == this.depth
-      ) {
-        const result = Game.entity[i].doGetDamage(dmg);
+  doAttack(targetNum) {
+    let dmg = randInt(this.getMinAtk(), this.getMaxAtk());
+    let color = '%c{}';
+    if (Math.random() < 0.05) {
+      dmg *= 2;
+      color = '%c{lime}';
+    }
+
+    if (this.confuse && Math.random() > 0.5) {
+      const [dx, dy] = ROT.DIRS[8][roll(8)];
+      const newx = this.x + dx;
+      const newy = this.y + dy;
+      const victim = Game.entity.find(
+        (e) => e.x === newx && e.y === newy && e.depth === this.depth
+      );
+      if (victim) {
+        const result = victim.doGetDamage(dmg);
         Game.messageBox.sendMessage(
-          `The ${this.name} occasionally hits ${Game.entity[i].name} for ${_color}${result} %c{}damage.`
+          `The ${this.name} occasionally hits ${victim.name} for ${color}${result} %c{}damage.`
         );
-        Game.checkShields(this, Game.entity[i], 'physical', result);
-        Game.entity[i].doDie();
+        Game.checkShields(this, victim, 'physical', result);
+        victim.doDie();
+      }
+    } else {
+      const target = Game.entity[targetNum];
+      const result = target.doGetDamage(dmg);
+      Game.messageBox.sendMessage(
+        `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${target.name}`} for ${color}${result} %c{}damage.`
+      );
+      Game.checkShields(this, target, 'physical', result);
+      target.doDie();
+    }
+    Game.drawAll();
+  }
+
+  doGetDamage(dmg) {
+    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+    this.hp -= actual;
+    this.onDamaged();
+    return actual;
+  }
+
+  doGetSkillDamage(dmg) {
+    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
+    this.hp -= actual;
+    this.onDamaged();
+    return actual;
+  }
+
+  onDamaged() {
+    if (this.hp < 1 || !('Actor' in this.acts) || !Game.entity[0]) return;
+    const isFleshlord = this.name.startsWith('%c{mediumaquamarine}fleshlord');
+    if (!isFleshlord && this.hp * 4 < this.maxHp) {
+      if (this.state !== 'panic') {
+        this.state = 'panic';
+        this.targetPos = null;
+        this.wanderPath = null;
+        if (Game.map[this.depth].Tiles[this.x][this.y].Visible) {
+          Game.messageBox.sendMessage(
+            `The ${this.name} %c{khaki}panics%c{} and tries to flee!`
+          );
+        }
+      }
+      return;
+    }
+    this.state = 'hunt';
+    this.targetPos = [Game.entity[0].x, Game.entity[0].y];
+    this.wanderPath = null;
+  }
+
+  fleeFrom(px, py) {
+    let bestStep = null;
+    let bestDist = Math.max(Math.abs(px - this.x), Math.abs(py - this.y));
+    for (const [dx, dy] of ROT.DIRS[8]) {
+      const nx = this.x + dx;
+      const ny = this.y + dy;
+      if (!mobPasses(nx, ny) || (nx === px && ny === py)) continue;
+      const d = Math.max(Math.abs(px - nx), Math.abs(py - ny));
+      if (d > bestDist) {
+        bestDist = d;
+        bestStep = [nx, ny];
       }
     }
-  } else {
-    const result = Game.entity[targetNum].doGetDamage(dmg);
-    Game.messageBox.sendMessage(
-      `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${Game.entity[targetNum].name}`} for ${_color}${result} %c{}damage.`
-    );
-    Game.checkShields(this, Game.entity[targetNum], 'physical', result);
-    Game.entity[targetNum].doDie();
+    if (bestStep) {
+      this.move(bestStep[0], bestStep[1]);
+      return true;
+    }
+    return false;
   }
-  Game.drawAll();
-};
 
-Entity.prototype.doGetDamage = function (dmg) {
-  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
-  this.hp -= _dmg;
-  return _dmg;
-};
-
-Entity.prototype.doGetSkillDamage = function (dmg) {
-  const _dmg = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
-  this.hp -= _dmg;
-  return _dmg;
-};
-
-Entity.prototype.doHunt = function () {
-  if (this.hp < 1) {
-    return;
-  }
-  const level = this.depth;
-  const targetNum = 0;
-  const enemyRadius = this.vision + 1;
-  const enemyMap = [];
-  fov.compute(this.x, this.y, this.vision, function (x, y, r, visibility) {
-    enemyMap[x + ',' + y] = r;
-  });
-
-  const key = `${Game.entity[0].x},${Game.entity[0].y}`;
-  if (
-    (key in enemyMap && enemyMap[key] < enemyRadius) ||
-    this.name.startsWith('%c{mediumaquamarine}fleshlord')
-  ) {
-    const x = Game.entity[0].x;
-    const y = Game.entity[0].y;
-
-    const astar = new ROT.Path.AStar(x, y, mobPasses, {
-      topology: 8
-    });
-
+  stepTowards(tx, ty, maxRange) {
+    const level = this.depth;
+    const dist = Math.max(Math.abs(tx - this.x), Math.abs(ty - this.y));
     const path = [];
-    const pathCallback = (x, y) => {
-      path.push([x, y]);
-    };
     Game.map[level].Tiles[this.x][this.y].Mob = false;
-    astar.compute(this.x, this.y, pathCallback);
+    new ROT.Path.AStar(tx, ty, mobPasses, { topology: 8 }).compute(
+      this.x,
+      this.y,
+      (px, py) => path.push([px, py])
+    );
+    if (path.length === 0 || (maxRange && path.length - 1 > maxRange)) {
+      path.length = 0;
+      new ROT.Path.AStar(tx, ty, terrainPasses, { topology: 8 }).compute(
+        this.x,
+        this.y,
+        (px, py) => path.push([px, py])
+      );
+    }
     Game.map[level].Tiles[this.x][this.y].Mob = true;
     path.shift();
-    if (path.length > this.vision) {
+
+    if (path.length === 0 || (maxRange && path.length > maxRange)) {
+      return false;
+    }
+
+    const [nextX, nextY] = path[0];
+    if (Game.map[level].Tiles[nextX][nextY].Mob) {
+      const step = ROT.DIRS[8]
+        .map(([dx, dy]) => [this.x + dx, this.y + dy])
+        .find(
+          ([nx, ny]) =>
+            mobPasses(nx, ny) &&
+            !(nx === Game.entity[0].x && ny === Game.entity[0].y) &&
+            Math.max(Math.abs(tx - nx), Math.abs(ty - ny)) < dist
+        );
+      if (step) {
+        this.move(step[0], step[1]);
+        return true;
+      }
+      return false;
+    }
+
+    this.move(nextX, nextY);
+    return true;
+  }
+
+  doHunt() {
+    if (this.hp < 1) return;
+
+    const level = this.depth;
+    const enemyMap = {};
+    fov.compute(this.x, this.y, this.vision, (x, y, r) => {
+      enemyMap[`${x},${y}`] = r;
+    });
+
+    const player = Game.entity[0];
+    const x = player.x;
+    const y = player.y;
+    const key = `${x},${y}`;
+    const canSee = key in enemyMap && enemyMap[key] < this.vision + 1;
+    const isFleshlord = this.name.startsWith('%c{mediumaquamarine}fleshlord');
+    const dist = Math.max(Math.abs(x - this.x), Math.abs(y - this.y));
+
+    if (this.state === 'panic' && this.hp * 4 >= this.maxHp) {
+      this.state = canSee ? 'hunt' : 'idle';
+    }
+
+    if (this.state === 'panic') {
+      if (!canSee) {
+        this.doWander();
+        return;
+      }
+      if ('Skills' in this.acts) {
+        const escapeSkill = this.skills.find(
+          (s) => s.type === 'support' && this.mana >= s.options.cost
+        );
+        if (escapeSkill) {
+          this.doSkills(0, escapeSkill);
+          return;
+        }
+      }
+      if (this.fleeFrom(x, y)) return;
+      if (dist === 1) this.doAttack(0);
       return;
     }
 
-    if ('Skills' in this.acts && Math.random(0) > 0.2) {
-      let useSkill = false;
-      const _skill = ROT.RNG.getItem(this.skills);
-      if (
-        _skill.type == 'damage' &&
-        path.length < _skill.options.range + 1 &&
-        this.mana > _skill.options.cost
-      ) {
-        useSkill = true;
+    if (canSee || isFleshlord) {
+      this.state = 'hunt';
+      this.targetPos = [x, y];
+      this.wanderPath = null;
+    } else if (this.state === 'hunt' && this.targetPos) {
+      const [tx, ty] = this.targetPos;
+      if (this.x === tx && this.y === ty) {
+        this.state = 'idle';
+        this.targetPos = null;
+        this.doWander();
+        return;
       }
-      if (_skill.type == 'chant' && this.mana > _skill.options.cost) {
-        const affectApplied = Game.isAffectApplied(this, _skill);
-        if (!affectApplied[0]) {
-          useSkill = true;
+      if (this.confuse && Math.random() > 0.5) {
+        const [dx, dy] = ROT.DIRS[8][roll(8)];
+        this.move(this.x + dx, this.y + dy);
+        return;
+      }
+      if (!this.stepTowards(tx, ty)) {
+        this.state = 'idle';
+        this.targetPos = null;
+      }
+      return;
+    } else {
+      this.doWander();
+      return;
+    }
+
+    if ('Skills' in this.acts && Math.random() > 0.2) {
+      let clearShot = canSee;
+      if (canSee && dist > 1) {
+        const losPath = [];
+        new ROT.Path.AStar(x, y, lightPasses, { topology: 8 }).compute(
+          this.x,
+          this.y,
+          (px, py) => losPath.push([px, py])
+        );
+        for (let i = 1; i < losPath.length - 1; i++) {
+          if (Game.map[level].Tiles[losPath[i][0]][losPath[i][1]].Mob) {
+            clearShot = false;
+            break;
+          }
         }
       }
-      if (
-        _skill.type == 'support' &&
-        this.mana > _skill.options.cost &&
-        this.hp * 2 < this.maxHp
-      ) {
-        useSkill = true;
-      }
-      if (useSkill) {
-        this.doSkills(0, _skill);
+
+      const usable = this.skills.filter((s) => {
+        if (this.mana < s.options.cost) return false;
+        if (s.type === 'support') {
+          if ('heal' in s.options) return this.hp * 2 < this.maxHp;
+          if ('distance' in s.options) return this.hp * 3 < this.maxHp && dist <= 2;
+          return false;
+        }
+        if (s.type === 'chant') {
+          return !Game.isAffectApplied(this, s)[0] && (canSee || dist <= this.vision);
+        }
+        if (s.type === 'damage') {
+          return canSee && dist <= s.options.range && (clearShot || s.options.radius > 0);
+        }
+        return false;
+      });
+
+      if (usable.length > 0) {
+        const chosen = usable.find((s) => s.type === 'support') || ROT.RNG.getItem(usable);
+        this.doSkills(0, chosen);
         return;
       }
     }
 
-    if (path.length > 1) {
-      if (this.confuse && Math.random() > 0.5) {
-        const _confused = ROT.DIRS[8][Math.floor(Math.random() * 7)];
-        const newx = this.x + _confused[0];
-        const newy = this.y + _confused[1];
-        this.move(newx, newy);
-      } else {
-        this.move(path[0][0], path[0][1]);
-      }
-    } else if (path.length == 1) {
+    if (dist === 1) {
       this.doAttack(0);
+      return;
+    }
+
+    if (this.confuse && Math.random() > 0.5) {
+      const [dx, dy] = ROT.DIRS[8][roll(8)];
+      this.move(this.x + dx, this.y + dy);
+      return;
+    }
+
+    this.stepTowards(x, y, isFleshlord ? 0 : this.vision * 2);
+  }
+
+  doWander() {
+    if (this.confuse && Math.random() > 0.5) {
+      const [dx, dy] = ROT.DIRS[8][roll(8)];
+      this.move(this.x + dx, this.y + dy);
+      return;
+    }
+
+    const map = Game.map[this.depth];
+    if (!this.wanderPath || this.wanderPath.length === 0) {
+      this.state = 'idle';
+      this.targetPos = null;
+      if (Math.random() > 0.35) return;
+
+      let tx = null;
+      let ty = null;
+      if (Math.random() < 0.03) {
+        tx = Game.entity[0].x;
+        ty = Game.entity[0].y;
+      } else {
+        for (let tries = 0; tries < 10; tries++) {
+          const cx = this.x + randInt(-6, 6);
+          const cy = this.y + randInt(-6, 6);
+          if ((cx !== this.x || cy !== this.y) && terrainPasses(cx, cy)) {
+            tx = cx;
+            ty = cy;
+            break;
+          }
+        }
+      }
+      if (tx === null) return;
+
+      const path = [];
+      new ROT.Path.AStar(tx, ty, terrainPasses, { topology: 8 }).compute(
+        this.x,
+        this.y,
+        (px, py) => path.push([px, py])
+      );
+      path.shift();
+      if (path.length === 0) return;
+      this.state = 'wander';
+      this.targetPos = [tx, ty];
+      this.wanderPath = path;
+    }
+
+    if (this.wanderPath && this.wanderPath.length > 0) {
+      const [nx, ny] = this.wanderPath[0];
+      const wasDoor = map.Tiles[nx][ny].Door;
+      this.move(nx, ny);
+      if (this.x === nx && this.y === ny) {
+        this.wanderPath.shift();
+        if (this.wanderPath.length === 0) {
+          this.state = 'idle';
+          this.targetPos = null;
+        }
+      } else if (!wasDoor || map.Tiles[nx][ny].Door) {
+        this.state = 'idle';
+        this.targetPos = null;
+        this.wanderPath = null;
+      }
     }
   }
-};
 
-Entity.prototype.doSkills = function (targetNum, skill) {
-  if (skill.target == 'range') {
-    Game.useSkill(
-      this,
-      skill,
-      Game.entity[targetNum].x,
-      Game.entity[targetNum].y
-    );
-  }
-  if (skill.target == 'self') {
-    Game.useSkill(this, skill, this.x, this.y);
-  }
-};
-
-Entity.prototype.move = function (newx, newy) {
-  if (this.frozen) return;
-  const level = this.depth;
-  Game.map[level].Tiles[this.x][this.y].Mob = false;
-  this.x = newx;
-  this.y = newy;
-  Game.map[level].Tiles[this.x][this.y].Mob = true;
-};
-
-Entity.prototype.Draw = function () {
-  if (this.depth != Game.entity[0].depth) {
-    return;
-  }
-  const level = this.depth;
-  if (Game.map[level].Tiles[this.x][this.y].Visible) {
-    let hpbar = Math.min(8, Math.floor((this.hp * 8) / this.maxHp));
-    if (hpbar < 1) {
-      hpbar = 1;
+  doSkills(targetNum, skill) {
+    if (skill.target === 'range') {
+      const target = Game.entity[targetNum];
+      Game.useSkill(this, skill, target.x, target.y);
+    } else if (skill.target === 'self') {
+      Game.useSkill(this, skill, this.x, this.y);
     }
-    const _color = Game.map[level].Tiles[this.x][this.y].Color;
+  }
+
+  move(newx, newy) {
+    if (this.frozen) return;
+    const map = Game.map[this.depth];
+    if (newx <= 0 || newx >= map.width - 1 || newy <= 0 || newy >= map.height - 1) {
+      return;
+    }
+    if (newx === Game.entity[0].x && newy === Game.entity[0].y) {
+      return;
+    }
+    const tile = map.Tiles[newx][newy];
+    if (tile.Mob) return;
+    if (tile.Blocked) {
+      if (tile.Door) {
+        tile.Door = false;
+        tile.Symbol = tile.Symbol.replace('close', 'open');
+        tile.Blocked = false;
+        tile.BlocksSight = false;
+      }
+      return;
+    }
+    map.Tiles[this.x][this.y].Mob = false;
+    this.x = newx;
+    this.y = newy;
+    tile.Mob = true;
+  }
+
+  Draw() {
+    if (this.depth !== Game.entity[0].depth) return;
+    const tile = Game.map[this.depth].Tiles[this.x][this.y];
+    if (!tile.Visible) return;
+
+    const hpbar = Math.max(1, Math.min(8, Math.floor((this.hp * 8) / this.maxHp)));
+    const [camX, camY] = Game.getCamera(this.x, this.y);
     Game.mainDisplay.draw(
-      Game.getCamera(this.x, this.y)[0],
-      Game.getCamera(this.x, this.y)[1],
-      [Game.map[level].Tiles[this.x][this.y].Symbol, this.symbol, 'hp' + hpbar],
-      [_color, this.color, '#0000'],
+      camX,
+      camY,
+      [tile.Symbol, this.symbol, `hp${hpbar}`],
+      [tile.Color, this.color, '#0000'],
       ['transparent', 'transparent', 'transparent']
     );
   }
-};
+}
+
+function terrainPasses(x, y) {
+  const map = Game.map[Game.entity[0].depth];
+  if (x > 0 && x < map.width && y > 0 && y < map.height) {
+    const tile = map.Tiles[x][y];
+    return !tile.Blocked || tile.Door;
+  }
+  return false;
+}
+
+function mobPasses(x, y) {
+  return terrainPasses(x, y) && !Game.map[Game.entity[0].depth].Tiles[x][y].Mob;
+}
 
 Game.drawEntities = function () {
-  Game.entity.forEach(entity => entity.Draw());
+  Game.entity.forEach((entity) => entity.Draw());
 };
 
 Game.EntityRepository = new Game.Repository('entities', Entity);
 
-Game.EntityRepository.define('dogs', function (level) {
-  this.minLvl = 1;
-  this.maxLvl = 10;
-  this.level = level;
-  this.name = ROT.RNG.getItem([
-    'dog',
-    'puppy',
-    'hyena',
-    'fox',
-    'jackal',
-    'coyote',
-    'wolf'
-  ]);
-  this.str = 1 + Math.floor(Math.random() * level * 2);
-  this.agi = 1 + Math.floor(Math.random() * level);
-  this.int = 1 + Math.floor(Math.random() * level);
-  this.con = 1 + Math.floor(Math.random() * level);
-  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true
-  };
-  this.symbol = this.name;
-});
+function pickFrom(value) {
+  return Array.isArray(value) ? ROT.RNG.getItem(value) : value;
+}
 
-Game.EntityRepository.define('container', function (level) {
-  this.minLvl = 1;
-  this.maxLvl = 50;
-  this.level = level;
-  this.name = ROT.RNG.getItem(['chest', 'barrel', 'coffin', 'crypt']);
-  this.con = 10 + Math.floor((Math.random() * level) / 2);
-  this.symbol = this.name;
-  this.deadMessage = ' was destroyed.';
-});
-
-Game.EntityRepository.define('cats', function (level) {
-  this.minLvl = 3;
-  this.maxLvl = 13;
-  this.level = level;
-  this.vision = 6;
-  this.defense = 2;
-  this.name = ROT.RNG.getItem([
-    'cat',
-    'bobcat',
-    'cougar',
-    'cheetah',
-    'lynx',
-    'ocelot',
-    'male lion',
-    'female lion'
-  ]);
-  this.str = 2 + Math.floor(Math.random() * level);
-  this.agi = 4 + Math.floor(Math.random() * level * 2);
-  this.int = 1 + Math.floor(Math.random() * level);
-  this.con = 2 + Math.floor(Math.random() * level);
-  this.maxAtk = 4 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true
-  };
-  this.symbol = this.name;
-});
-
-Game.EntityRepository.define('insects', function (level) {
-  this.minLvl = 5;
-  this.maxLvl = 16;
-  this.level = level;
-  this.vision = 5;
-  this.defense = 5;
-  this.name = ROT.RNG.getItem([
-    'giant centipede',
-    'lampreymander',
-    'giant earthworm',
-    'giant ant',
-    'lesser giant ant',
-    'giant spider',
-    'lesser giant spider'
-  ]);
-  this.str = 2 + Math.floor(Math.random() * level);
-  this.agi = 4 + Math.floor(Math.random() * level * 2);
-  this.int = 1 + Math.floor(Math.random() * level);
-  this.con = 2 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true
-  };
-  this.symbol = this.name;
-});
-
-Game.EntityRepository.define('monsters720', function (level) {
-  this.minLvl = 7;
-  this.maxLvl = 20;
-  this.level = level;
-  this.vision = 6;
-  this.defense = 8;
-  this.name = ROT.RNG.getItem([
-    'manticore',
-    'lycanthrope',
-    'giant bat',
-    'giant rat',
-    'warg'
-  ]);
-  this.str = 3 + Math.floor(Math.random() * level * 2);
-  this.agi = 2 + Math.floor(Math.random() * level);
-  this.int = 1 + Math.floor(Math.random() * level);
-  this.con = 2 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true
-  };
-  this.symbol = this.name;
-});
-
-Game.EntityRepository.define('littlegoblinwarrior', function (level) {
-  this.minLvl = 2;
-  this.maxLvl = 10;
-  this.level = level;
-  this.name = 'little goblin warrior';
-  this.str = 4 + Math.floor(Math.random() * level);
-  this.agi = 1 + Math.floor(Math.random() * level);
-  this.int = 3 + Math.floor(Math.random() * level);
-  this.con = 3 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true,
-    Skills: true
-  };
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getWeightedValue({
-        rapidcut: 2,
-        poisonslash: 1,
-        strengthofstone: 1
-      }),
-      1 + Math.floor((Math.random() * level) / 2)
-    ),
-    Game.SkillRepository.create('strengthofstone', 1)
-  ];
-
-  this.symbol = ROT.RNG.getItem(['goblin3', 'goblin6']);
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 4;
-    this.con += 4;
-    this.skills.push(
-      Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
-    );
-  }
-});
-
-Game.EntityRepository.define('snake', function (level) {
-  this.minLvl = 3;
-  this.maxLvl = 15;
-  this.level = level;
-  this.name = 'snake';
-  this.str = 2 + Math.floor(Math.random() * level);
-  this.agi = 5 + Math.floor(Math.random() * level);
-  this.int = 1 + Math.floor(Math.random() * 3);
-  this.con = 3 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true,
-    Skills: true
-  };
-  this.skills = [Game.SkillRepository.create('poisonslash', level - 2)];
-
-  this.symbol = ROT.RNG.getItem(['snake1', 'snake2', 'snake3', 'snake4']);
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 4;
-    this.con += 4;
-  }
-});
-
-Game.EntityRepository.define('littlegoblinwizard', function (level) {
-  this.minLvl = 3;
-  this.maxLvl = 10;
-  this.level = level;
-  this.name = 'little goblin wizard';
-  this.str = 1 + Math.floor(Math.random() * level);
-  this.agi = 3 + Math.floor(Math.random() * level);
-  this.int = 5 + Math.floor(Math.random() * level);
-  this.con = 1 + Math.floor(Math.random() * level);
-  this.maxAtk = 2 + Math.floor(Math.random() * level * 2);
-  this.acts = {
-    Actor: true,
-    Skills: true
-  };
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getWeightedValue({
-        firearrow: 3,
-        icearrow: 1,
-        poisonarrow: 2,
-        stonearrow: 1,
-        iceshield: 1
-      }),
-      1 + Math.floor((Math.random() * level) / 2)
-    )
-  ];
-  this.symbol = ROT.RNG.getItem(['goblin7', 'goblin8']);
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.int += 4;
-    this.agi += 4;
-    this.skills.push(
-      Game.SkillRepository.create('iceshield', 1 + Math.floor(level / 2))
-    );
-  }
-});
-
-Game.EntityRepository.define('goblinwarrior', function (level) {
-  this.minLvl = 8;
-  this.maxLvl = 20;
-  this.level = level;
-  this.name = 'goblin warrior';
-  this.defense = 5;
-  this.str = level + Math.floor(Math.random() * level * 2);
-  this.agi = 4 + Math.floor(Math.random() * level);
-  this.int = 4 + Math.floor(Math.random() * level);
-  this.con = 5 + Math.floor(Math.random() * level);
-  this.maxAtk = 2 + level + Math.floor(Math.random() * level);
-  this.acts = {
-    Actor: true,
-    Skills: true
-  };
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getWeightedValue({
-        twistingslash: 3,
-        lightningstrike: 1
-      }),
-      3 + Math.floor((Math.random() * level) / 2)
-    ),
-    Game.SkillRepository.create('strengthofstone', 1)
-  ];
-
-  this.symbol = ROT.RNG.getItem(['goblin4', 'goblin5']);
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 4;
-    this.con += 4;
-    this.skills.push(Game.SkillRepository.create('iceshield', 4));
-  }
-});
-
-Game.EntityRepository.define('goblinwizard', function (level) {
-  this.minLvl = 7;
-  this.maxLvl = 16;
-  this.level = level;
-  this.defense = 3;
-  this.name = 'goblin wizard';
-  this.str = 3 + Math.floor(Math.random() * level);
-  this.agi = 3 + Math.floor(Math.random() * level);
-  this.int = level + Math.floor(Math.random() * level * 2);
-  this.con = 1 + Math.floor(Math.random() * level);
-  this.maxAtk = 4 + Math.floor(Math.random() * level);
-  this.vision = 6;
-  this.acts = {
-    Actor: true,
-    Skills: true
-  };
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getWeightedValue({
-        firearrow: 3,
-        fireball: 1
-      }),
-      3 + Math.floor((Math.random() * level) / 2)
-    )
-  ];
-  this.symbol = ROT.RNG.getItem(['goblin1', 'goblin2']);
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.int += 4;
-    this.agi += 4;
-    this.skills.push(Game.SkillRepository.create('iceshield', 3));
-  }
-});
-
-Game.EntityRepository.define('skeleton', function (level) {
-  this.minLvl = 10;
-  this.maxLvl = 20;
-  this.level = level;
-  this.name = 'skeleton';
-  this.defense = 6;
-  this.str = level + Math.floor(Math.random() * level);
-  this.agi = 3 + Math.floor(Math.random() * level);
-  this.int = 2 + Math.floor(Math.random() * level);
-  this.con = 4 + Math.floor(Math.random() * level);
-  this.maxAtk = 7 + Math.floor(Math.random() * level);
-  this.symbol = this.name;
-  this.deadMessage = ' turned to ash.';
-  this.acts = { Actor: true };
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 2;
-    this.agi += 2;
-    this.con += 2;
-  }
-});
-
-Game.EntityRepository.define('lich', function (level) {
-  this.minLvl = 16;
-  this.maxLvl = 40;
-  this.level = level;
-  this.name = ROT.RNG.getItem(['lich', 'banchee', 'cultist', 'witch']);
-  this.defense = 6;
-  this.str = 3 + Math.floor(Math.random() * level);
-  this.agi = 3 + Math.floor(Math.random() * level);
-  this.int = level + Math.floor(Math.random() * level * 2);
-  this.con = 5 + Math.floor(Math.random() * level);
-  this.maxAtk = 5 + Math.floor(Math.random() * level);
-  this.vision = 7;
-  this.acts = { Actor: true, Skills: true };
-  const mainSkill = ROT.RNG.getItem([
-    'lightningbolt',
-    'acidcloud',
-    'icefall',
-    'frozentomb',
-    'darkness'
-  ]);
-  this.skills = [
-    Game.SkillRepository.create(
-      mainSkill,
-      8 + Math.floor((Math.random() * level) / 2)
-    ),
-    Game.SkillRepository.createRandom(10, level - 2)
-  ];
-  this.symbol = this.name;
-  this.deadMessage = ' turned to ash.';
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.int += 4;
-    this.con += 4;
-    this.skills.push(
+const ENTITY_DEFS = {
+  dogs: {
+    minLvl: 1, maxLvl: 10,
+    names: ['dog', 'puppy', 'hyena', 'fox', 'jackal', 'coyote', 'wolf'],
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: 1 + roll(l * 2),
+      agi: 1 + roll(l),
+      int: 1 + roll(l),
+      con: 1 + roll(l),
+      maxAtk: 2 + roll(l * 2)
+    })
+  },
+  container: {
+    minLvl: 1, maxLvl: 50,
+    names: ['chest', 'barrel', 'coffin', 'crypt'],
+    deadMessage: ' was destroyed.',
+    stats: (l) => ({ con: 10 + roll(l / 2) })
+  },
+  cats: {
+    minLvl: 3, maxLvl: 13, vision: 6, defense: 2,
+    names: ['cat', 'bobcat', 'cougar', 'cheetah', 'lynx', 'ocelot', 'male lion', 'female lion'],
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: 2 + roll(l),
+      agi: 4 + roll(l * 2),
+      int: 1 + roll(l),
+      con: 2 + roll(l),
+      maxAtk: 4 + roll(l * 2)
+    })
+  },
+  insects: {
+    minLvl: 5, maxLvl: 16, vision: 5, defense: 5,
+    names: [
+      'giant centipede', 'lampreymander', 'giant earthworm',
+      'giant ant', 'lesser giant ant', 'giant spider', 'lesser giant spider'
+    ],
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: 2 + roll(l),
+      agi: 4 + roll(l * 2),
+      int: 1 + roll(l),
+      con: 2 + roll(l),
+      maxAtk: 6 + roll(l * 2)
+    })
+  },
+  monsters720: {
+    minLvl: 7, maxLvl: 20, vision: 6, defense: 8,
+    names: ['manticore', 'lycanthrope', 'giant bat', 'giant rat', 'warg'],
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: 3 + roll(l * 2),
+      agi: 2 + roll(l),
+      int: 1 + roll(l),
+      con: 2 + roll(l),
+      maxAtk: 6 + roll(l * 2)
+    })
+  },
+  littlegoblinwarrior: {
+    minLvl: 2, maxLvl: 10,
+    names: 'little goblin warrior',
+    symbols: ['goblin3', 'goblin6'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 4 + roll(l),
+      agi: 1 + roll(l),
+      int: 3 + roll(l),
+      con: 3 + roll(l),
+      maxAtk: 6 + roll(l * 2)
+    }),
+    skills: (l) => [
       Game.SkillRepository.create(
-        ROT.RNG.getItem(['iceshield', 'auraoffear', 'arcaneshield']),
-        3 + Math.floor(Math.random() * 7)
-      )
-    );
-  }
-});
-
-Game.EntityRepository.define('darkknight', function (level) {
-  this.minLvl = 20;
-  this.maxLvl = 45;
-  this.level = level;
-  this.name = ROT.RNG.getItem(['dark knight', 'reaper', 'wraith', 'cultist']);
-  this.defense = 10;
-  this.str = level + Math.floor(Math.random() * level * 2);
-  this.agi = 4 + Math.floor(Math.random() * level);
-  this.int = 4 + Math.floor(Math.random() * level);
-  this.con = 6 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true, Skills: true };
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getItem(['twistingslash', 'lightningstrike', 'icefall']),
-      5 + Math.floor((Math.random() * level) / 2)
-    )
-  ];
-  this.symbol = this.name;
-  this.deadMessage = ' turned to ash.';
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 3;
-    this.con += 3;
-    this.skills.push(
+        ROT.RNG.getWeightedValue({ rapidcut: 2, poisonslash: 1, strengthofstone: 1 }),
+        1 + roll(l / 2)
+      ),
+      Game.SkillRepository.create('strengthofstone', 1)
+    ],
+    rare: (mob, l) => {
+      mob.str += 4;
+      mob.con += 4;
+      mob.skills.push(Game.SkillRepository.create('iceshield', 1 + Math.floor(l / 2)));
+    }
+  },
+  snake: {
+    minLvl: 3, maxLvl: 15,
+    names: 'snake',
+    symbols: ['snake1', 'snake2', 'snake3', 'snake4'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 2 + roll(l),
+      agi: 5 + roll(l),
+      int: 1 + roll(3),
+      con: 3 + roll(l),
+      maxAtk: 6 + roll(l * 2)
+    }),
+    skills: (l) => [Game.SkillRepository.create('poisonslash', l - 2)],
+    rare: (mob) => {
+      mob.str += 4;
+      mob.con += 4;
+    }
+  },
+  littlegoblinwizard: {
+    minLvl: 3, maxLvl: 10,
+    names: 'little goblin wizard',
+    symbols: ['goblin7', 'goblin8'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 1 + roll(l),
+      agi: 3 + roll(l),
+      int: 5 + roll(l),
+      con: 1 + roll(l),
+      maxAtk: 2 + roll(l * 2)
+    }),
+    skills: (l) => [
       Game.SkillRepository.create(
-        ROT.RNG.getItem(['auraofwinter', 'reflectionshield', 'heal']),
-        2 + Math.floor(Math.random() * level)
+        ROT.RNG.getWeightedValue({
+          firearrow: 3, icearrow: 1, poisonarrow: 2, stonearrow: 1, iceshield: 1
+        }),
+        1 + roll(l / 2)
       )
-    );
+    ],
+    rare: (mob, l) => {
+      mob.int += 4;
+      mob.agi += 4;
+      mob.skills.push(Game.SkillRepository.create('iceshield', 1 + Math.floor(l / 2)));
+    }
+  },
+  goblinwarrior: {
+    minLvl: 8, maxLvl: 20, defense: 5,
+    names: 'goblin warrior',
+    symbols: ['goblin4', 'goblin5'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 4 + roll(l),
+      int: 4 + roll(l),
+      con: 5 + roll(l),
+      maxAtk: 2 + l + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getWeightedValue({ twistingslash: 3, lightningstrike: 1 }),
+        3 + roll(l / 2)
+      ),
+      Game.SkillRepository.create('strengthofstone', 1)
+    ],
+    rare: (mob) => {
+      mob.str += 4;
+      mob.con += 4;
+      mob.skills.push(Game.SkillRepository.create('iceshield', 4));
+    }
+  },
+  goblinwizard: {
+    minLvl: 7, maxLvl: 16, defense: 3, vision: 6,
+    names: 'goblin wizard',
+    symbols: ['goblin1', 'goblin2'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 3 + roll(l),
+      agi: 3 + roll(l),
+      int: l + roll(l),
+      con: 1 + roll(l),
+      maxAtk: 4 + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getWeightedValue({ firearrow: 3, fireball: 1 }),
+        3 + roll(l / 2)
+      )
+    ],
+    rare: (mob) => {
+      mob.int += 4;
+      mob.agi += 4;
+      mob.skills.push(Game.SkillRepository.create('iceshield', 3));
+    }
+  },
+  skeleton: {
+    minLvl: 10, maxLvl: 20, defense: 6,
+    names: 'skeleton',
+    deadMessage: ' turned to ash.',
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 3 + roll(l),
+      int: 2 + roll(l),
+      con: 4 + roll(l),
+      maxAtk: 7 + roll(l)
+    }),
+    rare: (mob) => {
+      mob.str += 2;
+      mob.agi += 2;
+      mob.con += 2;
+    }
+  },
+  lich: {
+    minLvl: 16, maxLvl: 40, defense: 6, vision: 7,
+    names: ['lich', 'banshee', 'cultist', 'witch'],
+    deadMessage: ' turned to ash.',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 3 + roll(l),
+      agi: 3 + roll(l),
+      int: l + roll(l),
+      con: 5 + roll(l),
+      maxAtk: 5 + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['lightningbolt', 'acidcloud', 'icefall', 'frozentomb', 'darkness']),
+        8 + roll(l / 2)
+      ),
+      Game.SkillRepository.createRandom(10, l - 2)
+    ],
+    rare: (mob) => {
+      mob.int += 4;
+      mob.con += 4;
+      mob.skills.push(
+        Game.SkillRepository.create(
+          ROT.RNG.getItem(['iceshield', 'auraoffear', 'arcaneshield']),
+          3 + roll(7)
+        )
+      );
+    }
+  },
+  darkknight: {
+    minLvl: 20, maxLvl: 45, defense: 10,
+    names: ['dark knight', 'reaper', 'wraith', 'cultist'],
+    deadMessage: ' turned to ash.',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 4 + roll(l),
+      int: 4 + roll(l),
+      con: 6 + roll(l),
+      maxAtk: 6 + l + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['twistingslash', 'lightningstrike', 'icefall']),
+        5 + roll(l / 2)
+      )
+    ],
+    rare: (mob, l) => {
+      mob.str += 3;
+      mob.con += 3;
+      mob.skills.push(
+        Game.SkillRepository.create(
+          ROT.RNG.getItem(['auraofwinter', 'reflectionshield', 'heal']),
+          2 + roll(l)
+        )
+      );
+    }
+  },
+  zombie: {
+    minLvl: 10, maxLvl: 22, defense: 4,
+    names: 'zombie',
+    deadMessage: ' turned to ash.',
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 2 + roll(l / 2),
+      int: 1 + roll(l / 2),
+      con: 6 + roll(l),
+      maxAtk: 4 + l + roll(l)
+    }),
+    rare: (mob) => {
+      mob.str += 3;
+      mob.con += 5;
+    }
+  },
+  ghoul: {
+    minLvl: 12, maxLvl: 25, defense: 4,
+    names: 'ghoul',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 4 + roll(l),
+      int: 2 + roll(l),
+      con: 5 + roll(l),
+      maxAtk: 4 + l + roll(l)
+    }),
+    skills: () => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['poisonslash', 'acidcloud']),
+        4 + roll(4)
+      )
+    ],
+    rare: (mob, l) => {
+      mob.str += 2;
+      mob.agi += 2;
+      mob.skills.push(Game.SkillRepository.createRandom(15, l));
+    }
+  },
+  ettin: {
+    minLvl: 18, maxLvl: 30, defense: 6,
+    names: 'ettin',
+    acts: { Actor: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 3 + roll(l),
+      int: 2 + roll(l / 2),
+      con: 6 + roll(l),
+      maxAtk: 6 + l + roll(l)
+    }),
+    rare: (mob) => {
+      mob.str += 5;
+      mob.con += 3;
+    }
+  },
+  twoheadedettin: {
+    minLvl: 25, maxLvl: 35, defense: 8,
+    names: 'two headed ettin',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 4 + roll(l),
+      int: 3 + roll(l),
+      con: 8 + roll(l),
+      maxAtk: 8 + l + roll(l)
+    }),
+    skills: (l) => [Game.SkillRepository.createRandom(10, l)],
+    rare: (mob, l) => {
+      mob.str += 4;
+      mob.con += 4;
+      mob.skills.push(Game.SkillRepository.createRandom(l - 2, l + 2));
+    }
+  },
+  troll: {
+    minLvl: 20, maxLvl: 32, defense: 10,
+    names: 'troll',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 4 + roll(l),
+      int: 3 + roll(l),
+      con: 7 + roll(l),
+      maxAtk: 6 + l + roll(l)
+    }),
+    skills: () => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['crackedearth', 'strengthofstone', 'rapidcut']),
+        4 + roll(4)
+      )
+    ],
+    rare: (mob, l) => {
+      mob.con += 10;
+      mob.skills.push(Game.SkillRepository.createRandom(l - 2, l + 2));
+    }
+  },
+  weird: {
+    minLvl: 10, maxLvl: 40, defense: 10,
+    names: ['dryad', 'wendigo', 'forest spirit', 'myconid'],
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 10 + roll(l),
+      agi: 6 + roll(l),
+      int: 6 + roll(l),
+      con: 7 + roll(l),
+      maxAtk: 6 + l + roll(l)
+    }),
+    skills: (l) => [Game.SkillRepository.createRandom(l - 2, l + 2)],
+    rare: (mob, l) => {
+      mob.con += 10;
+      mob.skills.push(Game.SkillRepository.createRandom(l - 2, l + 2));
+    }
+  },
+  fleshlord: {
+    minLvl: -100, maxLvl: -50, vision: 30, speed: 90,
+    names: '%c{mediumaquamarine}fleshlord%c{}',
+    symbols: 'fleshlord3',
+    deadMessage: ' turned into chunks of flesh.',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      level: l + 8,
+      defense: 8 + l,
+      str: 10 + l + roll(l),
+      agi: 10 + Math.floor(l / 2),
+      int: 10 + l + roll(l),
+      con: 20 + l + roll(l),
+      maxAtk: 15 + l + roll(l)
+    }),
+    skills: (l) => {
+      const count = 2 + roll(3);
+      return Array.from({ length: count }, () => Game.SkillRepository.createRandom(10, l));
+    }
   }
-});
+};
 
-Game.EntityRepository.define('zombie', function (level) {
-  this.minLvl = 10;
-  this.maxLvl = 22;
-  this.level = level;
-  this.name = 'zombie';
-  this.defense = 4;
-  this.str = level + Math.floor(Math.random() * level);
-  this.agi = 2 + Math.floor((Math.random() * level) / 2);
-  this.int = 1 + Math.floor((Math.random() * level) / 2);
-  this.con = 6 + Math.floor(Math.random() * level);
-  this.maxAtk = 4 + level + Math.floor(Math.random() * level);
-  this.symbol = this.name;
-  this.deadMessage = ' turned to ash.';
-  this.acts = { Actor: true };
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 3;
-    this.con += 5;
-  }
-});
-
-Game.EntityRepository.define('ghoul', function (level) {
-  this.minLvl = 12;
-  this.maxLvl = 25;
-  this.level = level;
-  this.name = 'ghoul';
-  this.defense = 4;
-  this.str = level + Math.floor(Math.random() * level);
-  this.agi = 4 + Math.floor(Math.random() * level);
-  this.int = 2 + Math.floor(Math.random() * level);
-  this.con = 5 + Math.floor(Math.random() * level);
-  this.maxAtk = 4 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true, Skills: true };
-  this.symbol = this.name;
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getItem(['poisonslash', 'acidcloud']),
-      4 + Math.floor(Math.random() * 4)
-    )
-  ];
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 2;
-    this.agi += 2;
-    this.skills.push(Game.SkillRepository.createRandom(15, level));
-  }
-});
-
-Game.EntityRepository.define('ettin', function (level) {
-  this.minLvl = 18;
-  this.maxLvl = 30;
-  this.level = level;
-  this.name = 'ettin';
-  this.defense = 6;
-  this.str = level + Math.floor(Math.random() * level * 2);
-  this.agi = 3 + Math.floor(Math.random() * level);
-  this.int = 2 + Math.floor((Math.random() * level) / 2);
-  this.con = 6 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true };
-  this.symbol = this.name;
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 5;
-    this.con += 3;
-  }
-});
-
-Game.EntityRepository.define('twoheadedettin', function (level) {
-  this.minLvl = 25;
-  this.maxLvl = 35;
-  this.level = level;
-  this.name = 'two-headed ettin';
-  this.defense = 8;
-  this.str = level + Math.floor(Math.random() * level * 2);
-  this.agi = 4 + Math.floor(Math.random() * level);
-  this.int = 3 + Math.floor(Math.random() * level);
-  this.con = 8 + Math.floor(Math.random() * level);
-  this.maxAtk = 8 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true, Skills: true };
-  this.symbol = this.name;
-  this.skills = [Game.SkillRepository.createRandom(10, level)];
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.str += 4;
-    this.con += 4;
-    this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
-  }
-});
-
-Game.EntityRepository.define('troll', function (level) {
-  this.minLvl = 20;
-  this.maxLvl = 32;
-  this.level = level;
-  this.name = 'troll';
-  this.defense = 10;
-  this.str = level + Math.floor(Math.random() * level * 2);
-  this.agi = 4 + Math.floor(Math.random() * level);
-  this.int = 3 + Math.floor(Math.random() * level);
-  this.con = 7 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true, Skills: true };
-  this.symbol = this.name;
-  this.skills = [
-    Game.SkillRepository.create(
-      ROT.RNG.getItem(['crackedearth', 'strengthofstone', 'rapidcut']),
-      4 + Math.floor(Math.random() * 4)
-    )
-  ];
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.con += 10;
-    this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
-  }
-});
-
-Game.EntityRepository.define('weird', function (level) {
-  this.minLvl = 10;
-  this.maxLvl = 40;
-  this.level = level;
-  this.name = ROT.RNG.getItem(['dryad', 'wendigo', 'forest spirit', 'myconid']);
-  this.defense = 10;
-  this.str = 10 + Math.floor(Math.random() * level);
-  this.agi = 6 + Math.floor(Math.random() * level);
-  this.int = 6 + Math.floor(Math.random() * level);
-  this.con = 7 + Math.floor(Math.random() * level);
-  this.maxAtk = 6 + level + Math.floor(Math.random() * level);
-  this.acts = { Actor: true, Skills: true };
-  this.symbol = this.name;
-  this.skills = [Game.SkillRepository.createRandom(level - 2, level + 2)];
-  if (Math.random() < rareMobChance) {
-    this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
-    this.con += 10;
-    this.skills.push(Game.SkillRepository.createRandom(level - 2, level + 2));
-  }
-});
-
-Game.EntityRepository.define('fleshlord', function (level) {
-  this.minLvl = -100;
-  this.maxLvl = -50;
-  this.level = level + 8;
-  this.name = '%c{mediumaquamarine}fleshlord%c{}';
-  this.defense = level - 5;
-  this.str = 10 + Math.floor(Math.random() * level);
-  this.agi = 10;
-  this.int = 6 + Math.floor(Math.random() * level);
-  this.con = 20 + Math.floor(Math.random() * level);
-  this.maxAtk = 15 + level + Math.floor(Math.random() * level);
-  this.vision = 30;
-  this.speed = 80;
-  this.acts = { Actor: true, Skills: true };
-  this.symbol = 'fleshlord3';
-  this.deadMessage = ' turned into chunks of flesh.';
-  this.skills = [];
-  const numSkills = 2 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < numSkills; i++) {
-    this.skills.push(Game.SkillRepository.createRandom(10, level));
-  }
-});
+for (const [key, def] of Object.entries(ENTITY_DEFS)) {
+  Game.EntityRepository.define(key, function (level) {
+    this.minLvl = def.minLvl;
+    this.maxLvl = def.maxLvl;
+    this.level = level;
+    this.name = pickFrom(def.names);
+    this.symbol = def.symbols ? pickFrom(def.symbols) : this.name;
+    if (def.vision !== undefined) this.vision = def.vision;
+    if (def.defense !== undefined) this.defense = def.defense;
+    if (def.speed !== undefined) this.speed = def.speed;
+    if (def.deadMessage) this.deadMessage = def.deadMessage;
+    if (def.acts) this.acts = { ...def.acts };
+    if (def.stats) Object.assign(this, def.stats(level));
+    if (def.skills) this.skills = def.skills(level);
+    if (def.rare && Math.random() < rareMobChance) {
+      this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
+      def.rare(this, level);
+    }
+  });
+}

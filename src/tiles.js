@@ -2,158 +2,24 @@
 
 const tileSet = document.createElement('img');
 tileSet.src = 'resources/tiles.png';
+
 const terrains = ['dungeon', 'stone', 'maze', 'swamp', 'bricks', 'skulls'];
-const playerTiles = [
-  'warrior1',
-  'warrior2',
-  'warrior3',
-  'wizard1',
-  'wizard2',
-  'wizard3'
-];
+const playerTiles = ['warrior1', 'warrior2', 'warrior3', 'wizard1', 'wizard2', 'wizard3'];
+
 const gameTilemap = {
-  //dungeon tiles
-  dungeonwall: [0, 0],
-  dungeonwallhor: [32, 0],
-  dungeonfloor: [64, 0],
-  dungeonfloorrandom: [96, 0],
-  dungeondoorclose: [128, 0],
-  dungeondooropen: [160, 0],
-  dungeonstairdown: [192, 0],
-  dungeonstairup: [224, 0],
-  stonewall: [0, 32],
-  stonewallhor: [32, 32],
-  stonefloor: [64, 32],
-  stonefloorrandom: [96, 32],
-  stonedoorclose: [128, 32],
-  stonedooropen: [160, 32],
-  stonestairdown: [192, 32],
-  stonestairup: [224, 32],
-  mazewall: [0, 64],
-  mazewallhor: [32, 64],
-  mazefloor: [64, 64],
-  mazefloorrandom: [96, 64],
-  mazedoorclose: [128, 64],
-  mazedooropen: [160, 64],
-  mazestairdown: [192, 64],
-  mazestairup: [224, 64],
-  swampwall: [0, 96],
-  swampwallhor: [32, 96],
-  swampfloor: [64, 96],
-  swampfloorrandom: [96, 96],
-  swampdoorclose: [128, 96],
-  swampdooropen: [160, 96],
-  swampstairdown: [192, 96],
-  swampstairup: [224, 96],
-  brickswall: [0, 128],
-  brickswallhor: [32, 128],
-  bricksfloor: [64, 128],
-  bricksfloorrandom: [96, 128],
-  bricksdoorclose: [128, 128],
-  bricksdooropen: [160, 128],
-  bricksstairdown: [192, 128],
-  bricksstairup: [224, 128],
-  skullswall: [0, 160],
-  skullswallhor: [32, 160],
-  skullsfloor: [64, 160],
-  skullsfloorrandom: [96, 160],
-  skullsdoorclose: [128, 160],
-  skullsdooropen: [160, 160],
-  skullsstairdown: [192, 160],
-  skullsstairup: [224, 160],
   portal: [448, 0],
-  //ui
-  hp1: [256, 64],
-  hp2: [288, 64],
-  hp3: [320, 64],
-  hp4: [352, 64],
-  hp5: [384, 64],
-  hp6: [416, 64],
-  hp7: [448, 64],
-  hp8: [480, 64],
+  // UI
   blanksquare: [0, 192],
   bluesquare: [32, 192],
   redsquare: [64, 192],
   greensquare: [96, 192],
   purplesquare: [128, 192],
-  badend00: [0, 544],
-  badend10: [32, 544],
-  badend20: [64, 544],
-  badend30: [96, 544],
-  badend40: [128, 544],
-  badend50: [160, 544],
-  badend01: [0, 576],
-  badend11: [32, 576],
-  badend21: [64, 576],
-  badend31: [96, 576],
-  badend41: [128, 576],
-  badend51: [160, 576],
-  badend02: [0, 608],
-  badend12: [32, 608],
-  badend22: [64, 608],
-  badend32: [96, 608],
-  badend42: [128, 608],
-  badend52: [160, 608],
-  badend03: [0, 640],
-  badend13: [32, 640],
-  badend23: [64, 640],
-  badend33: [96, 640],
-  badend43: [128, 640],
-  badend53: [160, 640],
-  badend04: [0, 672],
-  badend14: [32, 672],
-  badend24: [64, 672],
-  badend34: [96, 672],
-  badend44: [128, 672],
-  badend54: [160, 672],
-  badend05: [0, 704],
-  badend15: [32, 704],
-  badend25: [64, 704],
-  badend35: [96, 704],
-  badend45: [128, 704],
-  badend55: [160, 704],
-  goodend00: [192, 544],
-  goodend10: [224, 544],
-  goodend20: [256, 544],
-  goodend30: [288, 544],
-  goodend40: [320, 544],
-  goodend50: [352, 544],
-  goodend01: [192, 576],
-  goodend11: [224, 576],
-  goodend21: [256, 576],
-  goodend31: [288, 576],
-  goodend41: [320, 576],
-  goodend51: [352, 576],
-  goodend02: [192, 608],
-  goodend12: [224, 608],
-  goodend22: [256, 608],
-  goodend32: [288, 608],
-  goodend42: [320, 608],
-  goodend52: [352, 608],
-  goodend03: [192, 640],
-  goodend13: [224, 640],
-  goodend23: [256, 640],
-  goodend33: [288, 640],
-  goodend43: [320, 640],
-  goodend53: [352, 640],
-  goodend04: [192, 672],
-  goodend14: [224, 672],
-  goodend24: [256, 672],
-  goodend34: [288, 672],
-  goodend44: [320, 672],
-  goodend54: [352, 672],
-  goodend05: [192, 704],
-  goodend15: [224, 704],
-  goodend25: [256, 704],
-  goodend35: [288, 704],
-  goodend45: [320, 704],
-  goodend55: [352, 704],
-  //containers
+  // Containers
   chest: [256, 32],
   barrel: [388, 32],
   coffin: [480, 32],
   crypt: [544, 32],
-  //enemies
+  // Enemies
   dog: [0, 224],
   puppy: [32, 224],
   hyena: [64, 224],
@@ -169,14 +35,6 @@ const gameTilemap = {
   ocelot: [480, 128],
   'male lion': [512, 128],
   'female lion': [544, 128],
-  goblin1: [224, 224],
-  goblin2: [256, 224],
-  goblin3: [288, 224],
-  goblin4: [320, 224],
-  goblin5: [352, 224],
-  goblin6: [384, 224],
-  goblin7: [416, 224],
-  goblin8: [448, 224],
   skeleton: [480, 224],
   lich: [512, 224],
   'dark knight': [544, 224],
@@ -185,10 +43,6 @@ const gameTilemap = {
   ettin: [384, 256],
   'two headed ettin': [416, 256],
   troll: [448, 256],
-  snake1: [480, 256],
-  snake2: [512, 256],
-  snake3: [544, 256],
-  snake4: [576, 256],
   banshee: [384, 288],
   reaper: [416, 288],
   wraith: [448, 288],
@@ -216,90 +70,23 @@ const gameTilemap = {
   fleshlordchant1: [544, 352],
   fleshlordchant2: [576, 352],
   fleshlordchant3: [608, 352],
-  //player tiles
+  // Player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
   wizard2: [320, 0],
   wizard3: [352, 0],
   warrior2: [384, 0],
   warrior3: [416, 0],
-  //food
+  // Food & special
   mushroom1: [256, 128],
   mushroom2: [288, 128],
-  herb1: [256, 96],
-  herb2: [288, 96],
-  herb3: [320, 96],
-  herb4: [352, 96],
-  herb5: [384, 96],
-  herb6: [416, 96],
-  herb7: [448, 96],
-  herb8: [480, 96],
-  herb9: [512, 96],
-  herb10: [544, 96],
-  herb11: [576, 96],
-  herb12: [608, 96],
-  herb13: [640, 96],
   heartoffleshlord: [160, 192],
-  //weapon tiles
-  sword1: [0, 256],
-  sword2: [32, 256],
-  sword3: [64, 256],
-  sword4: [96, 256],
-  sword5: [128, 256],
-  sword6: [160, 256],
-  sword7: [0, 288],
-  sword8: [32, 288],
-  sword9: [64, 288],
-  sword10: [96, 288],
-  sword11: [128, 288],
-  sword12: [160, 288],
+  // Elemental weapons
   elementalsword1: [192, 352],
   elementalsword2: [224, 352],
   elementalstaff1: [256, 352],
   elementalstaff2: [288, 352],
-  staff1: [0, 320],
-  staff2: [32, 320],
-  staff3: [64, 320],
-  staff4: [96, 320],
-  staff5: [128, 320],
-  staff6: [160, 320],
-  staff7: [0, 352],
-  staff8: [32, 352],
-  staff9: [64, 352],
-  staff10: [96, 352],
-  staff11: [128, 352],
-  staff12: [160, 352],
-  //armor
-  armor1: [192, 256],
-  armor2: [224, 256],
-  armor3: [256, 256],
-  armor4: [288, 256],
-  armor5: [320, 256],
-  armor6: [352, 256],
-  armor7: [192, 288],
-  armor8: [224, 288],
-  armor9: [256, 288],
-  armor10: [288, 288],
-  armor11: [320, 288],
-  armor12: [352, 288],
-  //other items
-  potion1: [0, 384],
-  potion2: [32, 384],
-  potion3: [64, 384],
-  potion4: [96, 384],
-  potion5: [128, 384],
-  potion6: [0, 416],
-  potion7: [32, 416],
-  potion8: [64, 416],
-  potion9: [96, 416],
-  potion10: [128, 416],
-  book1: [0, 448],
-  book2: [32, 448],
-  book3: [64, 448],
-  book4: [96, 448],
-  book5: [128, 448],
-  book6: [160, 448],
-  //spells
+  // Statuses & spells
   poison: [192, 448],
   freeze: [224, 448],
   stun: [256, 448],
@@ -339,3 +126,38 @@ const gameTilemap = {
   plague: [480, 512],
   teleport: [512, 512]
 };
+
+// Terrain tile sets (6 terrains x 8 tile variants)
+const TERRAIN_PARTS = ['wall', 'wallhor', 'floor', 'floorrandom', 'doorclose', 'dooropen', 'stairdown', 'stairup'];
+terrains.forEach((terrain, row) => {
+  TERRAIN_PARTS.forEach((part, col) => {
+    gameTilemap[terrain + part] = [col * 32, row * 32];
+  });
+});
+
+// Indexed sprite series
+const addTileSeries = (prefix, count, startX, startY, perRow = count) => {
+  for (let i = 0; i < count; i++) {
+    const col = i % perRow;
+    const row = Math.floor(i / perRow);
+    gameTilemap[`${prefix}${i + 1}`] = [startX + col * 32, startY + row * 32];
+  }
+};
+
+addTileSeries('hp', 8, 256, 64);
+addTileSeries('goblin', 8, 224, 224);
+addTileSeries('snake', 4, 480, 256);
+addTileSeries('herb', 13, 256, 96);
+addTileSeries('sword', 12, 0, 256, 6);
+addTileSeries('staff', 12, 0, 320, 6);
+addTileSeries('armor', 12, 192, 256, 6);
+addTileSeries('potion', 10, 0, 384, 5);
+addTileSeries('book', 6, 0, 448);
+
+// 6x6 end-screen banners
+for (let y = 0; y <= 5; y++) {
+  for (let x = 0; x <= 5; x++) {
+    gameTilemap[`badend${x}${y}`] = [x * 32, 544 + y * 32];
+    gameTilemap[`goodend${x}${y}`] = [192 + x * 32, 544 + y * 32];
+  }
+}

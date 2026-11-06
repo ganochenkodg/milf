@@ -37,19 +37,22 @@
         object-fit: cover;
       }
       .text-container {
-        width: 800px;
+        width: 808px;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 32px;
+        padding: 14px 40px;
         border-style: double;
         border: 4px solid PaleGoldenrod;
         outline: 1px solid RosyBrown;
         box-shadow: -5px 5px 2px GoldenRod;
         color: PaleGoldenrod;
         font-family: monospace;
-        white-space: pre;
         background-color: #2b2830;
       }
       .text-container p {
-        margin: -5px 0;
-        padding-left: 40px;
+        margin: 0;
       }
 
       .container {
@@ -72,24 +75,49 @@
         text-align: center;
         padding: 20px;
         font-size: 20px;
+        cursor: pointer;
+      }
+
+      canvas {
+        border-style: double;
+        border: 4px solid PaleGoldenrod;
+        outline: 1px solid RosyBrown;
+        box-shadow: -5px 5px 2px GoldenRod;
+        padding: 0;
+        margin: 10px 0;
+        display: block;
       }
     </style>
   </head>
   <body>
-    <div class="logo-container">
-      <img src="resources/logo.jpg" alt="Logo" />
+    <div id="menu">
+      <div class="logo-container">
+        <img src="resources/logo.jpg" alt="Logo" />
+      </div>
+      <div class="container">
+        <div class="difficulty" onclick="Game.init('easy')">🎈 Easy 🍭</div>
+        <div class="difficulty" onclick="Game.init('normal')">⚔️ Normal 🔥</div>
+        <div class="difficulty" onclick="Game.init('hard')">🪦 <span style="font-weight: bold; color: darkred">Hard</span> ☠️</div>
+      </div>
+      <div class="text-container">
+        <p>arrows - move/select target</p>
+        <p>enter - go up/go down/pick up items</p>
+        <p>1..0 - use skills</p>
+        <p>w - worship to God of Random</p>
+        <p>a..j - use items</p>
+        <p>z - rest</p>
+      </div>
     </div>
-    <div class="container">
-      <div class="difficulty" onclick="window.location.href='gameeasy.html';">🎈 Easy 🍭</div>
-      <div class="difficulty" onclick="window.location.href='gamenormal.html';">⚔️ Normal 🔥</div>>
-      <div class="difficulty" onclick="window.location.href='gamehard.html';"> 🪦 H̶̨͉͉̺͔̦̰̮̑Ǎ̴̢̩͖̯̰̣̯͒͛R̴̢̙͔̭̯̹̣̙̈́̔̎͑̈̇̏̚͘̕͘͝D̶̡̹̺̜͓̩͌̉͝ ☠️ </div>
-    </div>
-    <div class="text-container">
-      <p>arrows - move/select target</p>
-      <p>enter - go up/go down/pick up items</p>
-      <p>1..0 - use skills</p>
-      <p>a..j - use items</p>
-      <p>w - worship to God of Random</p>
-    </div>
+    <script src="src/rot.min.js"></script>
+    <script src="src/config.js"></script>
+    <script src="src/index.js"></script>
+    <script src="src/map.js"></script>
+    <script src="src/tiles.js"></script>
+    <script src="src/namegen.js"></script>
+    <script src="src/player.js"></script>
+    <script src="src/messages.js"></script>
+    <script src="src/entity.js"></script>
+    <script src="src/item.js"></script>
+    <script src="src/skills.js"></script>
   </body>
 </html>

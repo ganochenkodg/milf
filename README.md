@@ -1,56 +1,60 @@
-# MILF Roguelike
+# MILF: Monsters I Love to Fight
 
-## Intro
-
-<p style="text-align:center;" align="center">
-  <img src="resources/logo_wide.png" width="800"/></a>  
+<p align="center">
+  <img src="resources/logo_wide.png" width="800" alt="Monsters I Love to Fight" />
 </p>
 
-Explore the infinite dungeon, full of scaling random monsters, items and skills. Play it online [here](https://ganochenkodg.github.io/milf/).
+<p align="center">
+  <b>A classic tile-based fantasy roguelike built with JavaScript and <a href="https://ondras.github.io/rot.js/hp/">rot.js</a>.</b><br/>
+  <a href="https://ganochenkodg.github.io/milf/"><b>▶️ Play Online</b></a> · <a href="skills.md"><b>📖 Skills Reference</b></a>
+</p>
 
-In your journey you can meet some mutated bosses, and their hearts could enhance your body or help you to find a way out!
+---
 
-The project is under active development and may contain bugs!
+## Overview
 
-## Keyboard
+Descend through 50+ procedurally generated dungeon floors teeming with scaling monsters, rare loot, and arcane magic. Worship the **God of Random** by sacrificing gear for divine gifts, hunt down mutated **Fleshlords** every 10th floor, and consume their hearts to mutate your body or open the portal out of the infinite dungeon.
+
+### Features
+- **3 Difficulty Modes**: *Easy*, *Normal*, and *Hard* with tailored stat modifiers, healing multipliers, and rare spawn rates.
+- **70+ Weapons, Armors, Potions & Tomes**: Swords, staves, elemental weapons, armor sets, and spellbooks that automatically grant the highest-level version of equipped skills.
+- **34 Skills & Chants**: Ranged spells, melee weapon arts, elemental shields, status effects (*poison*, *stun*, *confuse*, *freeze*), healing, and teleportation.
+- **Tactical Monster AI**: Enemies patrol the dungeon, open doors, avoid friendly fire, remember your last known position, and panic when critically wounded.
+
+---
+
+## Controls
 
 <div align="center">
-<table>
-  <thead>
-    <tr>
-      <th>Key</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Arrows, numpad arrows</td>
-      <td>Move/Attack/Select target</td>
-    </tr>
-    <tr>
-      <td>Enter</td>
-      <td>Go up/Go down/Pick up items/Rest</td>
-    </tr>
-    <tr>
-      <td>a .. j</td>
-      <td>Use items from inventory</td>
-    </tr>
-    <tr>
-      <td>1 .. 0</td>
-      <td>Use skills</td>
-    </tr>
-    <tr>
-      <td>w</td>
-      <td>Worship to God of Random</td>
-    </tr>
-  </tbody>
-</table>
+
+| Key | Action |
+| :--- | :--- |
+| **Arrows / Numpad** | Move / Attack / Aim skill |
+| **Enter** | Pick up item / Use stairs / Confirm target |
+| **1 .. 0** | Select skill (slots 1–10) |
+| **a .. j** | Inspect inventory item (`e` use/equip, `d` drop, `s` sacrifice) |
+| **w** | Pray to the God of Random (spend Piety) |
+| **z** | Auto-rest (stops on enemy sight, damage, or any key) |
+| **Numpad 5** | Wait one turn |
+| **Esc** | Cancel menu / skill targeting |
 
 </div>
 
-<p style="text-align:center;" align="center">
-  <img src="resources/gameplay.png" width="800"/></a>  
+<p align="center">
+  <img src="resources/gameplay.png" width="800" alt="Gameplay Screenshot" />
 </p>
 
-Big thanks to [32rogues](https://sethbb.itch.io/32rogues) free tileset.
+---
 
+## Changelog
+
+- **11.2026 — v1.2**: Complete codebase refactoring, major bug fixes, improved game balance, and smarter monster AI.
+- **11.2025 — v1.1**: Code refactoring and various bug fixes.
+- **02.2025 — v1.0**: First playable version.
+
+---
+
+## Credits
+
+- Built with [rot.js](https://ondras.github.io/rot.js/hp/) roguelike toolkit.
+- Sprites from the [32rogues](https://sethbb.itch.io/32rogues) tileset.

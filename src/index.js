@@ -1,15 +1,24 @@
 'use strict';
 
 const scheduler = new ROT.Scheduler.Speed();
-let mode = {
+const INVENTORY_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+
+const mode = {
   mode: 'play',
   chosenItem: -1,
   chosenSkill: -1,
   skillMap: null,
   skillx: -1,
-  skilly: -1,
-  blinkmap: null
+  skilly: -1
 };
+
+const createPeriodicActor = (speed, act) => ({
+  getSpeed: () => speed,
+  act
+});
+
+const isActiveActorOnCurrentDepth = (entity) =>
+  entity.depth === Game.entity[0].depth && (entity.player || 'Actor' in entity.acts);
 
 const Game = {
   mainDisplay: null,
@@ -21,15 +30,13 @@ const Game = {
   skills: [],
   screenWidth: 25,
   screenHeight: 10,
-  init: function () {
-    this.screenWidth = Math.floor((window.innerWidth - 300) / 32);
-    this.screenHeight = Math.floor((window.innerHeight - 360) / 32);
-    if (this.screenWidth < 20) {
-      this.screenWidth = 20;
-    }
-    if (this.screenHeight < 11) {
-      this.screenHeight = 11;
-    }
+
+  init(gameMode = 'normal') {
+    document.getElementById('menu')?.remove();
+
+    this.screenWidth = Math.max(20, Math.floor((window.innerWidth - 300) / 32));
+    this.screenHeight = Math.max(11, Math.floor((window.innerHeight - 360) / 32));
+
     this.mainDisplay = new ROT.Display({
       width: this.screenWidth,
       height: this.screenHeight + 1,
@@ -39,7 +46,7 @@ const Game = {
       bg: 'black',
       tileWidth: 32,
       tileHeight: 32,
-      tileSet: tileSet,
+      tileSet,
       tileMap: gameTilemap
     });
 
@@ -48,201 +55,149 @@ const Game = {
       height: 16,
       fontSize: 13
     });
+
     document.body.appendChild(this.mainDisplay.getContainer());
     document.body.appendChild(this.messageDisplay.getContainer());
+    this.messageBox = new Game.MessageBox(this.screenWidth * 4 - 30, 13);
+
+    const cfg = DIFFICULTY_SETTINGS[gameMode] || DIFFICULTY_SETTINGS.normal;
+    rareMobChance = cfg.rareMob;
+    rareItemChance = cfg.rareItem;
+    playerStatsMod = cfg.statsMod;
+    healingFactor = cfg.healFactor;
+    for (let i = 0; i < cfg.startItems; i++) {
+      this.inventory.push(Game.ItemRepository.createRandom(1, cfg.maxStartLvl));
+    }
+
     this.generateMap(1);
-    this.messageBox = new Game.MessageBox(Game.screenWidth * 4 - 30, 13);
-    if (gameMode === 'easy') {
-      rareMobChance = 0.05;
-      rareItemChance = 0.15;
-      playerStatsMod = 8;
-      healingFactor = 5;
-      for (let k = 0; k < 3; k++) {
-        let newItem = Game.ItemRepository.createRandom(1, 5);
-        Game.inventory.push(newItem);
+
+    const [px, py] = this.returnFree(Game.map[1]);
+    const player = new Player({ x: px, y: py });
+    Game.entity.unshift(player);
+
+    this.hpRegen = createPeriodicActor(15, () => {
+      for (const entity of Game.entity) {
+        if (!isActiveActorOnCurrentDepth(entity)) continue;
+        const gain = 1 + Math.floor(entity.maxHp / 100) + Math.floor(entity.con / 5);
+        entity.hp = Math.min(entity.hp + gain, entity.maxHp);
       }
-    }
-    if (gameMode === 'normal') {
-      rareMobChance = 0.05;
-      rareItemChance = 0.1;
-      playerStatsMod = 6;
-      healingFactor = 2;
-      let newItem = Game.ItemRepository.createRandom(1, 3);
-      Game.inventory.push(newItem);
-    }
-
-    if (gameMode === 'hard') {
-      rareMobChance = 0.15;
-      rareItemChance = 0.15;
-      playerStatsMod = 4;
-      healingFactor = 1;
-    }
-
-    const freeplace = this.returnFree(Game.map[1]);
-    const _player = new Player({
-      x: freeplace[0],
-      y: freeplace[1]
     });
-    Game.entity.unshift(_player);
-    scheduler.add(Game.entity[0], true);
-    this.hpRegen = new hpRegen();
-    this.manaRegen = new manaRegen();
+
+    this.manaRegen = createPeriodicActor(15, () => {
+      for (const entity of Game.entity) {
+        if (!isActiveActorOnCurrentDepth(entity)) continue;
+        const gain = 1 + Math.floor(entity.maxMana / 100) + Math.floor(entity.int / 5);
+        entity.mana = Math.min(entity.mana + gain, entity.maxMana);
+      }
+    });
+
     this.checkAffects = new checkAffects();
+
+    scheduler.add(player, true);
     scheduler.add(this.hpRegen, true);
     scheduler.add(this.manaRegen, true);
     scheduler.add(this.checkAffects, true);
-    this.drawAll();
+
+    if (tileSet.complete) {
+      this.drawAll();
+    } else {
+      tileSet.onload = () => this.drawAll();
+    }
+
     this.engine = new ROT.Engine(scheduler);
     this.engine.start();
-  }
-};
+  },
 
-const hpRegen = function () {
-  this.getSpeed = () => {
-    return 15;
-  };
-};
+  drawAll() {
+    this.messageDisplay.clear();
+    this.drawMap();
+    this.drawEntities();
+    this.drawBar();
+    this.messageBox.Draw();
+  },
 
-hpRegen.prototype.act = function () {
-  for (let i = 0; i < Game.entity.length; i++) {
-    const addHp =
-      1 +
-      Math.floor(Game.entity[i].maxHp / 100) +
-      Math.floor(Game.entity[i].con / 5);
-    Game.entity[i].hp += addHp;
-    Game.entity[i].hp = Math.min(Game.entity[i].hp, Game.entity[i].maxHp);
-  }
-};
-
-const manaRegen = function () {
-  this.getSpeed = () => {
-    return 15;
-  };
-};
-
-manaRegen.prototype.act = function () {
-  Game.entity.forEach(entity => {
-    const addMana =
-      1 +
-      Math.floor(entity.maxMana / 100) +
-      Math.floor(entity.int / 5);
-    entity.mana += addMana;
-    entity.mana = Math.min(entity.mana, entity.maxMana);
-  });
-};
-
-Game.Repository = function (name, ctor) {
-  this._name = name;
-  this._templates = {};
-  this._ctor = ctor;
-  this._randomTemplates = {};
-};
-
-Game.Repository.prototype.define = function (name, template) {
-  this._templates[name] = template;
-};
-
-Game.Repository.prototype.create = function (name, level) {
-  level = Math.max(1, level);
-  if (!this._templates[name]) {
-    throw new Error(
-      `No template named '${name}' in repository '${this._name}'`
-    );
-  }
-  const template = new this._templates[name](level);
-  return new this._ctor(template);
-};
-
-Game.Repository.prototype.createRandom = function (minlvl, maxlvl) {
-  minlvl = Math.max(1, minlvl);
-  maxlvl = Math.max(minlvl, maxlvl);
-  const keys = Object.keys(this._templates);
-  let result = this.create(
-    keys[(keys.length * Math.random()) << 0],
-    minlvl + Math.floor(Math.random() * (maxlvl - minlvl))
-  );
-  let iterator = 0;
-  while (result.maxLvl < minlvl || result.minLvl > maxlvl) {
-    iterator++;
-    result = this.create(
-      keys[(keys.length * Math.random()) << 0],
-      minlvl + Math.floor(Math.random() * (maxlvl - minlvl))
-    );
-    //exit from eternal loop
-    if (iterator > 50) {
-      return result;
+  drawEnd(endType) {
+    const xOffset = Math.floor(this.screenWidth / 2) - 3;
+    const yOffset = Math.floor(this.screenHeight / 2) - 2;
+    for (let y = 0; y <= 5; y++) {
+      for (let x = 0; x <= 5; x++) {
+        this.mainDisplay.draw(x + xOffset, y + yOffset, `${endType}end${x}${y}`);
+      }
     }
-  }
-  return result;
-};
+  },
 
-Game.drawAll = function () {
-  this.messageDisplay.clear();
-  this.drawMap();
-  this.drawEntities();
-  this.drawBar();
-  this.messageBox.Draw();
-};
-
-Game.drawEnd = function (endType) {
-  const xOffset = Math.floor(Game.screenWidth / 2) - 3;
-  const yOffset = Math.floor(Game.screenHeight / 2) - 2;
-  for (let y = 0; y <= 5; y++) {
-    for (let x = 0; x <= 5; x++) {
-      Game.mainDisplay.draw(x + xOffset, y + yOffset, `${endType}end${x}${y}`);
-    }
-  }
-};
-
-Game.drawBar = function () {
-  for (let i = 0; i < 10; i++) {
-    Game.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
-    if (typeof Game.skills[i] === 'undefined') {
-      Game.mainDisplay.draw(i, Game.screenHeight, 'blanksquare');
-    } else {
-      Game.mainDisplay.draw(
-        i,
-        Game.screenHeight,
-        ['bluesquare', Game.skills[i].symbol],
-        ['#0000', '#0000']
-      );
-    }
-  }
-  const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
-  for (let i = 0; i < 10; i++) {
-    Game.messageDisplay.draw(
-      (i + Game.screenWidth - 10) * 4 + 2,
-      0,
-      letters[i],
-      'beige'
-    );
-    if (typeof Game.inventory[i] === 'undefined') {
-      Game.mainDisplay.draw(
-        i + Game.screenWidth - 10,
-        Game.screenHeight,
-        'blanksquare'
-      );
-    } else {
-      let _color;
-      if (Game.inventory[i].isEquipped()) {
-        _color = 'green';
+  drawBar() {
+    for (let i = 0; i < 10; i++) {
+      this.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
+      const skill = this.skills[i];
+      if (!skill) {
+        this.mainDisplay.draw(i, this.screenHeight, 'blanksquare');
       } else {
-        _color = 'red';
+        this.mainDisplay.draw(
+          i,
+          this.screenHeight,
+          ['bluesquare', skill.symbol],
+          ['#0000', '#0000']
+        );
       }
-      if (Game.inventory[i].symbol == 'heartoffleshlord') {
-        _color = 'purple';
+    }
+
+    for (let i = 0; i < 10; i++) {
+      const slotX = i + this.screenWidth - 10;
+      this.messageDisplay.draw(slotX * 4 + 2, 0, INVENTORY_LETTERS[i], 'beige');
+      const item = this.inventory[i];
+      if (!item) {
+        this.mainDisplay.draw(slotX, this.screenHeight, 'blanksquare');
+      } else {
+        const bgSquare =
+          item.symbol === 'heartoffleshlord'
+            ? 'purplesquare'
+            : item.isEquipped()
+              ? 'greensquare'
+              : 'redsquare';
+        this.mainDisplay.draw(
+          slotX,
+          this.screenHeight,
+          [bgSquare, item.symbol],
+          ['#0000', item.color],
+          ['#0000', '#0000']
+        );
       }
-      Game.mainDisplay.draw(
-        i + Game.screenWidth - 10,
-        Game.screenHeight,
-        [`${_color}square`, Game.inventory[i].symbol],
-        ['#0000', Game.inventory[i].color],
-        ['#0000', '#0000']
-      );
     }
   }
 };
 
-window.onload = function () {
-  Game.init();
+Game.Repository = class Repository {
+  constructor(name, ctor) {
+    this._name = name;
+    this._templates = {};
+    this._ctor = ctor;
+  }
+
+  define(name, template) {
+    this._templates[name] = template;
+  }
+
+  create(name, level) {
+    level = Math.max(1, level);
+    const Template = this._templates[name];
+    if (!Template) {
+      throw new Error(`No template named '${name}' in repository '${this._name}'`);
+    }
+    return new this._ctor(new Template(level));
+  }
+
+  createRandom(minlvl, maxlvl) {
+    minlvl = Math.max(1, minlvl);
+    maxlvl = Math.max(minlvl, maxlvl);
+    const keys = Object.keys(this._templates);
+    let result;
+    for (let i = 0; i <= 50; i++) {
+      result = this.create(ROT.RNG.getItem(keys), randInt(minlvl, maxlvl));
+      if (result.maxLvl >= minlvl && result.minLvl <= maxlvl) {
+        return result;
+      }
+    }
+    return result;
+  }
 };
