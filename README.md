@@ -48,6 +48,7 @@ Descend through 50+ procedurally generated dungeon floors teeming with scaling m
 
 ## Changelog
 
+- **11.2026 — v1.3**: Enhanced gameplay mechanics and optimized in-game events.
 - **11.2026 — v1.2**: Complete codebase refactoring, major bug fixes, improved game balance, and smarter monster AI.
 - **11.2025 — v1.1**: Code refactoring and various bug fixes.
 - **02.2025 — v1.0**: First playable version.

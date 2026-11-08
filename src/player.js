@@ -41,7 +41,6 @@ class Player {
     this.symbol = ROT.RNG.getItem(playerTiles);
     this.confuse = false;
     this.stun = false;
-    this.summoned = false;
     this.frozen = false;
     this.resting = false;
     this.equipment = {};
@@ -106,9 +105,10 @@ class Player {
   }
 
   move(newx, newy) {
-    if (this.frozen) return;
+    if (this.frozen || (newx === this.x && newy === this.y)) return;
     this.x = newx;
     this.y = newy;
+    Game.triggerTrap(this);
   }
 
   goDown() {
@@ -206,19 +206,21 @@ class Player {
     }
 
     Game.engine.lock();
-    this.doDie();
     window.addEventListener('keydown', this);
   }
 
   Draw() {
     const tile = Game.map[this.depth].Tiles[this.x][this.y];
     const [camX, camY] = Game.getCamera(this.x, this.y);
+    const trap = tile.trap?.revealed ? [tile.trap.type] : [];
+    const symbols = [tile.Symbol, ...trap, this.symbol];
+    const colors = [tile.Color, ...trap.map(() => '#0000'), this.color];
     Game.mainDisplay.draw(
       camX,
       camY,
-      [tile.Symbol, this.symbol],
-      [tile.Color, this.color],
-      ['transparent', 'transparent']
+      symbols,
+      colors,
+      symbols.map(() => 'transparent')
     );
 
     const xoffset = Game.screenWidth * 4 - 38;
@@ -247,24 +249,18 @@ class Player {
     }
   }
 
-  doGetDamage(dmg) {
+  doGetDamage(dmg, cap = 0.9) {
     if (this.resting) {
       this.resting = false;
       Game.messageBox.sendMessage('%c{orange}You take damage and stop resting!%c{}');
     }
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(cap, this.defense / dmg))));
     this.hp -= actual;
     return actual;
   }
 
   doGetSkillDamage(dmg) {
-    if (this.resting) {
-      this.resting = false;
-      Game.messageBox.sendMessage('%c{orange}You take damage and stop resting!%c{}');
-    }
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
-    this.hp -= actual;
-    return actual;
+    return this.doGetDamage(dmg, 0.6);
   }
 
   doAttack(x, y) {
@@ -298,7 +294,40 @@ class Player {
     }
     const level = Math.floor(Math.log2(this.piety / 15 + 1));
     const threshold = 15 * (Math.pow(2, level) - 1);
-    const newItem = Game.ItemRepository.createRandom(level, level + 1);
+    this.piety -= threshold;
+
+    const r = Math.random();
+    if (r < 0.03) {
+      [this.x, this.y] = Game.returnFree(Game.map[this.depth]);
+      Game.messageBox.sendMessage(
+        '%c{gold}God of Random%c{} laughs and %c{violet}teleports%c{} you to a random location!'
+      );
+      return;
+    }
+    if (r < 0.08) {
+      this.hp = this.maxHp;
+      this.mana = this.maxMana;
+      Game.messageBox.sendMessage(
+        '%c{gold}God of Random%c{} blesses you, restoring all %c{red}health%c{} and %c{blue}mana%c{}!'
+      );
+      return;
+    }
+    if (r < 0.28) {
+      const stat = ROT.RNG.getItem(['str', 'int', 'con', 'agi']);
+      const boost = 1 + Math.floor(level / 2) + roll(1, level / 2);
+      this[stat] += boost;
+      this.applyStats();
+      Game.messageBox.sendMessage(
+        `%c{gold}God of Random%c{} blesses your body (%c{palegreen}+${boost} ${stat.toUpperCase()}%c{})!`
+      );
+      return;
+    }
+
+    let newItem;
+    do {
+      newItem = Game.ItemRepository.createRandom(level, level + 1);
+    } while (newItem.type === 'potion');
+
     Game.messageBox.sendMessage(
       `%c{gold}God of Random%c{} gifts you the ${newItem.name}.`
     );
@@ -307,7 +336,6 @@ class Player {
     } else {
       Game.inventory.push(newItem);
     }
-    this.piety -= threshold;
   }
 
   finishTurn() {
@@ -433,18 +461,15 @@ class Player {
               Game.generateMap(level + 1);
             }
             this.goDown();
-            newx = this.x;
-            newy = this.y;
-            level = this.depth;
-            break;
+            this.finishTurn();
+            return;
           }
           if (currentTile.Stairup) {
             this.goUp();
-            newx = this.x;
-            newy = this.y;
-            level = this.depth;
+            this.finishTurn();
+            return;
           }
-          if (Game.map[level].Tiles[newx][newy].Symbol === 'portal') {
+          if (currentTile.Symbol === 'portal') {
             Game.doWin();
             window.removeEventListener('keydown', this);
             return;

@@ -24,7 +24,6 @@ class Item {
     this.type = properties.type || 'other';
     this.level = properties.level || 1;
     this.color = properties.color || '#0000';
-    this.timestamp = Math.random() * 1000 + Date.now();
   }
 
   isEquipped() {

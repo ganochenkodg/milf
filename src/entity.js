@@ -11,7 +11,6 @@ class Entity {
     this.maxLvl = properties.maxLvl || 1;
     this.minLvl = properties.minLvl || 1;
     this.acts = properties.acts || {};
-    this.drop = properties.drop || {};
     this.str = properties.str || 1;
     this.agi = properties.agi || 1;
     this.int = properties.int || 1;
@@ -28,7 +27,6 @@ class Entity {
     this.color = '#0000';
     this.confuse = false;
     this.stun = false;
-    this.summoned = false;
     this.frozen = false;
     this.maxAtk = properties.maxAtk || 4;
     this.minAtk = properties.minAtk || Math.max(1, Math.floor(this.maxAtk * 0.35));
@@ -40,7 +38,6 @@ class Entity {
     this.state = 'idle';
     this.targetPos = null;
     this.wanderPath = null;
-    this.timestamp = Math.random() * 1000 + Date.now();
   }
 
   getSpeed() {
@@ -71,8 +68,9 @@ class Entity {
     Game.messageBox.sendMessage(`The ${this.name}${this.deadMessage}`);
 
     if ('Actor' in this.acts) {
+      const pietyMult = Game.map[level].pietyMultiplier || 1;
       Game.entity[0].piety +=
-        1 + roll(this.level) + Math.floor(Math.pow(1.8, this.level));
+        (1 + roll(this.level) + Math.floor(Math.pow(1.8, this.level))) * pietyMult;
       if (this.name.startsWith('%c{lightsalmon}rare')) {
         tile.items.push(Game.ItemRepository.createRandom(this.level, this.level + 2));
       }
@@ -81,17 +79,12 @@ class Entity {
       }
       scheduler.remove(this);
       tile.Mob = false;
-    } else if (Math.random() < 0.25) {
+    } else if (Math.random() < 0.3) {
       const tempEntity = Game.EntityRepository.create(
-        ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton']),
+        ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton', 'ghoul']),
         this.level
       );
-      tempEntity.x = this.x;
-      tempEntity.y = this.y;
-      tempEntity.depth = this.depth;
-      tempEntity.name += `%c{gray} (${tempEntity.level})%c{}`;
-      Game.entity.push(tempEntity);
-      scheduler.add(tempEntity, true);
+      Game.map[level].spawnEntity(tempEntity, this.depth, 'gray', [this.x, this.y]);
       Game.messageBox.sendMessage(
         `The ${tempEntity.name} appears from the ${this.name}.`
       );
@@ -144,18 +137,15 @@ class Entity {
     Game.drawAll();
   }
 
-  doGetDamage(dmg) {
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.9, this.defense / dmg))));
+  doGetDamage(dmg, cap = 0.9) {
+    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(cap, this.defense / dmg))));
     this.hp -= actual;
     this.onDamaged();
     return actual;
   }
 
   doGetSkillDamage(dmg) {
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(0.6, this.defense / dmg))));
-    this.hp -= actual;
-    this.onDamaged();
-    return actual;
+    return this.doGetDamage(dmg, 0.6);
   }
 
   onDamaged() {
@@ -461,6 +451,7 @@ class Entity {
     this.x = newx;
     this.y = newy;
     tile.Mob = true;
+    Game.triggerTrap(this);
   }
 
   Draw() {
@@ -470,12 +461,15 @@ class Entity {
 
     const hpbar = Math.max(1, Math.min(8, Math.floor((this.hp * 8) / this.maxHp)));
     const [camX, camY] = Game.getCamera(this.x, this.y);
+    const trap = tile.trap?.revealed ? [tile.trap.type] : [];
+    const symbols = [tile.Symbol, ...trap, this.symbol, `hp${hpbar}`];
+    const colors = [tile.Color, ...trap.map(() => '#0000'), this.color, '#0000'];
     Game.mainDisplay.draw(
       camX,
       camY,
-      [tile.Symbol, this.symbol, `hp${hpbar}`],
-      [tile.Color, this.color, '#0000'],
-      ['transparent', 'transparent', 'transparent']
+      symbols,
+      colors,
+      symbols.map(() => 'transparent')
     );
   }
 }

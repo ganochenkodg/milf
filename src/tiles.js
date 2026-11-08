@@ -19,6 +19,12 @@ const gameTilemap = {
   barrel: [388, 32],
   coffin: [480, 32],
   crypt: [544, 32],
+  // Traps
+  trapspikes: [320, 160],
+  trapred: [352, 160],
+  trapgreen: [384, 160],
+  trapblue: [416, 160],
+  trapviolet: [448, 160],
   // Enemies
   dog: [0, 224],
   puppy: [32, 224],

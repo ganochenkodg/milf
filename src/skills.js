@@ -15,7 +15,6 @@ class Skill {
     this.name = properties.name || '';
     this.maxLvl = properties.maxLvl || 1;
     this.minLvl = properties.minLvl || 1;
-    this.action = properties.action || '';
     this.level = properties.level || 1;
     this.options = properties.options || {};
     this.symbol = properties.symbol || '';
@@ -120,11 +119,12 @@ Game.checkShields = function (actor, target, type, dmg) {
     if (!('shield' in affect)) continue;
 
     if (type === 'physical') {
-      if ('cold' in affect && Math.random() < affect.cold) {
-        actor.affects.push({ freeze: true, duration: 2, symbol: 'freeze' });
+      const actorIdx = Game.entity.indexOf(actor);
+      if ('cold' in affect && Math.random() < affect.cold && actorIdx !== -1) {
+        Game.addAffect(actorIdx, { freeze: true, duration: 2, symbol: 'freeze' });
       }
-      if ('fear' in affect && Math.random() < affect.fear) {
-        actor.affects.push({ confuse: true, duration: 2, symbol: 'confuse' });
+      if ('fear' in affect && Math.random() < affect.fear && actorIdx !== -1) {
+        Game.addAffect(actorIdx, { confuse: true, duration: 2, symbol: 'confuse' });
       }
       if ('fire' in affect) {
         const fireDmg = Math.max(roll(affect.fire), 1);

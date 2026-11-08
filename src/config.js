@@ -11,5 +11,6 @@ const DIFFICULTY_SETTINGS = {
   hard: { rareMob: 0.15, rareItem: 0.15, statsMod: 5, healFactor: 1, startItems: 1, maxStartLvl: 1 }
 };
 
-const roll = (n) => Math.floor(Math.random() * n);
 const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+const roll = (n, max) =>
+  max === undefined ? Math.floor(Math.random() * n) : randInt(n, Math.max(n, Math.floor(max)));
