@@ -469,7 +469,7 @@ class Entity {
       camY,
       symbols,
       colors,
-      symbols.map(() => 'transparent')
+      ['black', ...symbols.slice(1).map(() => 'transparent')]
     );
   }
 }

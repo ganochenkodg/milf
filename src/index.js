@@ -131,13 +131,14 @@ const Game = {
       this.messageDisplay.draw(i * 4 + 1, 0, i + 1, 'beige');
       const skill = this.skills[i];
       if (!skill) {
-        this.mainDisplay.draw(i, this.screenHeight, 'blanksquare');
+        this.mainDisplay.draw(i, this.screenHeight, 'blanksquare', '#0000', 'black');
       } else {
         this.mainDisplay.draw(
           i,
           this.screenHeight,
           ['bluesquare', skill.symbol],
-          ['#0000', '#0000']
+          ['#0000', '#0000'],
+          ['black', 'transparent']
         );
       }
     }
@@ -147,7 +148,7 @@ const Game = {
       this.messageDisplay.draw(slotX * 4 + 2, 0, INVENTORY_LETTERS[i], 'beige');
       const item = this.inventory[i];
       if (!item) {
-        this.mainDisplay.draw(slotX, this.screenHeight, 'blanksquare');
+        this.mainDisplay.draw(slotX, this.screenHeight, 'blanksquare', '#0000', 'black');
       } else {
         const bgSquare =
           item.symbol === 'heartoffleshlord'
@@ -160,7 +161,7 @@ const Game = {
           this.screenHeight,
           [bgSquare, item.symbol],
           ['#0000', item.color],
-          ['#0000', '#0000']
+          ['black', 'transparent']
         );
       }
     }

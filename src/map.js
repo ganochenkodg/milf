@@ -629,35 +629,33 @@ Game.generateMap = function (level) {
 
 Game.clearTiles = function () {
   for (let x = 0; x < this.screenWidth; x++) {
-    for (let y = 0; y < this.screenHeight; y++) {
-      Game.mainDisplay.draw(x, y, '', 'black');
+    for (let y = 0; y <= this.screenHeight; y++) {
+      Game.mainDisplay.draw(x, y, 'blanksquare', '#000f', 'black');
     }
   }
 };
 
 Game.drawTile = function (x, y, level, color) {
   const [xco, yco] = Game.getCamera(x, y);
-  if (xco < 0 || xco >= Game.screenWidth || yco < 0 || yco >= Game.screenHeight) {
+  if (xco < 0 || xco >= Game.screenWidth || yco < 0 || yco > Game.screenHeight) {
     return;
   }
   const tile = Game.map[level].Tiles[x][y];
   const symbols = [tile.Symbol];
-  const colors = ['#0000'];
-  if (tile.trap?.revealed) {
-    symbols.push(tile.trap.type);
-    colors.push('#0000');
+  if (tile.trap?.revealed) symbols.push(tile.trap.type);
+  if (tile.items[0]) symbols.push(tile.items[0].symbol);
+
+  if (symbols.length === 1) {
+    Game.mainDisplay.draw(xco, yco, symbols[0], color, 'black');
+  } else {
+    Game.mainDisplay.draw(
+      xco,
+      yco,
+      symbols,
+      symbols.map(() => color),
+      ['black', ...symbols.slice(1).map(() => 'transparent')]
+    );
   }
-  if (tile.items[0]) {
-    symbols.push(tile.items[0].symbol);
-    colors.push('#0000');
-  }
-  colors[colors.length - 1] = color;
-  Game.mainDisplay.draw(
-    xco,
-    yco,
-    symbols.length === 1 ? symbols[0] : symbols,
-    colors.length === 1 ? colors[0] : colors
-  );
   tile.Color = color;
 };
 
@@ -702,6 +700,6 @@ Game.getCamera = function (x, y) {
   const map = Game.map[player.depth];
   return [
     computeAxisCamera(x, player.x, map.width, this.screenWidth),
-    computeAxisCamera(y, player.y, map.height, this.screenHeight)
+    computeAxisCamera(y, player.y, map.height, this.screenHeight + 1)
   ];
 };

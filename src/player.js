@@ -220,7 +220,7 @@ class Player {
       camY,
       symbols,
       colors,
-      symbols.map(() => 'transparent')
+      ['black', ...symbols.slice(1).map(() => 'transparent')]
     );
 
     const xoffset = Game.screenWidth * 4 - 38;
@@ -245,7 +245,7 @@ class Player {
     }
 
     for (let i = 0; i < this.affects.length; i++) {
-      Game.mainDisplay.draw(Game.screenWidth - 1, i, this.affects[i].symbol, '#0000');
+      Game.mainDisplay.draw(Game.screenWidth - 1, i, this.affects[i].symbol, '#0000', 'black');
     }
   }
 

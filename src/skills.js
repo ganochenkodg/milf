@@ -103,6 +103,7 @@ Game.drawSkillMap = function () {
     Game.drawTile(x, y, level, '#8f17');
   });
   Game.drawEntities();
+  Game.drawBar();
 };
 
 Game.isAffectApplied = function (actor, affect) {
