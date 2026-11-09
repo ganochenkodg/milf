@@ -404,7 +404,7 @@ const SKILL_DEFS = [
     cost: 10 + l * 2, str: 2 + l, duration: 8 + l * 2, range: 0, radius: 0
   })],
   ['twistingslash', 'coral', 'twisting slash', 3, 13, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
-    cost: 20 + l * 2, minatk: 2, maxatk: 10 + l * 2, range: 1, radius: 1
+    cost: 20 + l * 2, minatk: 2, maxatk: 10 + l * 2, range: 0, radius: 1
   })],
   ['fireball', 'orange', 'fireball', 3, 15, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 20 + l * 2, minatk: 8, maxatk: 12 + l * 2, range: 5 + Math.floor(l / 3), radius: 1
@@ -488,7 +488,7 @@ const SKILL_DEFS = [
     cost: 50 + l * 2, minatk: 10, maxatk: 20 + l * 2, range: 6, radius: 2,
     poison: l * 0.03, duration: Math.floor(l / 3)
   })],
-  ['heal', 'Chartreuse', 'heal', 15, 50, 'self', 'support', {}, (l) => ({
+  ['heal', 'lightgreen', 'heal', 15, 50, 'self', 'support', {}, (l) => ({
     cost: 20 + l * 2, heal: l, range: 0, radius: 0
   })],
   ['teleport', 'mistyrose', 'teleport', 10, 50, 'self', 'support', {}, (l) => ({
