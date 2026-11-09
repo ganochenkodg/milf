@@ -262,7 +262,7 @@ Game.GameMap = class GameMap {
         this.spawnMobs(randInt(4, 6), 'snake', level);
         if (level >= 10) this.spawnMobs(1, 'weird', level);
         Game.messageBox.sendMessage(
-          '%c{yellowgreen}Mini-Event: You found an overgrown mushroom garden crawling with snakes!%c{}'
+          '%c{yellowgreen}Mini-Event: You find an overgrown mushroom garden crawling with snakes!%c{}'
         );
         break;
       }
@@ -495,10 +495,10 @@ Game.returnFree = function (map) {
 };
 
 const TRAP_META = {
-  trapspikes: ['stepped on %c{silver}spikes', 'red'],
-  trapred: ['triggered a %c{red}fire trap', 'red'],
-  trapgreen: ['triggered a %c{limegreen}poison trap', 'limegreen'],
-  trapblue: ['triggered an %c{aqua}ice trap', 'aqua']
+  trapspikes: ['step on %c{silver}spikes', 'steps on %c{silver}spikes', 'red'],
+  trapred: ['trigger a %c{red}fire trap', 'triggers a %c{red}fire trap', 'red'],
+  trapgreen: ['trigger a %c{limegreen}poison trap', 'triggers a %c{limegreen}poison trap', 'limegreen'],
+  trapblue: ['trigger an %c{aqua}ice trap', 'triggers an %c{aqua}ice trap', 'aqua']
 };
 
 Game.triggerTrap = function (actor) {
@@ -527,7 +527,7 @@ Game.triggerTrap = function (actor) {
     if (!actor.player) map.Tiles[actor.x][actor.y].Mob = true;
     if (showMsg || map.Tiles[actor.x][actor.y].Visible) {
       Game.messageBox.sendMessage(
-        `${subj} triggered a %c{violet}teleport trap%c{} and vanished!`
+        `${subj} ${actor.player ? 'trigger' : 'triggers'} a %c{violet}teleport trap%c{} and ${actor.player ? 'vanish' : 'vanishes'}!`
       );
     }
   } else {
@@ -535,9 +535,9 @@ Game.triggerTrap = function (actor) {
     actor.hp -= hitDmg;
     if (!actor.player) actor.onDamaged();
     if (showMsg) {
-      const [verb, col] = TRAP_META[trap.type];
+      const [verbPlayer, verbMob, col] = TRAP_META[trap.type];
       Game.messageBox.sendMessage(
-        `${subj} ${verb}%c{} for %c{${col}}${hitDmg}%c{} damage!`
+        `${subj} ${actor.player ? verbPlayer : verbMob}%c{} for %c{${col}}${hitDmg}%c{} damage!`
       );
     }
     if (actor.hp >= 1 && trap.type !== 'trapspikes') {

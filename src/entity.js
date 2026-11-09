@@ -19,7 +19,7 @@ class Entity {
     this.vision = properties.vision || 5;
     this.speed = properties.speed || 100;
     this.symbol = properties.symbol || 'wolf';
-    this.deadMessage = properties.deadMessage || ' is dead.';
+    this.deadMessage = properties.deadMessage || ' dies.';
     this.maxHp = 15 + this.con * 6 + this.str * 3;
     this.hp = this.maxHp;
     this.maxMana = 10 + this.int * 8;
@@ -120,7 +120,7 @@ class Entity {
       if (victim) {
         const result = victim.doGetDamage(dmg);
         Game.messageBox.sendMessage(
-          `The ${this.name} occasionally hits ${victim.name} for ${color}${result} %c{}damage.`
+          `The ${this.name} accidentally hits ${victim.player ? 'you' : `the ${victim.name}`} for ${color}${result}%c{} damage.`
         );
         Game.checkShields(this, victim, 'physical', result);
         victim.doDie();
@@ -129,7 +129,7 @@ class Entity {
       const target = Game.entity[targetNum];
       const result = target.doGetDamage(dmg);
       Game.messageBox.sendMessage(
-        `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${target.name}`} for ${color}${result} %c{}damage.`
+        `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${target.name}`} for ${color}${result}%c{} damage.`
       );
       Game.checkShields(this, target, 'physical', result);
       target.doDie();
@@ -513,7 +513,7 @@ const ENTITY_DEFS = {
   container: {
     minLvl: 1, maxLvl: 50,
     names: ['chest', 'barrel', 'coffin', 'crypt'],
-    deadMessage: ' was destroyed.',
+    deadMessage: ' is destroyed.',
     stats: (l) => ({ con: 10 + roll(l / 2) })
   },
   cats: {
@@ -676,7 +676,7 @@ const ENTITY_DEFS = {
   skeleton: {
     minLvl: 10, maxLvl: 20, defense: 6,
     names: 'skeleton',
-    deadMessage: ' turned to ash.',
+    deadMessage: ' turns to ash.',
     acts: { Actor: true },
     stats: (l) => ({
       str: l + roll(l),
@@ -694,7 +694,7 @@ const ENTITY_DEFS = {
   lich: {
     minLvl: 16, maxLvl: 40, defense: 6, vision: 7,
     names: ['lich', 'banshee', 'cultist', 'witch'],
-    deadMessage: ' turned to ash.',
+    deadMessage: ' turns to ash.',
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
       str: 3 + roll(l),
@@ -724,7 +724,7 @@ const ENTITY_DEFS = {
   darkknight: {
     minLvl: 20, maxLvl: 45, defense: 10,
     names: ['dark knight', 'reaper', 'wraith', 'cultist'],
-    deadMessage: ' turned to ash.',
+    deadMessage: ' turns to ash.',
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
       str: l + roll(l),
@@ -753,7 +753,7 @@ const ENTITY_DEFS = {
   zombie: {
     minLvl: 10, maxLvl: 22, defense: 4,
     names: 'zombie',
-    deadMessage: ' turned to ash.',
+    deadMessage: ' turns to ash.',
     acts: { Actor: true },
     stats: (l) => ({
       str: l + roll(l),
@@ -867,7 +867,7 @@ const ENTITY_DEFS = {
     minLvl: -100, maxLvl: -50, vision: 30, speed: 90,
     names: '%c{mediumaquamarine}fleshlord%c{}',
     symbols: 'fleshlord3',
-    deadMessage: ' turned into chunks of flesh.',
+    deadMessage: ' turns into chunks of flesh.',
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
       level: l + 8,

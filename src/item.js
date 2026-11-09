@@ -7,9 +7,9 @@ const FOOD_MESSAGES = {
   str: 'You feel stronger.',
   agi: 'You feel more agile.',
   int: 'You feel smarter.',
-  con: 'You feel tighter.',
-  speed: 'Your speed was changed.',
-  vision: 'Your vision was improved.'
+  con: 'You feel tougher.',
+  speed: 'Your speed changes.',
+  vision: 'Your vision improves.'
 };
 const PRIMARY_STATS = ['str', 'con', 'agi', 'int'];
 
@@ -42,12 +42,12 @@ Game.pickupItem = function () {
   if (!items[0]) return;
 
   if (Game.inventory.length >= 10) {
-    Game.messageBox.sendMessage("Your inventory is full, you can't pick anything.");
+    Game.messageBox.sendMessage("Your inventory is full; you can't pick anything up.");
     return;
   }
 
   const pickitem = items.shift();
-  Game.messageBox.sendMessage(`You picked up ${pickitem.name}%c{}.`);
+  Game.messageBox.sendMessage(`You pick up the ${pickitem.name}%c{}.`);
   Game.inventory.push(pickitem);
 };
 
@@ -55,7 +55,7 @@ Game.chooseItem = function (num) {
   const item = Game.inventory[num];
   if (!item) {
     Game.messageBox.sendMessage(
-      `You don't have any item in the slot [${INVENTORY_LETTERS[num]}].`
+      `You don't have any item in slot [${INVENTORY_LETTERS[num]}].`
     );
     Game.drawAll();
     window.removeEventListener('keydown', this);
@@ -118,7 +118,7 @@ Game.doItem = function (action, num) {
       player.books.push(item);
     }
     Game.doItemOptions('apply', num);
-    Game.messageBox.sendMessage(`You equipped the ${item.name}.`);
+    Game.messageBox.sendMessage(`You equip the ${item.name}.`);
     return;
   }
 
@@ -130,13 +130,13 @@ Game.doItem = function (action, num) {
       if (idx !== -1) player.books.splice(idx, 1);
     }
     Game.doItemOptions('unapply', num);
-    Game.messageBox.sendMessage(`You unequipped the ${item.name}.`);
+    Game.messageBox.sendMessage(`You unequip the ${item.name}.`);
     return;
   }
 
   if (action === 'sacrifice') {
     if (item.isEquipped()) Game.doItem('unequip', num);
-    Game.messageBox.sendMessage(`You sacrificed the ${item.name}.`);
+    Game.messageBox.sendMessage(`You sacrifice the ${item.name}.`);
     player.piety +=
       1 + roll(item.level) + Math.floor(Math.pow(1.6, item.level));
     Game.inventory.splice(num, 1);
@@ -145,14 +145,14 @@ Game.doItem = function (action, num) {
 
   if (action === 'drop') {
     if (item.isEquipped()) Game.doItem('unequip', num);
-    Game.messageBox.sendMessage(`You dropped the ${item.name}.`);
+    Game.messageBox.sendMessage(`You drop the ${item.name}.`);
     Game.map[player.depth].Tiles[player.x][player.y].items.push(item);
     Game.inventory.splice(num, 1);
     return;
   }
 
   if (action === 'eat' || action === 'drink') {
-    const verb = itemtype === 'food' ? 'ate' : 'drank';
+    const verb = itemtype === 'food' ? 'eat' : 'drink';
     Game.messageBox.sendMessage(`You ${verb} the ${item.name}.`);
     Game.doFoodOptions(num);
     Game.inventory.splice(num, 1);
@@ -186,7 +186,7 @@ Game.doItemOptions = function (action, num) {
       if (next) {
         Game.skills[i] = next;
         if (action === 'apply' && next.level > prev.level) {
-          Game.messageBox.sendMessage(`Now you can use ${next.name}.`);
+          Game.messageBox.sendMessage(`You can now use ${next.name}.`);
         }
         bestBySymbol.delete(prev.symbol);
         i++;
@@ -197,11 +197,11 @@ Game.doItemOptions = function (action, num) {
 
     for (const skill of bestBySymbol.values()) {
       if (Game.skills.length >= 10) {
-        Game.messageBox.sendMessage('You have learned maximum number of skills.');
+        Game.messageBox.sendMessage('You have learned the maximum number of skills.');
         break;
       }
       Game.skills.push(skill);
-      Game.messageBox.sendMessage(`Now you can use ${skill.name}.`);
+      Game.messageBox.sendMessage(`You can now use ${skill.name}.`);
     }
   }
 
@@ -223,10 +223,10 @@ Game.doFoodOptions = function (num) {
   for (const [key, value] of Object.entries(item.options)) {
     if (key === 'hp') {
       player.hp += value;
-      Game.messageBox.sendMessage(`You restored %c{red}${value} HP%c{}.`);
+      Game.messageBox.sendMessage(`You restore %c{red}${value} HP%c{}.`);
     } else if (key === 'mana') {
       player.mana += value;
-      Game.messageBox.sendMessage(`You restored %c{blue}${value} MP%c{}.`);
+      Game.messageBox.sendMessage(`You restore %c{blue}${value} MP%c{}.`);
     } else if (key in FOOD_MESSAGES) {
       player[key] += value;
       Game.messageBox.sendMessage(FOOD_MESSAGES[key]);
@@ -423,7 +423,7 @@ Game.FoodRepository.define('mysticalmushroom', function () {
   this.color = '#0000';
   this.symbol = `mushroom${roll(2) + 1}`;
   this.options = { [ROT.RNG.getItem(PRIMARY_STATS)]: 1 };
-  if (Math.random() < rareItemChance) {
+  if (Math.random() < rareItemChance * 0.3) {
     this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.options.vision = 1;
     this.color = '#0f04';

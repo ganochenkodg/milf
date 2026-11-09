@@ -130,25 +130,25 @@ Game.checkShields = function (actor, target, type, dmg) {
         const fireDmg = Math.max(roll(affect.fire), 1);
         actor.hp -= fireDmg;
         const prefix = actor.player
-          ? 'You were burned for '
-          : `The ${actor.name} was burned for `;
-        Game.messageBox.sendMessage(`${prefix}%c{red}${fireDmg} %c{}damage.`);
+          ? 'You are burned for '
+          : `The ${actor.name} is burned for `;
+        Game.messageBox.sendMessage(`${prefix}%c{red}${fireDmg}%c{} damage.`);
       }
     }
 
     if ('reflection' in affect) {
       const reflectDmg = Math.max(roll(affect.reflection * dmg), 1);
       actor.hp -= reflectDmg;
-      const prefix = actor.player ? 'You got ' : `The ${actor.name} got `;
-      Game.messageBox.sendMessage(`${prefix}%c{indigo}${reflectDmg} %c{}damage.`);
+      const prefix = actor.player ? 'You take ' : `The ${actor.name} takes `;
+      Game.messageBox.sendMessage(`${prefix}%c{indigo}${reflectDmg}%c{} reflected damage.`);
     }
 
     if ('restoration' in affect) {
       const restoreDmg = Math.max(roll(affect.restoration * dmg), 1);
       target.hp = Math.min(target.hp + restoreDmg, target.maxHp);
-      const prefix = target.player ? 'You got ' : `The ${target.name} got `;
+      const prefix = target.player ? 'You restore ' : `The ${target.name} restores `;
       Game.messageBox.sendMessage(
-        `${prefix}%c{ivory}${restoreDmg} %c{} restored HP.`
+        `${prefix}%c{ivory}${restoreDmg}%c{} HP.`
       );
     }
   }
@@ -156,7 +156,7 @@ Game.checkShields = function (actor, target, type, dmg) {
 
 Game.useSkill = function (actor, skill, skillx, skilly) {
   if (actor.player && skill.weapon && !Game.entity[0].equipment.weapon) {
-    Game.messageBox.sendMessage('You must equip some weapon to use this skill.');
+    Game.messageBox.sendMessage('You must equip a weapon to use this skill.');
     return;
   }
 
@@ -221,7 +221,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
 
       const dmg = target.doGetSkillDamage(rawDmg);
       Game.messageBox.sendMessage(
-        `${i === 0 ? 'You' : `The ${target.name}`} got ${color}${dmg}%c{} damage.`
+        `${i === 0 ? 'You take' : `The ${target.name} takes`} ${color}${dmg}%c{} damage.`
       );
       Game.checkShields(actor, target, 'skill', dmg);
 
@@ -260,7 +260,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
         const heal = Math.floor(skill.options.heal * (1 + actor.int * 0.07));
         actor.hp = Math.min(actor.hp + heal, actor.maxHp);
         Game.messageBox.sendMessage(
-          `${actor.player ? 'You' : `The ${actor.name}`} restored ${color}${heal}%c{} life.`
+          `${actor.player ? 'You restore' : `The ${actor.name} restores`} ${color}${heal}%c{} HP.`
         );
       }
       if ('distance' in skill.options) {
@@ -284,7 +284,7 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
           map.Tiles[actor.x][actor.y].Mob = true;
         }
         Game.messageBox.sendMessage(
-          `${actor.player ? 'You' : `The ${actor.name}`}${color} teleported%c{} in random position.`
+          `${actor.player ? 'You' : `The ${actor.name}`}${color} ${actor.player ? 'teleport' : 'teleports'}%c{} to a random location.`
         );
       }
     }
@@ -349,7 +349,7 @@ class checkAffects {
           const result = entity.doGetSkillDamage(dmg);
           if (visible) {
             Game.messageBox.sendMessage(
-              `${actorPrefix}poisoned and got %c{lightgreen}${result}%c{} damage.`
+              `${actorPrefix}poisoned and ${i === 0 ? 'take' : 'takes'} %c{lightgreen}${result}%c{} damage.`
             );
           }
         }

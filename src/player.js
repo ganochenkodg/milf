@@ -116,7 +116,7 @@ class Player {
     this.x = x;
     this.y = y;
     this.depth++;
-    Game.messageBox.sendMessage('You went down the stairs.');
+    Game.messageBox.sendMessage('You go down the stairs.');
   }
 
   goUp() {
@@ -124,7 +124,7 @@ class Player {
     this.x = x;
     this.y = y;
     this.depth--;
-    Game.messageBox.sendMessage('You went up the stairs.');
+    Game.messageBox.sendMessage('You go up the stairs.');
   }
 
   hasVisibleHostile() {
@@ -170,7 +170,7 @@ class Player {
       this.resting = false;
       Game.engine.lock();
       Game.messageBox.sendMessage(
-        'You are dead! Press %c{red}F5%c{} to start new game.'
+        'You are dead! Press %c{red}F5%c{} to start a new game.'
       );
       Game.drawAll();
       Game.drawEnd('bad');
@@ -277,7 +277,7 @@ class Player {
     }
     const result = target.doGetDamage(dmg);
     Game.messageBox.sendMessage(
-      `You hit the ${target.name} for ${color}${result} %c{}damage.`
+      `You hit the ${target.name} for ${color}${result}%c{} damage.`
     );
     Game.checkShields(this, target, 'physical', result);
     target.doDie();
@@ -288,7 +288,7 @@ class Player {
   doWorship() {
     if (this.piety < 15) {
       Game.messageBox.sendMessage(
-        'You are nothing for %c{gold}God of Random%c{}, get more piety.'
+        'You are nothing to the %c{gold}God of Random%c{}. Gain more piety first.'
       );
       return;
     }
@@ -300,7 +300,7 @@ class Player {
     if (r < 0.03) {
       [this.x, this.y] = Game.returnFree(Game.map[this.depth]);
       Game.messageBox.sendMessage(
-        '%c{gold}God of Random%c{} laughs and %c{violet}teleports%c{} you to a random location!'
+        'The %c{gold}God of Random%c{} laughs and %c{violet}teleports%c{} you to a random location!'
       );
       return;
     }
@@ -308,7 +308,7 @@ class Player {
       this.hp = this.maxHp;
       this.mana = this.maxMana;
       Game.messageBox.sendMessage(
-        '%c{gold}God of Random%c{} blesses you, restoring all %c{red}health%c{} and %c{blue}mana%c{}!'
+        'The %c{gold}God of Random%c{} blesses you, restoring all %c{red}health%c{} and %c{blue}mana%c{}!'
       );
       return;
     }
@@ -318,7 +318,7 @@ class Player {
       this[stat] += boost;
       this.applyStats();
       Game.messageBox.sendMessage(
-        `%c{gold}God of Random%c{} blesses your body (%c{palegreen}+${boost} ${stat.toUpperCase()}%c{})!`
+        `The %c{gold}God of Random%c{} blesses your body (%c{palegreen}+${boost} ${stat.toUpperCase()}%c{})!`
       );
       return;
     }
@@ -329,7 +329,7 @@ class Player {
     } while (newItem.type === 'potion');
 
     Game.messageBox.sendMessage(
-      `%c{gold}God of Random%c{} gifts you the ${newItem.name}.`
+      `The %c{gold}God of Random%c{} gifts you the ${newItem.name}.`
     );
     if (Game.inventory.length > 9) {
       Game.map[this.depth].Tiles[this.x][this.y].items.push(newItem);
@@ -452,7 +452,8 @@ class Player {
       switch (code) {
         case 87: // W
           this.doWorship();
-          break;
+          this.finishTurn();
+          return;
         case 13: { // Enter
           Game.pickupItem();
           const currentTile = Game.map[level].Tiles[newx][newy];
@@ -474,13 +475,15 @@ class Player {
             window.removeEventListener('keydown', this);
             return;
           }
-          break;
+          this.finishTurn();
+          return;
         }
         case 90: // Z
           this.startResting();
           return;
         case 101: // Numpad 5
-          break;
+          this.finishTurn();
+          return;
         default:
           return;
       }
@@ -495,7 +498,7 @@ class Player {
     const targetTile = Game.map[level].Tiles[newx][newy];
     if (targetTile.Blocked) {
       if (targetTile.Door) {
-        Game.messageBox.sendMessage('You opened the door.');
+        Game.messageBox.sendMessage('You open the door.');
         targetTile.Door = false;
         targetTile.Symbol = targetTile.Symbol.replace('close', 'open');
         targetTile.Blocked = false;
@@ -523,7 +526,7 @@ class Player {
 Game.doWin = function () {
   Game.engine.lock();
   Game.messageBox.sendMessage(
-    '%c{gold}You found a way out from infinite dungeon! Congratulations!%c{}'
+    '%c{gold}You find a way out of the infinite dungeon! Congratulations!%c{}'
   );
   Game.drawAll();
   Game.drawEnd('good');
