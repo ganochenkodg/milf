@@ -20,22 +20,15 @@ class Player {
     this.x = properties.x;
     this.y = properties.y;
     this.depth = 1;
-    this.str = playerStatsMod + roll(3);
-    this.int = playerStatsMod + roll(3);
-    this.agi = playerStatsMod + roll(3);
-    this.con = playerStatsMod + roll(3);
-    this.minAtk = 1;
-    this.maxAtk = 4;
+    this.str = cfg.statsMod + roll(3);
+    this.int = cfg.statsMod + roll(3);
+    this.agi = cfg.statsMod + roll(3);
+    this.con = cfg.statsMod + roll(3);
     this.shield = 0;
-    this.defense = Math.floor((this.agi + this.con) * 0.2) + this.shield;
     this.piety = 10;
     this.player = true;
-    this.maxHp = 15 + this.con * 6 + this.str * 3;
     this.speed = 100;
     this.color = '#0000';
-    this.maxMana = 10 + this.int * 8;
-    this.hp = this.maxHp;
-    this.mana = this.maxMana;
     this.name = Game.namegen();
     this.vision = 5;
     this.symbol = ROT.RNG.getItem(playerTiles);
@@ -43,9 +36,13 @@ class Player {
     this.stun = false;
     this.frozen = false;
     this.resting = false;
+    this.exploring = false;
     this.equipment = {};
     this.affects = [];
     this.books = [];
+    this.hp = Infinity;
+    this.mana = Infinity;
+    this.applyStats();
   }
 
   getSpeed() {
@@ -65,7 +62,7 @@ class Player {
     this.maxMana = 10 + this.int * 8;
     this.hp = Math.min(this.hp, this.maxHp);
     this.mana = Math.min(this.mana, this.maxMana);
-    this.defense = Math.floor((this.agi + this.con) * 0.2) + this.shield;
+    this.defense = Math.floor(this.agi * 0.5 + this.con * 0.2) + this.shield;
 
     if (this.equipment.weapon) {
       this.minAtk = this.equipment.weapon.options.minatk;
@@ -164,10 +161,104 @@ class Player {
     this.mana = Math.min(this.maxMana, this.mana + manaGain);
   }
 
+  findExploreStep() {
+    const map = Game.map[this.depth];
+    const wantItems = Game.inventory.length < 10;
+    const visited = new Set([`${this.x},${this.y}`]);
+    const queue = [[this.x, this.y, null]];
+
+    while (queue.length > 0) {
+      const [cx, cy, firstStep] = queue.shift();
+      for (const [dx, dy] of ROT.DIRS[8]) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        const key = `${nx},${ny}`;
+        if (
+          visited.has(key) ||
+          nx <= 0 ||
+          nx >= map.width - 1 ||
+          ny <= 0 ||
+          ny >= map.height - 1
+        ) {
+          continue;
+        }
+        visited.add(key);
+        const t = map.Tiles[nx][ny];
+        if ((t.Blocked && !t.Door) || t.Mob || t.trap?.revealed) continue;
+
+        const step = firstStep || [nx, ny];
+        if (!t.Visited || (wantItems && t.items.length > 0)) {
+          return step;
+        }
+        if (!t.Blocked) {
+          queue.push([nx, ny, step]);
+        }
+      }
+    }
+    return null;
+  }
+
+  exploreStep() {
+    if (this.frozen) return false;
+    const map = Game.map[this.depth];
+    if (Game.inventory.length < 10 && map.Tiles[this.x][this.y].items.length > 0) {
+      Game.pickupItem();
+      return true;
+    }
+    const step = this.findExploreStep();
+    if (!step) return false;
+
+    const [nx, ny] = step;
+    const tile = map.Tiles[nx][ny];
+    if (tile.Door) {
+      Game.messageBox.sendMessage('You open the door.');
+      tile.Door = false;
+      tile.Symbol = tile.Symbol.replace('close', 'open');
+      tile.Blocked = false;
+      tile.BlocksSight = false;
+      return true;
+    }
+
+    this.move(nx, ny);
+    if (
+      this.exploring &&
+      Game.inventory.length < 10 &&
+      map.Tiles[this.x][this.y].items.length > 0
+    ) {
+      Game.pickupItem();
+    }
+    return true;
+  }
+
+  startExploring() {
+    if (this.hasVisibleHostile()) {
+      Game.messageBox.sendMessage('You cannot auto-explore while enemies are in sight!');
+      Game.drawAll();
+      return;
+    }
+    if (this.frozen) {
+      Game.messageBox.sendMessage('You cannot move while frozen!');
+      Game.drawAll();
+      return;
+    }
+    this.exploring = true;
+    if (!this.exploreStep()) {
+      this.exploring = false;
+      Game.messageBox.sendMessage('There is nothing left to explore on this floor.');
+      Game.drawAll();
+      return;
+    }
+    Game.messageBox.sendMessage(
+      '%c{palegreen}Auto-exploring... (press any key to stop)%c{}'
+    );
+    this.finishTurn();
+  }
+
   async act() {
     this.applyStats();
     if (this.hp < 1) {
       this.resting = false;
+      this.exploring = false;
       Game.engine.lock();
       Game.messageBox.sendMessage(
         'You are dead! Press %c{red}F5%c{} to start a new game.'
@@ -178,18 +269,21 @@ class Player {
     }
     if (this.stun) {
       this.resting = false;
+      this.exploring = false;
       Game.drawAll();
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return;
     }
 
-    if (this.resting) {
+    if (this.resting || this.exploring) {
       Game.drawAll();
       if (this.hasVisibleHostile()) {
+        const activity = this.resting ? 'resting' : 'exploring';
         this.resting = false;
-        Game.messageBox.sendMessage('%c{orange}Enemy spotted! You stop resting.%c{}');
+        this.exploring = false;
+        Game.messageBox.sendMessage(`%c{orange}Enemy spotted! You stop ${activity}.%c{}`);
         Game.drawAll();
-      } else if (this.hp >= this.maxHp && this.mana >= this.maxMana) {
+      } else if (this.resting && this.hp >= this.maxHp && this.mana >= this.maxMana) {
         this.resting = false;
         Game.messageBox.sendMessage('%c{palegreen}You are fully rested.%c{}');
         Game.drawAll();
@@ -201,6 +295,18 @@ class Player {
           this.restStep();
           Game.drawAll();
           return;
+        }
+        if (this.exploring) {
+          if (!this.exploreStep()) {
+            this.exploring = false;
+            Game.messageBox.sendMessage(
+              '%c{palegreen}You finish exploring this floor.%c{}'
+            );
+            Game.drawAll();
+          } else {
+            Game.drawAll();
+            return;
+          }
         }
       }
     }
@@ -250,9 +356,11 @@ class Player {
   }
 
   doGetDamage(dmg, cap = 0.9) {
-    if (this.resting) {
+    if (this.resting || this.exploring) {
+      const activity = this.resting ? 'resting' : 'exploring';
       this.resting = false;
-      Game.messageBox.sendMessage('%c{orange}You take damage and stop resting!%c{}');
+      this.exploring = false;
+      Game.messageBox.sendMessage(`%c{orange}You take damage and stop ${activity}!%c{}`);
     }
     const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(cap, this.defense / dmg))));
     this.hp -= actual;
@@ -271,7 +379,7 @@ class Player {
 
     let dmg = randInt(this.getMinAtk(), this.getMaxAtk());
     let color = '%c{}';
-    if (Math.random() < 0.05) {
+    if (Math.random() < Math.min(0.35, 0.05 + this.agi * 0.004)) {
       dmg *= 2;
       color = '%c{lime}';
     }
@@ -281,8 +389,6 @@ class Player {
     );
     Game.checkShields(this, target, 'physical', result);
     target.doDie();
-    Game.drawMap();
-    Game.drawEntities();
   }
 
   doWorship() {
@@ -396,6 +502,13 @@ class Player {
       case 83: // S
         Game.doItem('sacrifice', num);
         break;
+      case 73: // I
+        if (item.type === 'book') {
+          Game.doItem('improve', num);
+        } else {
+          Game.messageBox.sendMessage("You can't do this.");
+        }
+        break;
       case 87: // W
         if (EQUIP_TYPES.has(item.type)) {
           Game.doItem('equip', num);
@@ -413,9 +526,11 @@ class Player {
   }
 
   handleEvent(e) {
-    if (this.resting) {
+    if (this.resting || this.exploring) {
+      const activity = this.resting ? 'resting' : 'exploring';
       this.resting = false;
-      Game.messageBox.sendMessage('You stop resting.');
+      this.exploring = false;
+      Game.messageBox.sendMessage(`You stop ${activity}.`);
       Game.drawAll();
       return;
     }
@@ -478,6 +593,9 @@ class Player {
           this.finishTurn();
           return;
         }
+        case 88: // X
+          this.startExploring();
+          return;
         case 90: // Z
           this.startResting();
           return;

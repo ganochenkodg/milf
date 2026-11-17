@@ -35,6 +35,7 @@ class Entity {
         Math.floor(this.level * 0.6) +
         Math.floor((this.agi + this.con) * 0.25) || 1;
     this.affects = [];
+    this.onHit = properties.onHit || null;
     this.state = 'idle';
     this.targetPos = null;
     this.wanderPath = null;
@@ -55,9 +56,7 @@ class Entity {
   act() {
     this.doDie();
     if (this.stun || this.depth !== Game.entity[0].depth) return;
-    if ('Actor' in this.acts) {
-      this.doHunt();
-    }
+    this.doHunt();
   }
 
   doDie() {
@@ -72,7 +71,7 @@ class Entity {
       Game.entity[0].piety +=
         (1 + roll(this.level) + Math.floor(Math.pow(1.8, this.level))) * pietyMult;
       if (this.name.startsWith('%c{lightsalmon}rare')) {
-        tile.items.push(Game.ItemRepository.createRandom(this.level, this.level + 2));
+        tile.items.push(Game.ItemRepository.createRandom(this.level + 2, this.level + 5));
       }
       if (this.name.startsWith('%c{mediumaquamarine}fleshlord')) {
         tile.items.push(Game.FoodRepository.create('heartoffleshlord', this.level));
@@ -105,34 +104,42 @@ class Entity {
   doAttack(targetNum) {
     let dmg = randInt(this.getMinAtk(), this.getMaxAtk());
     let color = '%c{}';
-    if (Math.random() < 0.05) {
+    if (Math.random() < Math.min(0.35, 0.05 + this.agi * 0.004)) {
       dmg *= 2;
       color = '%c{lime}';
     }
 
+    let victim = Game.entity[targetNum];
+    let adverb = '';
     if (this.confuse && Math.random() > 0.5) {
       const [dx, dy] = ROT.DIRS[8][roll(8)];
-      const newx = this.x + dx;
-      const newy = this.y + dy;
-      const victim = Game.entity.find(
-        (e) => e.x === newx && e.y === newy && e.depth === this.depth
+      victim = Game.entity.find(
+        (e) => e.x === this.x + dx && e.y === this.y + dy && e.depth === this.depth
       );
-      if (victim) {
-        const result = victim.doGetDamage(dmg);
-        Game.messageBox.sendMessage(
-          `The ${this.name} accidentally hits ${victim.player ? 'you' : `the ${victim.name}`} for ${color}${result}%c{} damage.`
-        );
-        Game.checkShields(this, victim, 'physical', result);
-        victim.doDie();
-      }
-    } else {
-      const target = Game.entity[targetNum];
-      const result = target.doGetDamage(dmg);
+      adverb = 'accidentally ';
+    }
+
+    if (victim) {
+      const result = victim.doGetDamage(dmg);
       Game.messageBox.sendMessage(
-        `The ${this.name} hits ${targetNum === 0 ? 'you' : `the ${target.name}`} for ${color}${result}%c{} damage.`
+        `The ${this.name} ${adverb}hits ${victim.player ? 'you' : `the ${victim.name}`} for ${color}${result}%c{} damage.`
       );
-      Game.checkShields(this, target, 'physical', result);
-      target.doDie();
+      Game.checkShields(this, victim, 'physical', result);
+      if (this.onHit && victim.hp >= 1) {
+        if (this.onHit === 'vampiric') {
+          this.hp = Math.min(this.maxHp, this.hp + Math.max(1, Math.floor(result * 0.3)));
+        } else if (Math.random() < 0.25) {
+          const vIdx = Game.entity.indexOf(victim);
+          if (vIdx !== -1) {
+            const affect =
+              this.onHit === 'poison'
+                ? { poison: Math.max(4, this.level * 2), duration: 3, symbol: 'poison' }
+                : { [this.onHit]: true, duration: this.onHit === 'stun' ? 1 : 2, symbol: this.onHit };
+            Game.addAffect(vIdx, affect);
+          }
+        }
+      }
+      victim.doDie();
     }
     Game.drawAll();
   }
@@ -569,7 +576,7 @@ const ENTITY_DEFS = {
     }),
     skills: (l) => [
       Game.SkillRepository.create(
-        ROT.RNG.getWeightedValue({ rapidcut: 2, poisonslash: 1, strengthofstone: 1 }),
+        ROT.RNG.getWeightedValue({ rapidcut: 2, poisonslash: 1 }),
         1 + roll(l / 2)
       ),
       Game.SkillRepository.create('strengthofstone', 1)
@@ -692,7 +699,7 @@ const ENTITY_DEFS = {
     }
   },
   lich: {
-    minLvl: 16, maxLvl: 40, defense: 6, vision: 7,
+    minLvl: 16, maxLvl: 100, defense: 6, vision: 7,
     names: ['lich', 'banshee', 'cultist', 'witch'],
     deadMessage: ' turns to ash.',
     acts: { Actor: true, Skills: true },
@@ -722,7 +729,7 @@ const ENTITY_DEFS = {
     }
   },
   darkknight: {
-    minLvl: 20, maxLvl: 45, defense: 10,
+    minLvl: 20, maxLvl: 100, defense: 10,
     names: ['dark knight', 'reaper', 'wraith', 'cultist'],
     deadMessage: ' turns to ash.',
     acts: { Actor: true, Skills: true },
@@ -807,7 +814,7 @@ const ENTITY_DEFS = {
     }
   },
   twoheadedettin: {
-    minLvl: 25, maxLvl: 35, defense: 8,
+    minLvl: 25, maxLvl: 100, defense: 8,
     names: 'two headed ettin',
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
@@ -825,7 +832,7 @@ const ENTITY_DEFS = {
     }
   },
   troll: {
-    minLvl: 20, maxLvl: 32, defense: 10,
+    minLvl: 20, maxLvl: 100, defense: 10,
     names: 'troll',
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
@@ -847,7 +854,7 @@ const ENTITY_DEFS = {
     }
   },
   weird: {
-    minLvl: 10, maxLvl: 40, defense: 10,
+    minLvl: 10, maxLvl: 100, defense: 10,
     names: ['dryad', 'wendigo', 'forest spirit', 'myconid'],
     acts: { Actor: true, Skills: true },
     stats: (l) => ({
@@ -885,6 +892,33 @@ const ENTITY_DEFS = {
   }
 };
 
+const RARE_MOB_MODIFIERS = [
+  ['berserk', 'crimson', (m) => {
+    m.maxAtk = Math.ceil(m.maxAtk * 1.3);
+    m.speed = (m.speed || 100) + 15;
+  }],
+  ['armored', 'steelblue', (m, l) => {
+    m.defense = (m.defense || 0) + 3 + Math.floor(l * 0.6);
+  }],
+  ['swift', 'khaki', (m, l) => {
+    m.speed = (m.speed || 100) + 25;
+    m.agi += 2 + Math.floor(l / 3);
+  }],
+  ['colossal', 'yellowgreen', (m) => {
+    m.con = Math.ceil(m.con * 1.4);
+  }],
+  ['arcane', 'turquoise', (m, l) => {
+    m.int = Math.ceil(m.int * 1.4);
+    m.acts.Skills = true;
+    (m.skills ||= []).push(Game.SkillRepository.createRandom(1, l + 1));
+  }],
+  ['venomous', 'limegreen', (m) => { m.onHit = 'poison'; }],
+  ['glacial', 'aqua', (m) => { m.onHit = 'freeze'; }],
+  ['dread', 'plum', (m) => { m.onHit = 'confuse'; }],
+  ['thunderous', 'gold', (m) => { m.onHit = 'stun'; }],
+  ['vampiric', 'indianred', (m) => { m.onHit = 'vampiric'; }]
+];
+
 for (const [key, def] of Object.entries(ENTITY_DEFS)) {
   Game.EntityRepository.define(key, function (level) {
     this.minLvl = def.minLvl;
@@ -899,9 +933,11 @@ for (const [key, def] of Object.entries(ENTITY_DEFS)) {
     if (def.acts) this.acts = { ...def.acts };
     if (def.stats) Object.assign(this, def.stats(level));
     if (def.skills) this.skills = def.skills(level);
-    if (def.rare && Math.random() < rareMobChance) {
-      this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
+    if (def.rare && Math.random() < cfg.rareMob) {
+      const [modLabel, modColor, applyMod] = ROT.RNG.getItem(RARE_MOB_MODIFIERS);
+      this.name = `%c{lightsalmon}rare %c{${modColor}}${modLabel}%c{lightsalmon} ${this.name}%c{}`;
       def.rare(this, level);
+      applyMod(this, level);
     }
   });
 }

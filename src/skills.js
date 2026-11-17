@@ -1,7 +1,5 @@
 'use strict';
 
-Game.skills = [];
-
 const INT_SCALED_KEYS = new Set(['minatk', 'maxatk', 'shield', 'heal']);
 const AFFECT_STAT_KEYS = new Set(['str', 'con', 'int', 'agi', 'speed', 'vision']);
 const STATUS_AFFECTS = [
@@ -107,11 +105,9 @@ Game.drawSkillMap = function () {
 };
 
 Game.isAffectApplied = function (actor, affect) {
-  if ('shield' in affect) {
-    const idx = actor.affects.findIndex((a) => 'shield' in a);
-    if (idx !== -1) return [true, idx];
-  }
-  const idx = actor.affects.findIndex((a) => a.symbol === affect.symbol);
+  const idx = actor.affects.findIndex(
+    (a) => ('shield' in affect && 'shield' in a) || a.symbol === affect.symbol
+  );
   return [idx !== -1, idx];
 };
 
@@ -227,8 +223,16 @@ Game.useSkill = function (actor, skill, skillx, skilly) {
       Game.checkShields(actor, target, 'skill', dmg);
 
       if ('poison' in skill.options && Math.random() < skill.options.poison) {
+        const poisonPower = Math.max(
+          3,
+          Math.floor(
+            skill.options.maxatk *
+              (1 + actor.int * 0.07 + (skill.weapon ? actor.str * 0.05 : 0)) *
+              0.55
+          )
+        );
         Game.addAffect(i, {
-          poison: Math.floor(skill.options.maxatk / 2),
+          poison: poisonPower,
           duration: skill.options.duration,
           symbol: 'poison'
         });
@@ -346,7 +350,7 @@ class checkAffects {
       for (let j = entity.affects.length - 1; j >= 0; j--) {
         const affect = entity.affects[j];
         if ('poison' in affect) {
-          const dmg = roll(affect.poison);
+          const dmg = randInt(Math.ceil(affect.poison * 0.5), affect.poison);
           const result = entity.doGetSkillDamage(dmg);
           if (visible) {
             Game.messageBox.sendMessage(
@@ -380,8 +384,8 @@ const SKILL_DEFS = [
     cost: 4 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 3 + Math.floor(l / 2), radius: 0
   })],
   ['poisonarrow', 'lightgreen', 'poison arrow', 1, 5, 'range', 'damage', {}, (l) => ({
-    cost: 6 + l * 2, minatk: 1, maxatk: 6 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
-    poison: 0.5 + l * 0.05, duration: 2 + Math.floor(l / 5)
+    cost: 7 + Math.ceil(l * 2.3), minatk: 1, maxatk: 8 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
+    poison: 0.65 + l * 0.03, duration: 3 + Math.floor(l / 4)
   })],
   ['stonearrow', 'tan', 'stone arrow', 1, 5, 'range', 'damage', {}, (l) => ({
     cost: 6 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 2 + Math.floor(l / 2), radius: 0,
@@ -392,8 +396,8 @@ const SKILL_DEFS = [
     freeze: 0.2 + l * 0.04, duration: 2 + Math.floor(l / 5)
   })],
   ['poisonslash', 'darkseagreen', 'poison slash', 1, 10, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
-    cost: 12 + l * 2, minatk: 1, maxatk: 8 + l * 2, range: 1, radius: 0,
-    poison: 0.5 + l * 0.05, duration: 1 + Math.floor(l / 5)
+    cost: 14 + Math.ceil(l * 2.3), minatk: 2, maxatk: 10 + l * 2, range: 1, radius: 0,
+    poison: 0.65 + l * 0.03, duration: 3 + Math.floor(l / 4)
   })],
   ['rapidcut', 'salmon', 'rapid cut', 1, 10, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
     cost: 8 + l * 2, minatk: 4, maxatk: 4 + l * 2, range: 1, radius: 0
@@ -411,8 +415,8 @@ const SKILL_DEFS = [
     cost: 20 + l * 2, minatk: 8, maxatk: 12 + l * 2, range: 5 + Math.floor(l / 3), radius: 1
   })],
   ['acidcloud', 'lightgreen', 'acid cloud', 5, 15, 'range', 'damage', { selfProtect: true }, (l) => ({
-    cost: 22 + l * 2, minatk: 4, maxatk: 6 + l * 2, range: 4, radius: 1,
-    poison: 0.5 + l * 0.05, duration: 3 + Math.floor(l / 5)
+    cost: 25 + Math.ceil(l * 2.3), minatk: 6, maxatk: 10 + l * 2, range: 4, radius: 1,
+    poison: 0.7 + l * 0.03, duration: 4 + Math.floor(l / 4)
   })],
   ['calltheshadows', 'lightslategray', 'call the shadows', 10, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 30 + l * 2, minatk: 10, maxatk: 16 + l * 2, range: 4, radius: 1,
@@ -420,21 +424,21 @@ const SKILL_DEFS = [
   })],
   ['tsunami', 'mediumturquoise', 'tsunami', 8, 18, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 25 + l * 2, minatk: 12, maxatk: 14 + l * 2,
-    confuse: 0.4 + l * 0.01, range: 3 + Math.floor(l / 3), radius: 2
+    confuse: 0.4 + l * 0.01, duration: 2 + Math.floor(l / 8), range: 3 + Math.floor(l / 3), radius: 2
   })],
   ['crackedearth', 'brown', 'cracked earth', 10, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 30 + l * 2, minatk: 4, maxatk: 24 + l * 2, range: 5 + Math.floor(l / 3), radius: 1
   })],
   ['flamechains', 'crimson', 'flame chains', 12, 24, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 30 + l * 2, minatk: 20, maxatk: 20 + l * 2,
-    stun: 0.2 + l * 0.04, range: 6, radius: 0, duration: Math.floor(l / 5)
+    stun: 0.2 + l * 0.04, range: 6, radius: 0, duration: 1 + Math.floor(l / 6)
   })],
   ['lightningstrike', 'azure', 'lightning strike', 8, 20, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
     cost: 16 + l * 2, minatk: 8, maxatk: 10 + l * 2,
     confuse: l * 0.05, range: 1, radius: 1, duration: 1
   })],
   ['magiceye', 'lavender', 'magic eye', 5, 40, 'self', 'chant', {}, (l) => ({
-    cost: 40 + l * 2, vision: 1 + Math.floor(l / 15), duration: 10 + l * 2, range: 0, radius: 0
+    cost: 15 + l, vision: 2 + Math.floor(l / 10), duration: 25 + l * 3, range: 0, radius: 0
   })],
   ['icefall', 'skyblue', 'icefall', 5, 20, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 15 + l * 2, minatk: 6, maxatk: 6 + l * 2,
@@ -445,13 +449,14 @@ const SKILL_DEFS = [
   })],
   ['frozentomb', 'cornflowerblue', 'frozen tomb', 15, 30, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 30 + l * 2, minatk: 15, maxatk: 25 + l * 2,
-    freeze: 0.4 + l * 0.02, range: 6, radius: 0, duration: Math.floor(l / 5)
+    freeze: 0.4 + l * 0.02, range: 6, radius: 0, duration: 1 + Math.floor(l / 6)
   })],
   ['fireshield', 'thistle', 'fire shield', 10, 25, 'self', 'chant', {}, (l) => ({
     cost: 40 + l * 2, shield: 10 + l, duration: 15 + l * 2, fire: l * 2, range: 0, radius: 0
   })],
   ['lightningbolt', 'aliceblue', 'lightning bolt', 5, 45, 'range', 'damage', {}, (l) => ({
-    cost: 15 + l * 2, minatk: 5, maxatk: 5 + l * 2, range: 5 + Math.floor(l / 10), radius: 0
+    cost: 15 + l * 2, minatk: 8, maxatk: 14 + l * 2,
+    stun: 0.25 + l * 0.01, duration: 1, range: 5 + Math.floor(l / 10), radius: 0
   })],
   ['rainofblades', 'darkred', 'rain of blades', 25, 100, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
     cost: 50 + l * 2, minatk: 15, maxatk: 20 + l * 2,
@@ -474,8 +479,8 @@ const SKILL_DEFS = [
   ['solareclipse', 'mediumorchid', 'solar eclipse', 20, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 50 + l * 2, minatk: 25, maxatk: 35 + l * 2, range: 1, radius: 1
   })],
-  ['supernova', 'snow', 'supernova', 25, 100, 'range', 'damage', { weapon: true }, (l) => ({
-    cost: 40 + l * 2, minatk: 15, maxatk: 20 + l * 2, range: 5 + Math.floor(l / 10), radius: 0
+  ['supernova', 'snow', 'supernova', 25, 100, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
+    cost: 40 + l * 2, minatk: 20, maxatk: 25 + l * 2, range: 5 + Math.floor(l / 10), radius: 1
   })],
   ['darkness', 'slategray', 'darkness', 25, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
     cost: 50 + l * 2, minatk: 6, maxatk: 15 + l * 2,
@@ -486,11 +491,11 @@ const SKILL_DEFS = [
     duration: 20 + l * 2, range: 0, radius: 0
   })],
   ['plague', 'darkseagreen', 'plague', 20, 100, 'range', 'damage', { selfProtect: true }, (l) => ({
-    cost: 50 + l * 2, minatk: 10, maxatk: 20 + l * 2, range: 6, radius: 2,
-    poison: l * 0.03, duration: Math.floor(l / 3)
+    cost: 58 + Math.ceil(l * 2.3), minatk: 14, maxatk: 22 + l * 2, range: 6, radius: 2,
+    poison: 0.6 + l * 0.03, duration: 4 + Math.floor(l / 3)
   })],
   ['heal', 'lightgreen', 'heal', 15, 50, 'self', 'support', {}, (l) => ({
-    cost: 20 + l * 2, heal: l, range: 0, radius: 0
+    cost: 20 + l * 2, heal: 15 + l * 3, range: 0, radius: 0
   })],
   ['teleport', 'mistyrose', 'teleport', 10, 50, 'self', 'support', {}, (l) => ({
     cost: 15 + l * 2, distance: Math.floor(l / 2), range: 0, radius: 0

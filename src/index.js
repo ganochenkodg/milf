@@ -17,15 +17,11 @@ const createPeriodicActor = (speed, act) => ({
   act
 });
 
-const isActiveActorOnCurrentDepth = (entity) =>
-  entity.depth === Game.entity[0].depth && (entity.player || 'Actor' in entity.acts);
-
 const Game = {
   mainDisplay: null,
   messageDisplay: null,
   messageBox: null,
   engine: null,
-  checkAffects: null,
   inventory: [],
   skills: [],
   screenWidth: 25,
@@ -58,13 +54,9 @@ const Game = {
 
     document.body.appendChild(this.mainDisplay.getContainer());
     document.body.appendChild(this.messageDisplay.getContainer());
-    this.messageBox = new Game.MessageBox(this.screenWidth * 4 - 30, 13);
+    this.messageBox = new Game.MessageBox(13);
 
-    const cfg = DIFFICULTY_SETTINGS[gameMode] || DIFFICULTY_SETTINGS.normal;
-    rareMobChance = cfg.rareMob;
-    rareItemChance = cfg.rareItem;
-    playerStatsMod = cfg.statsMod;
-    healingFactor = cfg.healFactor;
+    cfg = DIFFICULTY_SETTINGS[gameMode] || DIFFICULTY_SETTINGS.normal;
     for (let i = 0; i < cfg.startItems; i++) {
       this.inventory.push(Game.ItemRepository.createRandom(1, cfg.maxStartLvl));
     }
@@ -75,28 +67,17 @@ const Game = {
     const player = new Player({ x: px, y: py });
     Game.entity.unshift(player);
 
-    this.hpRegen = createPeriodicActor(15, () => {
-      for (const entity of Game.entity) {
-        if (!isActiveActorOnCurrentDepth(entity)) continue;
-        const gain = 1 + Math.floor(entity.maxHp / 100) + Math.floor(entity.con / 5);
-        entity.hp = Math.min(entity.hp + gain, entity.maxHp);
+    const regen = createPeriodicActor(15, () => {
+      for (const e of Game.entity) {
+        if (e.depth !== Game.entity[0].depth || (!e.player && !('Actor' in e.acts))) continue;
+        e.hp = Math.min(e.maxHp, e.hp + 1 + Math.floor(e.maxHp / 100) + Math.floor(e.con / 5));
+        e.mana = Math.min(e.maxMana, e.mana + 1 + Math.floor(e.maxMana / 100) + Math.floor(e.int / 5));
       }
     });
-
-    this.manaRegen = createPeriodicActor(15, () => {
-      for (const entity of Game.entity) {
-        if (!isActiveActorOnCurrentDepth(entity)) continue;
-        const gain = 1 + Math.floor(entity.maxMana / 100) + Math.floor(entity.int / 5);
-        entity.mana = Math.min(entity.mana + gain, entity.maxMana);
-      }
-    });
-
-    this.checkAffects = new checkAffects();
 
     scheduler.add(player, true);
-    scheduler.add(this.hpRegen, true);
-    scheduler.add(this.manaRegen, true);
-    scheduler.add(this.checkAffects, true);
+    scheduler.add(regen, true);
+    scheduler.add(new checkAffects(), true);
 
     if (tileSet.complete) {
       this.drawAll();
@@ -141,9 +122,7 @@ const Game = {
           ['black', 'transparent']
         );
       }
-    }
 
-    for (let i = 0; i < 10; i++) {
       const slotX = i + this.screenWidth - 10;
       this.messageDisplay.draw(slotX * 4 + 2, 0, INVENTORY_LETTERS[i], 'beige');
       const item = this.inventory[i];

@@ -70,8 +70,6 @@ const gameTilemap = {
   wendigo: [352, 352],
   'forest spirit': [384, 352],
   myconid: [416, 352],
-  fleshlord1: [448, 352],
-  fleshlord2: [480, 352],
   fleshlord3: [512, 352],
   fleshlordchant1: [544, 352],
   fleshlordchant2: [576, 352],
@@ -153,7 +151,7 @@ const addTileSeries = (prefix, count, startX, startY, perRow = count) => {
 addTileSeries('hp', 8, 256, 64);
 addTileSeries('goblin', 8, 224, 224);
 addTileSeries('snake', 4, 480, 256);
-addTileSeries('herb', 13, 256, 96);
+addTileSeries('herb', 12, 256, 96);
 addTileSeries('sword', 12, 0, 256, 6);
 addTileSeries('staff', 12, 0, 320, 6);
 addTileSeries('armor', 12, 192, 256, 6);

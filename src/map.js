@@ -43,14 +43,12 @@ const randomMagicTrap = () =>
   });
 
 const withRare = (fn) => {
-  const [prevMob, prevItem] = [rareMobChance, rareItemChance];
-  rareMobChance = 1;
-  rareItemChance = 1;
+  const prev = cfg;
+  cfg = { ...cfg, rareMob: 1, rareItem: 1 };
   try {
     return fn();
   } finally {
-    rareMobChance = prevMob;
-    rareItemChance = prevItem;
+    cfg = prev;
   }
 };
 
@@ -512,6 +510,7 @@ Game.triggerTrap = function (actor) {
   const trapX = actor.x;
   const trapY = actor.y;
   trap.revealed = true;
+  if (actor.player) actor.exploring = false;
 
   const actorIdx = Game.entity.indexOf(actor);
   if (actorIdx === -1) return;

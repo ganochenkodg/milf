@@ -1,7 +1,5 @@
 'use strict';
 
-Game.inventory = [];
-
 const ITEM_STAT_KEYS = new Set(['str', 'agi', 'con', 'int', 'speed', 'vision']);
 const FOOD_MESSAGES = {
   str: 'You feel stronger.',
@@ -96,6 +94,9 @@ Game.chooseItem = function (num) {
     Game.messageDisplay.drawText(1, row + 2, item.isEquipped() ? 'e) Unequip' : 'e) Equip');
   }
   Game.messageDisplay.drawText(1, row + 3, 's) Sacrifice');
+  if (item.type === 'book') {
+    Game.messageDisplay.drawText(1, row + 4, 'i) Improve skills');
+  }
 
   Game.entity[0].Draw();
   mode.mode = 'item';
@@ -156,6 +157,81 @@ Game.doItem = function (action, num) {
     Game.messageBox.sendMessage(`You ${verb} the ${item.name}.`);
     Game.doFoodOptions(num);
     Game.inventory.splice(num, 1);
+    return;
+  }
+
+  if (action === 'improve' && itemtype === 'book') {
+    const targets = new Set((item.skills || []).map((s) => s.symbol));
+    const equipped = [
+      player.equipment.weapon,
+      player.equipment.armor,
+      ...player.books
+    ].filter((eq) => eq && eq !== item && eq.skills);
+
+    const boost = Math.max(1, 1 + Math.floor(item.level / 5));
+    let improved = false;
+    for (const eq of equipped) {
+      eq.skills = eq.skills.map((s) => {
+        if (!targets.has(s.symbol)) return s;
+        improved = true;
+        return Game.SkillRepository.create(s.symbol, s.level + boost);
+      });
+    }
+
+    if (!improved) {
+      Game.messageBox.sendMessage('You have no equipped matching skills to improve.');
+      return;
+    }
+
+    if (item.isEquipped()) Game.doItem('unequip', num);
+    Game.inventory.splice(num, 1);
+    Game.syncSkills(true);
+    Game.messageBox.sendMessage(
+      `You consume the ${item.name} and improve your skills (+${boost} lvl)!`
+    );
+  }
+};
+
+Game.syncSkills = function (notify = false) {
+  const player = Game.entity[0];
+  const bestBySymbol = new Map();
+  const equipped = [
+    player.equipment.weapon,
+    player.equipment.armor,
+    ...player.books
+  ].filter(Boolean);
+
+  for (const eq of equipped) {
+    for (const skill of eq.skills || []) {
+      const cur = bestBySymbol.get(skill.symbol);
+      if (!cur || skill.level > cur.level) {
+        bestBySymbol.set(skill.symbol, skill);
+      }
+    }
+  }
+
+  for (let i = 0; i < Game.skills.length; ) {
+    const prev = Game.skills[i];
+    const next = bestBySymbol.get(prev.symbol);
+    if (next) {
+      Game.skills[i] = next;
+      if (notify && next.level > prev.level) {
+        Game.messageBox.sendMessage(`You can now use ${next.name}.`);
+      }
+      bestBySymbol.delete(prev.symbol);
+      i++;
+    } else {
+      Game.skills.splice(i, 1);
+    }
+  }
+
+  for (const skill of bestBySymbol.values()) {
+    if (Game.skills.length >= 10) {
+      Game.messageBox.sendMessage('You have learned the maximum number of skills.');
+      break;
+    }
+    Game.skills.push(skill);
+    Game.messageBox.sendMessage(`You can now use ${skill.name}.`);
   }
 };
 
@@ -164,45 +240,7 @@ Game.doItemOptions = function (action, num) {
   const item = Game.inventory[num];
 
   if (item.skills !== undefined) {
-    const bestBySymbol = new Map();
-    const equipped = [
-      player.equipment.weapon,
-      player.equipment.armor,
-      ...player.books
-    ].filter(Boolean);
-
-    for (const eq of equipped) {
-      for (const skill of eq.skills || []) {
-        const cur = bestBySymbol.get(skill.symbol);
-        if (!cur || skill.level > cur.level) {
-          bestBySymbol.set(skill.symbol, skill);
-        }
-      }
-    }
-
-    for (let i = 0; i < Game.skills.length; ) {
-      const prev = Game.skills[i];
-      const next = bestBySymbol.get(prev.symbol);
-      if (next) {
-        Game.skills[i] = next;
-        if (action === 'apply' && next.level > prev.level) {
-          Game.messageBox.sendMessage(`You can now use ${next.name}.`);
-        }
-        bestBySymbol.delete(prev.symbol);
-        i++;
-      } else {
-        Game.skills.splice(i, 1);
-      }
-    }
-
-    for (const skill of bestBySymbol.values()) {
-      if (Game.skills.length >= 10) {
-        Game.messageBox.sendMessage('You have learned the maximum number of skills.');
-        break;
-      }
-      Game.skills.push(skill);
-      Game.messageBox.sendMessage(`You can now use ${skill.name}.`);
-    }
+    Game.syncSkills(action === 'apply');
   }
 
   if (item.type === 'weapon' || item.type === 'armor') {
@@ -242,6 +280,24 @@ Game.doFoodOptions = function (num) {
 Game.ItemRepository = new Game.Repository('items', Item);
 Game.FoodRepository = new Game.Repository('items', Item);
 
+const RARE_GEAR_AFFIXES = [
+  ['mighty', 'crimson', (o, l) => { o.str = (o.str || 0) + 2 + Math.floor(l / 3); }],
+  ['titan', 'yellowgreen', (o, l) => { o.con = (o.con || 0) + 3 + Math.floor(l / 2); }],
+  ['wise', 'turquoise', (o, l) => { o.int = (o.int || 0) + 3 + Math.floor(l / 2); }],
+  ['swift', 'khaki', (o, l) => {
+    o.agi = (o.agi || 0) + 2 + Math.floor(l / 3);
+    o.speed = (o.speed || 0) + 6 + Math.floor(l / 3);
+  }],
+  ['keen', 'plum', (o, l) => {
+    o.vision = (o.vision || 0) + 1;
+    o.agi = (o.agi || 0) + 2 + Math.floor(l / 4);
+  }],
+  ['sharp', 'gold', (o, l) => {
+    if (o.minatk) o.minatk += 2 + Math.floor(l / 3);
+    o.agi = (o.agi || 0) + 2 + Math.floor(l / 3);
+  }]
+];
+
 function registerGear(type, spritePrefix, defs) {
   for (const [key, label, minLvl, maxLvl, color, count, offset, optionsFn, rare] of defs) {
     Game.ItemRepository.define(key, function (level) {
@@ -253,13 +309,15 @@ function registerGear(type, spritePrefix, defs) {
       this.color = color;
       this.symbol = `${spritePrefix}${roll(count) + offset}`;
       this.options = optionsFn(level);
-      if (rare && Math.random() < rareItemChance) {
-        this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
+      if (rare && Math.random() < cfg.rareItem) {
         if (rare.level) this.level += rare.level;
         if (rare.color) this.color = rare.color;
         for (const [stat, bonus] of Object.entries(rare.options || {})) {
           this.options[stat] = (this.options[stat] || 0) + bonus;
         }
+        const [prefix, prefixColor, applyAffix] = ROT.RNG.getItem(RARE_GEAR_AFFIXES);
+        applyAffix(this.options, level);
+        this.name = `%c{${prefixColor}}${prefix}%c{lightsalmon} ${label} (${this.level})%c{}`;
       }
     });
   }
@@ -309,16 +367,16 @@ const STAFF_DEFS = [
     (l) => ({ minatk: 1, maxatk: 4 + roll(l), int: 1 + roll(l) }),
     { level: 3, color: '#00f4', options: { maxatk: 2, int: 1 } }],
   ['sparkwand', 'spark wand', 1, 10, '#fa03', 7, 1,
-    (l) => ({ minatk: 2, maxatk: 4 + Math.floor(l / 3), int: 2 + roll(l), agi: 1 + roll(l) }),
+    (l) => ({ minatk: 2, maxatk: 4 + Math.floor(l / 3) + roll(l), int: 2 + roll(l), agi: 1 + roll(l) }),
     { level: 3, color: '#fa05', options: { maxatk: 4, int: 1 } }],
   ['apprenticestaff', 'apprentice staff', 5, 15, '#33f3', 5, 4,
-    (l) => ({ minatk: 3, maxatk: 5 + Math.floor(l / 3), int: 4 + roll(l), agi: 2 + roll(l) }),
+    (l) => ({ minatk: 3, maxatk: 5 + Math.floor(l / 3) + roll(l), int: 4 + roll(l), agi: 2 + roll(l) }),
     { level: 3, color: '#33f5', options: { maxatk: 4, con: 3 } }],
   ['arcanebranch', 'arcane branch', 7, 17, '#a8f3', 5, 2,
-    (l) => ({ minatk: 3, maxatk: 6 + Math.floor(l / 3), int: 4 + roll(l), con: 2 + roll(l) }),
+    (l) => ({ minatk: 3, maxatk: 6 + Math.floor(l / 3) + roll(l), int: 4 + roll(l), con: 2 + roll(l) }),
     { level: 2, color: '#a8f5', options: { maxatk: 4, int: 2 } }],
   ['glowbranch', 'glow branch', 10, 20, '#6f63', 7, 1,
-    (l) => ({ minatk: 4, maxatk: 8 + Math.floor(l / 3), int: 5 + roll(l), agi: 4 + roll(l) }),
+    (l) => ({ minatk: 4, maxatk: 8 + Math.floor(l / 3) + roll(l), int: 5 + roll(l), agi: 4 + roll(l) }),
     { level: 2, color: '#6f65', options: { maxatk: 4, int: 3 } }],
   ['igneousrod', 'igneous rod', 12, 22, '#f934', 6, 3,
     (l) => ({ minatk: 4, maxatk: 7 + roll(l), int: 4 + Math.floor(l / 3) + roll(l), con: 5 + roll(l) }),
@@ -380,12 +438,12 @@ const ARMOR_DEFS = [
   ['witchrobe', 'witch robe', 16, 26, '#6a4f', 4, 1,
     (l) => ({ defense: 6 + l + roll(l), con: 4 + l + roll(l), int: 2 + l + roll(l) }),
     { color: '#cac6', options: { defense: 5, con: 4 } }],
-  ['spectralguard', 'spectral guard', 30, 44, '#77e4', 5, 2,
-    (l) => ({ defense: 10 + l + roll(l), str: 5 + l + roll(l), con: 3 + l + roll(l) }),
-    { color: '#66f6', options: { defense: 6, str: 5 } }],
+  ['spectralguard', 'spectral guard', 30, 48, '#77e4', 5, 2,
+    (l) => ({ defense: 10 + l + roll(l), str: 5 + l + roll(l), int: 6 + l + roll(l), con: 3 + l + roll(l) }),
+    { color: '#66f6', options: { defense: 6, str: 5, int: 5 } }],
   ['phoenixplate', 'phoenix plate', 45, 100, '#f405', 6, 4,
-    (l) => ({ defense: 15 + l + roll(l), con: 10 + l + roll(l), str: 10 + l + roll(l) }),
-    { color: '#e25f', options: { defense: 5, con: 6 } }]
+    (l) => ({ defense: 15 + l + roll(l), con: 10 + l + roll(l), str: 10 + l + roll(l), int: 8 + l + roll(l) }),
+    { color: '#e25f', options: { defense: 5, con: 6, int: 6 } }]
 ];
 
 registerGear('weapon', 'sword', SWORD_DEFS);
@@ -393,11 +451,11 @@ registerGear('weapon', 'staff', STAFF_DEFS);
 registerGear('armor', 'armor', ARMOR_DEFS);
 
 const HERB_DEFS = [
-  ['healingherb', 'healing herb', (l) => ({ hp: (7 + roll(l * 3)) * healingFactor })],
-  ['magicalherb', 'magical herb', (l) => ({ mana: (7 + roll(l * 3)) * healingFactor })],
+  ['healingherb', 'healing herb', (l) => ({ hp: (7 + roll(l * 3)) * cfg.healFactor })],
+  ['magicalherb', 'magical herb', (l) => ({ mana: (7 + roll(l * 3)) * cfg.healFactor })],
   ['ancientherb', 'ancient herb', (l) => ({
-    hp: (5 + roll(l * 3)) * healingFactor,
-    mana: (5 + roll(l * 3)) * healingFactor
+    hp: (5 + roll(l * 3)) * cfg.healFactor,
+    mana: (5 + roll(l * 3)) * cfg.healFactor
   })]
 ];
 
@@ -423,7 +481,7 @@ Game.FoodRepository.define('mysticalmushroom', function () {
   this.color = '#0000';
   this.symbol = `mushroom${roll(2) + 1}`;
   this.options = { [ROT.RNG.getItem(PRIMARY_STATS)]: 1 };
-  if (Math.random() < rareItemChance * 0.3) {
+  if (Math.random() < cfg.rareItem * 0.3) {
     this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
     this.options.vision = 1;
     this.color = '#0f04';
@@ -442,9 +500,9 @@ Game.FoodRepository.define('heartoffleshlord', function (level) {
 });
 
 const HEALING_POTION_DEFS = [
-  ['smallhealingpotion', 'small healing potion', 1, 5, 10, 10],
-  ['mediumhealingpotion', 'medium healing potion', 10, 25, 30, 30],
-  ['largehealingpotion', 'large healing potion', 20, 40, 60, 30]
+  ['smallhealingpotion', 'small healing potion', 1, 11, 10, 10],
+  ['mediumhealingpotion', 'medium healing potion', 10, 26, 30, 30],
+  ['largehealingpotion', 'large healing potion', 20, 100, 60, 30]
 ];
 
 for (const [key, label, minLvl, maxLvl, baseHeal, rareBonus] of HEALING_POTION_DEFS) {
@@ -455,12 +513,12 @@ for (const [key, label, minLvl, maxLvl, baseHeal, rareBonus] of HEALING_POTION_D
     this.type = 'potion';
     this.level = level;
     this.color = '#0000';
-    this.symbol = `potion${roll(9) + 1}`;
+    this.symbol = `potion${roll(10) + 1}`;
     this.options = {
-      hp: (baseHeal + roll(level * 3)) * healingFactor,
-      mana: (baseHeal + roll(level * 3)) * healingFactor
+      hp: (baseHeal + roll(level * 3)) * cfg.healFactor,
+      mana: (baseHeal + roll(level * 3)) * cfg.healFactor
     };
-    if (Math.random() < rareItemChance) {
+    if (Math.random() < cfg.rareItem) {
       this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
       this.options.hp += rareBonus;
       this.options.mana += rareBonus;
@@ -470,9 +528,9 @@ for (const [key, label, minLvl, maxLvl, baseHeal, rareBonus] of HEALING_POTION_D
 }
 
 const GROWTH_POTION_DEFS = [
-  ['smallgrowthpotion', 'small growth potion', 3, 7, () => 1 + roll(2)],
-  ['mediumgrowthpotion', 'medium growth potion', 12, 27, (l) => Math.floor(l / 3) + roll(2)],
-  ['largegrowthpotion', 'large growth potion', 20, 50, (l) => Math.floor(l / 3) + roll(3)]
+  ['smallgrowthpotion', 'small growth potion', 1, 11, () => 1 + roll(2)],
+  ['mediumgrowthpotion', 'medium growth potion', 10, 26, (l) => Math.floor(l / 3) + roll(2)],
+  ['largegrowthpotion', 'large growth potion', 20, 100, (l) => Math.floor(l / 3) + roll(3)]
 ];
 
 for (const [key, label, minLvl, maxLvl, amountFn] of GROWTH_POTION_DEFS) {
@@ -483,7 +541,7 @@ for (const [key, label, minLvl, maxLvl, amountFn] of GROWTH_POTION_DEFS) {
     this.type = 'potion';
     this.level = level;
     this.color = '#0000';
-    this.symbol = `potion${roll(9) + 1}`;
+    this.symbol = `potion${roll(10) + 1}`;
     this.options = { [ROT.RNG.getItem(PRIMARY_STATS)]: amountFn(level) };
   });
 }
@@ -561,7 +619,7 @@ for (const [key, label, minLvl, maxLvl, color, rareColor, rareSpan, skillsFn] of
     this.color = color;
     this.symbol = `book${roll(6) + 1}`;
     this.skills = skillsFn(level);
-    if (Math.random() < rareItemChance) {
+    if (Math.random() < cfg.rareItem) {
       this.name = `%c{lightsalmon}rare ${this.name}%c{}`;
       this.level += 3;
       this.skills.push(Game.SkillRepository.createRandom(level, level + rareSpan));

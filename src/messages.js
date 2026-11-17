@@ -1,10 +1,7 @@
 'use strict';
 
-Game.messageBox = {};
-
 Game.MessageBox = class MessageBox {
-  constructor(width, height) {
-    this.width = width;
+  constructor(height = 13) {
     this.height = height;
     this.messages = [];
   }

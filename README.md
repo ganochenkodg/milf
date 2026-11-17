@@ -32,9 +32,10 @@ Descend through 50+ procedurally generated dungeon floors teeming with scaling m
 | **Arrows / Numpad** | Move / Attack / Aim skill |
 | **Enter** | Pick up item / Use stairs / Confirm target |
 | **1 .. 0** | Select skill (slots 1–10) |
-| **a .. j** | Inspect inventory item (`e` use/equip, `d` drop, `s` sacrifice) |
+| **a .. j** | Inspect inventory item (`e` use/equip, `i` improve skills, `d` drop, `s` sacrifice) |
 | **w** | Pray to the God of Random (spend Piety) |
 | **z** | Auto-rest (stops on enemy sight, damage, or any key) |
+| **x** | Auto-explore floor & pick up items (stops on enemy sight, damage, or any key) |
 | **Numpad 5** | Wait one turn |
 | **Esc** | Cancel menu / skill targeting |
 
