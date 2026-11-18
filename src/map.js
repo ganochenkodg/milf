@@ -29,6 +29,7 @@ Game.Tile = class Tile {
     this.Door = false;
     this.Stairup = false;
     this.Stairdown = false;
+    this.remains = null;
     this.trap = null;
     this.items = [];
   }
@@ -273,6 +274,7 @@ Game.GameMap = class GameMap {
           if (Math.random() < 0.5) {
             const rat = Game.EntityRepository.create('monsters720', level);
             rat.name = rat.symbol = 'giant rat';
+            rat.onHit = null;
             this.spawnEntity(rat, level, 'gray');
           } else {
             this.spawnMobs(1, 'insects', level);
@@ -580,6 +582,7 @@ Game.createPortal = function (x, y, level) {
       const tile = map.Tiles[nx][ny];
       if (!tile.Blocked && !tile.Mob && !tile.Stairup && !tile.Stairdown) {
         tile.Symbol = 'portal';
+        tile.remains = null;
         Game.drawAll();
         return;
       }
@@ -587,6 +590,7 @@ Game.createPortal = function (x, y, level) {
   }
   const [fx, fy] = Game.returnFree(map);
   map.Tiles[fx][fy].Symbol = 'portal';
+  map.Tiles[fx][fy].remains = null;
   Game.drawAll();
 };
 
@@ -641,6 +645,7 @@ Game.drawTile = function (x, y, level, color) {
   }
   const tile = Game.map[level].Tiles[x][y];
   const symbols = [tile.Symbol];
+  if (tile.remains) symbols.push(tile.remains);
   if (tile.trap?.revealed) symbols.push(tile.trap.type);
   if (tile.items[0]) symbols.push(tile.items[0].symbol);
 

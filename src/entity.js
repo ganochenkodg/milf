@@ -36,6 +36,7 @@ class Entity {
         Math.floor((this.agi + this.con) * 0.25) || 1;
     this.affects = [];
     this.onHit = properties.onHit || null;
+    this.remains = properties.remains || 'redblood';
     this.state = 'idle';
     this.targetPos = null;
     this.wanderPath = null;
@@ -78,6 +79,9 @@ class Entity {
       }
       scheduler.remove(this);
       tile.Mob = false;
+      if (tile.Symbol !== 'portal') {
+        tile.remains = `${this.remains}${randInt(1, 2)}`;
+      }
     } else if (Math.random() < 0.3) {
       const tempEntity = Game.EntityRepository.create(
         ROT.RNG.getItem(['insects', 'snake', 'zombie', 'skeleton', 'ghoul']),
@@ -126,16 +130,57 @@ class Entity {
       );
       Game.checkShields(this, victim, 'physical', result);
       if (this.onHit && victim.hp >= 1) {
-        if (this.onHit === 'vampiric') {
-          this.hp = Math.min(this.maxHp, this.hp + Math.max(1, Math.floor(result * 0.3)));
-        } else if (Math.random() < 0.25) {
-          const vIdx = Game.entity.indexOf(victim);
-          if (vIdx !== -1) {
-            const affect =
-              this.onHit === 'poison'
-                ? { poison: Math.max(4, this.level * 2), duration: 3, symbol: 'poison' }
-                : { [this.onHit]: true, duration: this.onHit === 'stun' ? 1 : 2, symbol: this.onHit };
-            Game.addAffect(vIdx, affect);
+        const hit =
+          typeof this.onHit === 'string'
+            ? { type: this.onHit, chance: this.onHit === 'vampiric' ? 1 : 0.25, ratio: 0.3 }
+            : this.onHit;
+        if (Math.random() < hit.chance) {
+          if (hit.type === 'vampiric') {
+            const heal = Math.max(1, Math.floor(result * (hit.ratio || 0.3)));
+            this.hp = Math.min(this.maxHp, this.hp + heal);
+          } else if (hit.type === 'manaburn') {
+            const drained = Math.min(
+              victim.mana,
+              Math.max(1, Math.floor(victim.maxMana * 0.15))
+            );
+            if (drained > 0) {
+              victim.mana -= drained;
+              this.mana = Math.min(this.maxMana, this.mana + drained);
+              Game.messageBox.sendMessage(
+                `The ${this.name} drains %c{deepskyblue}${drained}%c{} mana from ${victim.player ? 'you' : `the ${victim.name}`}!`
+              );
+            }
+          } else if (hit.type === 'knockback') {
+            const map = Game.map[this.depth];
+            const nx = victim.x + Math.sign(victim.x - this.x);
+            const ny = victim.y + Math.sign(victim.y - this.y);
+            if (
+              nx > 0 &&
+              nx < map.width - 1 &&
+              ny > 0 &&
+              ny < map.height - 1 &&
+              !map.Tiles[nx][ny].Blocked &&
+              !map.Tiles[nx][ny].Mob &&
+              !(nx === Game.entity[0].x && ny === Game.entity[0].y)
+            ) {
+              if (!victim.player) map.Tiles[victim.x][victim.y].Mob = false;
+              victim.x = nx;
+              victim.y = ny;
+              if (!victim.player) map.Tiles[nx][ny].Mob = true;
+              Game.messageBox.sendMessage(
+                `The ${this.name} knocks ${victim.player ? 'you' : `the ${victim.name}`} back!`
+              );
+              Game.triggerTrap(victim);
+            }
+          } else {
+            const vIdx = Game.entity.indexOf(victim);
+            if (vIdx !== -1) {
+              const affect =
+                hit.type === 'poison'
+                  ? { poison: Math.max(4, this.level * 2), duration: 3, symbol: 'poison' }
+                  : { [hit.type]: true, duration: hit.type === 'stun' ? 1 : 2, symbol: hit.type };
+              Game.addAffect(vIdx, affect);
+            }
           }
         }
       }
@@ -468,9 +513,16 @@ class Entity {
 
     const hpbar = Math.max(1, Math.min(8, Math.floor((this.hp * 8) / this.maxHp)));
     const [camX, camY] = Game.getCamera(this.x, this.y);
+    const remains = tile.remains ? [tile.remains] : [];
     const trap = tile.trap?.revealed ? [tile.trap.type] : [];
-    const symbols = [tile.Symbol, ...trap, this.symbol, `hp${hpbar}`];
-    const colors = [tile.Color, ...trap.map(() => '#0000'), this.color, '#0000'];
+    const symbols = [tile.Symbol, ...remains, ...trap, this.symbol, `hp${hpbar}`];
+    const colors = [
+      tile.Color,
+      ...remains.map(() => tile.Color),
+      ...trap.map(() => '#0000'),
+      this.color,
+      '#0000'
+    ];
     Game.mainDisplay.draw(
       camX,
       camY,
@@ -870,6 +922,102 @@ const ENTITY_DEFS = {
       mob.skills.push(Game.SkillRepository.createRandom(l - 2, l + 2));
     }
   },
+  centaur: {
+    minLvl: 6, maxLvl: 18, defense: 4, vision: 6, speed: 115,
+    names: 'centaur',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 3 + roll(l),
+      agi: 6 + roll(l * 2),
+      int: 3 + roll(l),
+      con: 3 + roll(l),
+      maxAtk: 5 + roll(l * 2)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['firearrow', 'poisonarrow', 'stonearrow', 'icearrow']),
+        1 + Math.floor(l / 2)
+      )
+    ],
+    rare: (mob, l) => {
+      mob.agi += 4;
+      mob.str += 3;
+      mob.skills.push(Game.SkillRepository.create('iceshield', 1 + Math.floor(l / 2)));
+    }
+  },
+  cockatrice: {
+    minLvl: 8, maxLvl: 22, defense: 5, vision: 6,
+    names: 'cockatrice',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 3 + roll(l),
+      agi: 5 + roll(l),
+      int: 4 + roll(l),
+      con: 4 + roll(l),
+      maxAtk: 5 + l + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['poisonarrow', 'poisonslash', 'acidcloud']),
+        2 + roll(l / 2)
+      )
+    ],
+    rare: (mob, l) => {
+      mob.int += 4;
+      mob.con += 4;
+      mob.skills.push(Game.SkillRepository.create('acidcloud', 2 + Math.floor(l / 2)));
+    }
+  },
+  golem: {
+    minLvl: 14, maxLvl: 45, defense: 12, speed: 85,
+    names: 'golem',
+    deadMessage: ' crumbles into rubble.',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: l + roll(l),
+      agi: 1 + roll(l / 2),
+      int: 4 + roll(l),
+      con: 8 + roll(l),
+      maxAtk: 6 + l + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['stonearrow', 'crackedearth']),
+        4 + roll(l / 2)
+      ),
+      Game.SkillRepository.create('strengthofstone', 2 + Math.floor(l / 3))
+    ],
+    rare: (mob, l) => {
+      mob.con += 8;
+      mob.defense += 4;
+      mob.skills.push(Game.SkillRepository.create('crackedearth', 4 + Math.floor(l / 2)));
+    }
+  },
+  dragon: {
+    minLvl: 24, maxLvl: 100, defense: 14, vision: 7,
+    names: 'dragon',
+    acts: { Actor: true, Skills: true },
+    stats: (l) => ({
+      str: 4 + l + roll(l),
+      agi: 4 + roll(l),
+      int: 6 + l + roll(l),
+      con: 9 + roll(l),
+      maxAtk: 8 + l + roll(l)
+    }),
+    skills: (l) => [
+      Game.SkillRepository.create(
+        ROT.RNG.getItem(['fireball', 'flamechains']),
+        6 + roll(l / 2)
+      ),
+      Game.SkillRepository.create('fireshield', 4 + Math.floor(l / 3))
+    ],
+    rare: (mob, l) => {
+      mob.str += 4;
+      mob.int += 4;
+      mob.con += 6;
+      mob.skills.push(Game.SkillRepository.create('fireball', 8 + Math.floor(l / 2)));
+    }
+  },
   fleshlord: {
     minLvl: -100, maxLvl: -50, vision: 30, speed: 90,
     names: '%c{mediumaquamarine}fleshlord%c{}',
@@ -919,6 +1067,39 @@ const RARE_MOB_MODIFIERS = [
   ['vampiric', 'indianred', (m) => { m.onHit = 'vampiric'; }]
 ];
 
+const BONES_MOBS = new Set([
+  'skeleton', 'zombie', 'ghoul', 'lich', 'banshee',
+  'dark knight', 'reaper', 'wraith', 'golem'
+]);
+
+const GREEN_BLOOD_MOBS = new Set([
+  'giant centipede', 'lampreymander', 'giant earthworm',
+  'giant ant', 'lesser giant ant', 'giant spider', 'lesser giant spider',
+  'little goblin warrior', 'little goblin wizard', 'goblin warrior', 'goblin wizard',
+  'snake', 'troll', 'dryad', 'forest spirit', 'myconid', 'cockatrice'
+]);
+
+const MOB_ON_HIT = {
+  snake: { type: 'poison', chance: 0.15 },
+  'giant spider': { type: 'poison', chance: 0.15 },
+  'lesser giant spider': { type: 'poison', chance: 0.15 },
+  'giant centipede': { type: 'poison', chance: 0.15 },
+  cockatrice: { type: 'stun', chance: 0.12 },
+  ghoul: { type: 'vampiric', chance: 0.15, ratio: 0.2 },
+  'giant bat': { type: 'vampiric', chance: 0.15, ratio: 0.2 },
+  lycanthrope: { type: 'vampiric', chance: 0.15, ratio: 0.2 },
+  ettin: { type: 'knockback', chance: 0.15 },
+  'two headed ettin': { type: 'knockback', chance: 0.15 },
+  golem: { type: 'knockback', chance: 0.15 },
+  dragon: { type: 'knockback', chance: 0.15 },
+  troll: { type: 'knockback', chance: 0.15 },
+  lich: { type: 'manaburn', chance: 0.15 },
+  cultist: { type: 'manaburn', chance: 0.15 },
+  witch: { type: 'manaburn', chance: 0.15 },
+  myconid: { type: 'confuse', chance: 0.15 },
+  dryad: { type: 'confuse', chance: 0.15 }
+};
+
 for (const [key, def] of Object.entries(ENTITY_DEFS)) {
   Game.EntityRepository.define(key, function (level) {
     this.minLvl = def.minLvl;
@@ -926,6 +1107,12 @@ for (const [key, def] of Object.entries(ENTITY_DEFS)) {
     this.level = level;
     this.name = pickFrom(def.names);
     this.symbol = def.symbols ? pickFrom(def.symbols) : this.name;
+    this.remains = BONES_MOBS.has(this.name)
+      ? 'bones'
+      : GREEN_BLOOD_MOBS.has(this.name)
+        ? 'greenblood'
+        : 'redblood';
+    if (MOB_ON_HIT[this.name]) this.onHit = MOB_ON_HIT[this.name];
     if (def.vision !== undefined) this.vision = def.vision;
     if (def.defense !== undefined) this.defense = def.defense;
     if (def.speed !== undefined) this.speed = def.speed;

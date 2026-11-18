@@ -74,6 +74,10 @@ const gameTilemap = {
   fleshlordchant1: [544, 352],
   fleshlordchant2: [576, 352],
   fleshlordchant3: [608, 352],
+  golem: [576, 288],
+  centaur: [608, 288],
+  dragon: [576, 320],
+  cockatrice: [608, 320],
   // Player tiles
   warrior1: [256, 0],
   wizard1: [288, 0],
@@ -157,6 +161,9 @@ addTileSeries('staff', 12, 0, 320, 6);
 addTileSeries('armor', 12, 192, 256, 6);
 addTileSeries('potion', 10, 0, 384, 5);
 addTileSeries('book', 6, 0, 448);
+addTileSeries('bones', 2, 256, 160);
+addTileSeries('greenblood', 2, 192, 192);
+addTileSeries('redblood', 2, 256, 192);
 
 // 6x6 end-screen banners
 for (let y = 0; y <= 5; y++) {

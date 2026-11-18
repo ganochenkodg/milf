@@ -318,9 +318,15 @@ class Player {
   Draw() {
     const tile = Game.map[this.depth].Tiles[this.x][this.y];
     const [camX, camY] = Game.getCamera(this.x, this.y);
+    const remains = tile.remains ? [tile.remains] : [];
     const trap = tile.trap?.revealed ? [tile.trap.type] : [];
-    const symbols = [tile.Symbol, ...trap, this.symbol];
-    const colors = [tile.Color, ...trap.map(() => '#0000'), this.color];
+    const symbols = [tile.Symbol, ...remains, ...trap, this.symbol];
+    const colors = [
+      tile.Color,
+      ...remains.map(() => tile.Color),
+      ...trap.map(() => '#0000'),
+      this.color
+    ];
     Game.mainDisplay.draw(
       camX,
       camY,
