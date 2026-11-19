@@ -24,7 +24,7 @@ class Entity {
     this.hp = this.maxHp;
     this.maxMana = 10 + this.int * 8;
     this.mana = this.maxMana;
-    this.color = '#0000';
+    this.color = properties.color || '#0000';
     this.confuse = false;
     this.stun = false;
     this.frozen = false;
@@ -37,6 +37,7 @@ class Entity {
     this.affects = [];
     this.onHit = properties.onHit || null;
     this.remains = properties.remains || 'redblood';
+    this.rare = properties.rare || false;
     this.state = 'idle';
     this.targetPos = null;
     this.wanderPath = null;
@@ -71,7 +72,7 @@ class Entity {
       const pietyMult = Game.map[level].pietyMultiplier || 1;
       Game.entity[0].piety +=
         (1 + roll(this.level) + Math.floor(Math.pow(1.8, this.level))) * pietyMult;
-      if (this.name.startsWith('%c{lightsalmon}rare')) {
+      if (this.rare) {
         tile.items.push(Game.ItemRepository.createRandom(this.level + 2, this.level + 5));
       }
       if (this.name.startsWith('%c{mediumaquamarine}fleshlord')) {
@@ -1041,30 +1042,30 @@ const ENTITY_DEFS = {
 };
 
 const RARE_MOB_MODIFIERS = [
-  ['berserk', 'crimson', (m) => {
+  ['berserk', 'crimson', '#e235', (m) => {
     m.maxAtk = Math.ceil(m.maxAtk * 1.3);
     m.speed = (m.speed || 100) + 15;
   }],
-  ['armored', 'steelblue', (m, l) => {
+  ['armored', 'steelblue', '#48b5', (m, l) => {
     m.defense = (m.defense || 0) + 3 + Math.floor(l * 0.6);
   }],
-  ['swift', 'khaki', (m, l) => {
+  ['swift', 'khaki', '#ee85', (m, l) => {
     m.speed = (m.speed || 100) + 25;
     m.agi += 2 + Math.floor(l / 3);
   }],
-  ['colossal', 'yellowgreen', (m) => {
+  ['colossal', 'yellowgreen', '#9c35', (m) => {
     m.con = Math.ceil(m.con * 1.4);
   }],
-  ['arcane', 'turquoise', (m, l) => {
+  ['arcane', 'turquoise', '#4ed5', (m, l) => {
     m.int = Math.ceil(m.int * 1.4);
     m.acts.Skills = true;
     (m.skills ||= []).push(Game.SkillRepository.createRandom(1, l + 1));
   }],
-  ['venomous', 'limegreen', (m) => { m.onHit = 'poison'; }],
-  ['glacial', 'aqua', (m) => { m.onHit = 'freeze'; }],
-  ['dread', 'plum', (m) => { m.onHit = 'confuse'; }],
-  ['thunderous', 'gold', (m) => { m.onHit = 'stun'; }],
-  ['vampiric', 'indianred', (m) => { m.onHit = 'vampiric'; }]
+  ['venomous', 'limegreen', '#3d35', (m) => { m.onHit = 'poison'; }],
+  ['glacial', 'aqua', '#0ff5', (m) => { m.onHit = { type: 'freeze', chance: 0.4 }; }],
+  ['dread', 'plum', '#c8c5', (m) => { m.onHit = 'confuse'; }],
+  ['thunderous', 'gold', '#fd05', (m) => { m.onHit = 'stun'; }],
+  ['vampiric', 'indianred', '#c445', (m) => { m.onHit = 'vampiric'; }]
 ];
 
 const BONES_MOBS = new Set([
@@ -1121,8 +1122,10 @@ for (const [key, def] of Object.entries(ENTITY_DEFS)) {
     if (def.stats) Object.assign(this, def.stats(level));
     if (def.skills) this.skills = def.skills(level);
     if (def.rare && Math.random() < cfg.rareMob) {
-      const [modLabel, modColor, applyMod] = ROT.RNG.getItem(RARE_MOB_MODIFIERS);
-      this.name = `%c{lightsalmon}rare %c{${modColor}}${modLabel}%c{lightsalmon} ${this.name}%c{}`;
+      const [modLabel, modColor, tint, applyMod] = ROT.RNG.getItem(RARE_MOB_MODIFIERS);
+      this.name = `%c{${modColor}}${modLabel} ${this.name}%c{}`;
+      this.color = tint;
+      this.rare = true;
       def.rare(this, level);
       applyMod(this, level);
     }
