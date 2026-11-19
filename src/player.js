@@ -190,9 +190,7 @@ class Player {
         if (!t.Visited || (wantItems && t.items.length > 0)) {
           return step;
         }
-        if (!t.Blocked) {
-          queue.push([nx, ny, step]);
-        }
+        queue.push([nx, ny, step]);
       }
     }
     return null;

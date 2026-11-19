@@ -317,7 +317,7 @@ function registerGear(type, spritePrefix, defs) {
         }
         const [prefix, prefixColor, applyAffix] = ROT.RNG.getItem(RARE_GEAR_AFFIXES);
         applyAffix(this.options, level);
-        this.name = `%c{${prefixColor}}${prefix}%c{lightsalmon} ${label} (${this.level})%c{}`;
+        this.name = `%c{${prefixColor}}${prefix} ${label} (${this.level})%c{}`;
       }
     });
   }
