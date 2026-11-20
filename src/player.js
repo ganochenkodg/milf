@@ -359,14 +359,15 @@ class Player {
     }
   }
 
-  doGetDamage(dmg, cap = 0.9) {
+  doGetDamage(dmg, cap = 0.8) {
     if (this.resting || this.exploring) {
       const activity = this.resting ? 'resting' : 'exploring';
       this.resting = false;
       this.exploring = false;
       Game.messageBox.sendMessage(`%c{orange}You take damage and stop ${activity}!%c{}`);
     }
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(cap, this.defense / dmg))));
+    const def = Math.max(0, this.defense);
+    const actual = Math.max(1, Math.round(dmg * (1 - Math.min(cap, def / (def + dmg)))));
     this.hp -= actual;
     return actual;
   }

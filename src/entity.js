@@ -190,8 +190,9 @@ class Entity {
     Game.drawAll();
   }
 
-  doGetDamage(dmg, cap = 0.9) {
-    const actual = Math.max(1, Math.floor(dmg * (1 - Math.min(cap, this.defense / dmg))));
+  doGetDamage(dmg, cap = 0.8) {
+    const def = Math.max(0, this.defense);
+    const actual = Math.max(1, Math.round(dmg * (1 - Math.min(cap, def / (def + dmg)))));
     this.hp -= actual;
     this.onDamaged();
     return actual;
