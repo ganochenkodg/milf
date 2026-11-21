@@ -406,7 +406,7 @@ const SKILL_DEFS = [
     cost: 14 + l * 2, shield: 2 + l, duration: 8 + l * 2, cold: 0.1 + l * 0.01, range: 0, radius: 0
   })],
   ['strengthofstone', 'papayawhip', 'strength of stone', 1, 10, 'self', 'chant', {}, (l) => ({
-    cost: 10 + l * 2, str: 2 + l, duration: 8 + l * 2, range: 0, radius: 0
+    cost: 10 + l * 2, str: 4 + l * 2, duration: 8 + l * 2, range: 0, radius: 0
   })],
   ['twistingslash', 'coral', 'twisting slash', 3, 13, 'range', 'damage', { weapon: true, selfProtect: true }, (l) => ({
     cost: 20 + l * 2, minatk: 2, maxatk: 10 + l * 2, range: 0, radius: 1
@@ -487,7 +487,7 @@ const SKILL_DEFS = [
     stun: l * 0.02, confuse: 0.3 + l * 0.02, range: 5, radius: 2, duration: 2 + Math.floor(l / 10)
   })],
   ['speedoflight', 'seashell', 'speed of light', 25, 100, 'self', 'chant', {}, (l) => ({
-    cost: 50 + l * 2, agi: Math.floor(l / 2), speed: Math.floor(l / 2),
+    cost: 50 + l * 2, agi: l, speed: l,
     duration: 20 + l * 2, range: 0, radius: 0
   })],
   ['plague', 'darkseagreen', 'plague', 20, 100, 'range', 'damage', { selfProtect: true }, (l) => ({

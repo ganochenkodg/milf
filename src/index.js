@@ -68,8 +68,9 @@ const Game = {
     Game.entity.unshift(player);
 
     const regen = createPeriodicActor(15, () => {
+      const playerDepth = Game.entity[0].depth;
       for (const e of Game.entity) {
-        if (e.depth !== Game.entity[0].depth || (!e.player && !('Actor' in e.acts))) continue;
+        if (Math.abs(e.depth - playerDepth) > 1 || (!e.player && !('Actor' in e.acts))) continue;
         e.hp = Math.min(e.maxHp, e.hp + 1 + Math.floor(e.maxHp / 100) + Math.floor(e.con / 5));
         e.mana = Math.min(e.maxMana, e.mana + 1 + Math.floor(e.maxMana / 100) + Math.floor(e.int / 5));
       }

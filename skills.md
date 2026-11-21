@@ -7,7 +7,7 @@
 | poison slash       | damage + weapon | Lvl 1 - 10    | cost: 14 + Lvl×2.3  | dmg: 2 - (10 + 2×Lvl), rng: 1, rad: 0, poison: 65% + 3%×Lvl, dur: 3 + Lvl/4 |
 | rapid cut          | damage + weapon | Lvl 1 - 10    | cost: 8 + Lvl×2     | dmg: 4 - (4 + 2×Lvl), rng: 1, rad: 0                                     |
 | ice shield         | chant           | Lvl 1 - 10    | cost: 14 + Lvl×2    | shield: 2 + Lvl, dur: 8 + 2×Lvl, freeze: 10% + 1%×Lvl                   |
-| strength of stone  | chant           | Lvl 1 - 10    | cost: 10 + Lvl×2    | str: 2 + Lvl, dur: 8 + 2×Lvl                                            |
+| strength of stone  | chant           | Lvl 1 - 10    | cost: 10 + Lvl×2    | str: 4 + 2×Lvl, dur: 8 + 2×Lvl                                          |
 | twisting slash     | damage + weapon | Lvl 3 - 13    | cost: 20 + Lvl×2    | dmg: 2 - (10 + 2×Lvl), rng: 0, rad: 1                                    |
 | fireball           | damage          | Lvl 3 - 15    | cost: 20 + Lvl×2    | dmg: 8 - (12 + 2×Lvl), rng: 5 + Lvl/3, rad: 1                            |
 | lightning bolt     | damage          | Lvl 5 - 45    | cost: 15 + Lvl×2    | dmg: 8 - (14 + 2×Lvl), rng: 5 + Lvl/10, rad: 0, stun: 25% + 1%×Lvl, dur: 1 |
@@ -29,7 +29,7 @@
 | plague             | damage          | Lvl 20 - 100  | cost: 58 + Lvl×2.3  | dmg: 14 - (22 + 2×Lvl), rng: 6, rad: 2, poison: 60% + 3%×Lvl, dur: 4 + Lvl/3 |
 | rain of blades     | damage + weapon | Lvl 25 - 100  | cost: 50 + Lvl×2    | dmg: 15 - (20 + 2×Lvl), rng: 5, rad: 2, confuse: 2%×Lvl, dur: 1        |
 | darkness           | damage          | Lvl 25 - 100  | cost: 50 + Lvl×2    | dmg: 6 - (15 + 2×Lvl), rng: 5, rad: 2, stun: 2%×Lvl, confuse: 30% + 2%×Lvl, dur: 2 + Lvl/10 |
-| speed of light     | chant           | Lvl 25 - 100  | cost: 50 + Lvl×2    | agi: Lvl/2, speed: Lvl/2, dur: 20 + Lvl×2                               |
+| speed of light     | chant           | Lvl 25 - 100  | cost: 50 + Lvl×2    | agi: Lvl, speed: Lvl, dur: 20 + Lvl×2                                   |
 | honor              | chant           | Lvl 25 - 100  | cost: 60 + Lvl×2    | shield: 20 + Lvl, restoration: 1%×Lvl (max 90%), str: Lvl/2, dur: 20 + Lvl×2 |
 | arcane shield      | chant           | Lvl 25 - 100  | cost: 60 + Lvl×2    | shield: 30 + Lvl, int: Lvl/2, dur: 30 + Lvl×2                            |
 | reflection shield  | chant           | Lvl 25 - 100  | cost: 40 + Lvl×2    | shield: 20 + Lvl, reflection: 1%×Lvl (max 90%), dur: 25 + Lvl×2        |
